@@ -14,7 +14,7 @@ const datasetMetadata = {
   // the required name of the dataset, must be less than 40 characters, no special characters allowed
   name: 'vergunningscontroleservice',
   // a more human friendly name of the dataset
-  displayName: 'Vergunningscontroleservice', 
+  displayName: 'Vergunningscontroleservice',
   // uncomment one or more of the following optional parameters to describe your dataset:
   description: 'Gepubliceerd door TriplyETL' // an optional description for your dataset, can include Markdown code
 }
