@@ -14,12 +14,9 @@ const datasetMetadata = {
   // the required name of the dataset, must be less than 40 characters, no special characters allowed
   name: 'vergunningscontroleservice',
   // a more human friendly name of the dataset
-  displayname: 'Triply ETL for GemeenteRotterdam'
-
+  displayName: 'Vergunningscontroleservice', 
   // uncomment one or more of the following optional parameters to describe your dataset:
-  // description: '', // an optional description for your dataset, can include Markdown code
-  // license: '', // the license under which your dataset is avaliable
-  // accessLevel: 'public' // chouse one of 'public' | 'internal' | 'private'
+  description: 'Gepubliceerd door TriplyETL' // an optional description for your dataset, can include Markdown code
 }
 
 export default async function (): Promise<Etl> {
