@@ -14,7 +14,7 @@ const datasetMetadata = {
   // the required name of the dataset, must be less than 40 characters, no special characters allowed
   name: 'vergunningscontroleservice',
   // a more human friendly name of the dataset
-  displayname: 'Triply ETL for GemeenteRotterdam',
+  displayname: 'Triply ETL for GemeenteRotterdam'
 
   // uncomment one or more of the following optional parameters to describe your dataset:
   // description: '', // an optional description for your dataset, can include Markdown code
