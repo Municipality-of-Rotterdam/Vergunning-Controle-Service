@@ -1,0 +1,76 @@
+@prefix ex: <http://example.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:BuildingShape
+    a sh:NodeShape ;
+    sh:targetClass ex:Building ;
+    sh:property [
+        sh:path ex:BuildingID ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:message "Building must have a BuildingID." ;
+    ] ;
+    sh:property [
+        sh:path ex:NumberOfPeople ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:message "Building must have a BuildingID." ;
+    ] ;
+    sh:property [
+        sh:path ex:Height ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 100 ;
+        sh:message "Building must have a height between 0 and 100 meters." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint;
+        sh:message "Building {$this} of type {$buildingType} must be one of Residence, Office, or Commercial." ;
+        sh:select '''
+PREFIX ex: <https://example.org/>
+SELECT $this $buildingType
+WHERE {
+$this a ex:Building;
+        ex:BuildingType $buildingType .
+        values ($buildingType) {
+            ("Residence")
+            ("Office")
+            ("Commercial")
+        }
+}
+''' ].
+
+ex:HeightViolationRule
+    a sh:NodeShape ;
+    sh:targetClass ex:Building ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        rdfs:label "Check if building height violation" ;
+        sh:construct """
+PREFIX ex: <https://example.org/>
+            CONSTRUCT {
+                ?building ex:HeightViolation "true"^^xsd:boolean .
+            }
+            WHERE {
+                ?building ex:height ?height .
+                FILTER(?height > 15) .
+            }
+        """ ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        rdfs:label "Check if building height is within limit" ;
+        sh:construct """
+PREFIX ex: <https://example.org/>
+            CONSTRUCT {
+                ?building ex:HeightViolation "false"^^xsd:boolean .
+            }
+            WHERE {
+                ?building ex:height ?height .
+                FILTER(?height <= 15) .
+            }
+        """ ;
+    ] .

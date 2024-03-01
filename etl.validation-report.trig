@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix ex: <http://example.org/>.
+
+_:e3a31 a sh:ValidationReport;
+    sh:conforms false;
+    sh:result _:e3a30, _:e3a32, _:e3a33, _:e3a34.
+_:e3a30 a sh:ValidationResult;
+    sh:resultSeverity sh:Violation;
+    sh:focusNode <https://example.org/Buildingbuilding1>;
+    sh:sourceConstraintComponent sh:SPARQLConstraintComponent;
+    sh:sourceShape ex:BuildingShape;
+    sh:sourceConstraint _:c021141;
+    sh:resultMessage "Building {$this} of type {$buildingType} must be one of Residence, Office, or Commercial.".
+_:e3a32 a sh:ValidationResult;
+    sh:resultSeverity sh:Violation;
+    sh:focusNode <https://example.org/Buildingbuilding2>;
+    sh:sourceConstraintComponent sh:SPARQLConstraintComponent;
+    sh:sourceShape ex:BuildingShape;
+    sh:sourceConstraint _:c021141;
+    sh:resultMessage "Building {$this} of type {$buildingType} must be one of Residence, Office, or Commercial.".
+_:e3a33 a sh:ValidationResult;
+    sh:resultSeverity sh:Violation;
+    sh:focusNode <https://example.org/Buildingbuilding3>;
+    sh:sourceConstraintComponent sh:SPARQLConstraintComponent;
+    sh:sourceShape ex:BuildingShape;
+    sh:sourceConstraint _:c021141;
+    sh:resultMessage "Building {$this} of type {$buildingType} must be one of Residence, Office, or Commercial.".
+_:e3a34 a sh:ValidationResult;
+    sh:resultSeverity sh:Violation;
+    sh:focusNode <https://example.org/Buildingbuilding4>;
+    sh:sourceConstraintComponent sh:SPARQLConstraintComponent;
+    sh:sourceShape ex:BuildingShape;
+    sh:sourceConstraint _:c021141;
+    sh:resultMessage "Building {$this} of type {$buildingType} must be one of Residence, Office, or Commercial.".
