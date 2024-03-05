@@ -3,7 +3,7 @@
 
 import { Etl, environments } from '@triplyetl/etl/generic'
 
-export function get_account(): string {
+export function get_account (): string {
   switch (Etl.environment) {
     case environments.Development:
       return 'me'
@@ -16,7 +16,7 @@ export function get_account(): string {
   }
 }
 
-export function get_dataset(name: string): string {
+export function get_dataset (name: string): string {
   switch (Etl.environment) {
     case environments.Development:
       return name

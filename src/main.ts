@@ -10,7 +10,6 @@ import { a, foaf, owl, xsd } from '@triplyetl/etl/vocab'
 // Declare the base for all Iri's:
 const baseIri = declarePrefix('https://demo.triplydb.com/GemeenteRotterdam/vergunningscontroleservice/')
 
-
 export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
   const etl = new Etl({ baseIri })
@@ -47,7 +46,7 @@ export default async function (): Promise<Etl> {
     validate(source.model),
 
     // Publish your data in TriplyDB.
-    toTriplyDb(destination.vergunningscontroleservice )
+    toTriplyDb(destination.vergunningscontroleservice)
   )
   return etl
 }
