@@ -1,23 +1,15 @@
 // Import middlewares and other required libraries.
-import { declarePrefix, Etl, fromCsv, Source, toTriplyDb } from '@triplyetl/etl/generic'
+import { declarePrefix, Etl, fromCsv, toTriplyDb } from '@triplyetl/etl/generic'
 import { concat, pairs, iri, literal, split } from '@triplyetl/etl/ratt'
 import { validate } from '@triplyetl/etl/shacl'
+import { source, destination } from './utils/sources-destinations.js'
 
 // Import vocabularies.
 import { a, foaf, owl, xsd } from '@triplyetl/etl/vocab'
 
 // Declare the base for all Iri's:
-const baseIri = declarePrefix('https://example.org/')
+const baseIri = declarePrefix('https://demo.triplydb.com/GemeenteRotterdam/vergunningscontroleservice/')
 
-// Define the metadata for the Dataset:
-const datasetMetadata = {
-  // the required name of the dataset, must be less than 40 characters, no special characters allowed
-  name: 'vergunningscontroleservice',
-  // a more human friendly name of the dataset
-  displayName: 'Vergunningscontroleservice',
-  // uncomment one or more of the following optional parameters to describe your dataset:
-  description: 'Gepubliceerd door TriplyETL' // an optional description for your dataset, can include Markdown code
-}
 
 export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
@@ -25,7 +17,7 @@ export default async function (): Promise<Etl> {
   etl.use(
 
     // Connect to one or more data sources.
-    fromCsv(Source.file('static/people.csv')),
+    fromCsv(source.people),
 
     // Transformations change data in the Record.
     concat({
@@ -52,10 +44,10 @@ export default async function (): Promise<Etl> {
     ),
 
     // Validation ensures that your instance data follows the data model.
-    validate(Source.file('static/model.trig')),
+    validate(source.model),
 
     // Publish your data in TriplyDB.
-    toTriplyDb({ dataset: datasetMetadata })
+    toTriplyDb(destination.vergunningscontroleservice )
   )
   return etl
 }
