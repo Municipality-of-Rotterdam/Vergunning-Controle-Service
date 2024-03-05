@@ -9,8 +9,9 @@ export function getAccount (): string {
       return 'me'
     case environments.Testing:
     case environments.Acceptance:
+      return 'GemeenteRotterdam'
     case environments.Production:
-      return 'vergunningscontroleservice'
+      return 'GemeenteRotterdam'
     default:
       throw new Error('Unanticipated DTAP environment.')
   }
