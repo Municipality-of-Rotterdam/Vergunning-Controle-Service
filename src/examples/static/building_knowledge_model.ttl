@@ -1,43 +1,178 @@
 @prefix ex: <http://example.org/> .
+@prefix exd: <http://example.org/def/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-ex:BuildingShape
+@prefix dbo: <http://dbpedia.org/ontology/> .
+@prefix rdfs: <https://www.w3.org/2000/01/rdf-schema#> .
+
+ex:GebouwShape
     a sh:NodeShape ;
-    sh:targetClass ex:Building ;
+    sh:targetClass dbo:Building ;
     sh:property [
-        sh:path ex:BuildingID ;
+        sh:path exd:AantalPersonen ;
         sh:minCount 1;
         sh:maxCount 1;
-        sh:message "Building must have a BuildingID." ;
+        sh:message "Een gebouw moet een AantalPersonen hebben." ;
+        sh:severity sh:Violation ;
     ] ;
     sh:property [
-        sh:path ex:NumberOfPeople ;
+        sh:path exd:Woonwijk ;
         sh:minCount 1;
         sh:maxCount 1;
-        sh:message "Building must have a BuildingID." ;
+        sh:message "Een gebouw moet een Woonwijk met correcte code hebben." ;
+        sh:pattern "^[A-Z]{1}$" ;
+        sh:severity sh:Violation ;
     ] ;
     sh:property [
-        sh:path ex:Height ;
+        sh:path exd:heeftBouwlaag ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:message "Een gebouw moet bouwlagen hebben." ;
+        sh:severity sh:Violation ;
+    ] ;
+    sh:property [
+        sh:path exd:GebouwType ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:message "Een gebouw moet een type hebben." ;
+        sh:severity sh:Violation ;
+    ] ;
+    sh:property [
+        sh:path exd:Hoogte ;
         sh:datatype xsd:integer ;
         sh:minCount 1;
         sh:maxCount 1;
         sh:minInclusive 0 ;
         sh:maxInclusive 100 ;
-        sh:message "Building must have a height between 0 and 100 meters." ;
+        sh:message "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben." ;
+        sh:severity sh:Violation ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint;
-        sh:message "Building {$this} of type {$buildingType} must be one of Residence, Office, or Commercial." ;
+        sh:message "Gebouw {?this} van type {?buildingType} moet een Woonhuis, Kantoor, of Commercieel zijn." ;
+        sh:severity sh:Violation ;
+        sh:datatype xsd:string ;
         sh:select '''
-PREFIX ex: <https://example.org/>
-SELECT $this $buildingType
+PREFIX exd: <https://example.org/def/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+SELECT ?this ?buildingType
 WHERE {
-$this a ex:Building;
-        ex:BuildingType $buildingType .
-        values ($buildingType) {
-            ("Residence")
-            ("Office")
-            ("Commercial")
-        }
+?this a dbo:Building;
+        exd:GebouwType ?buildingType .
+FILTER (?buildingType NOT IN ("Woonhuis", "Kantoor", "Commercieel"))
 }
-''' ].
+''' ];
+    sh:sparql [
+        a sh:SPARQLConstraint;
+        sh:message "Gebouw {?this} met hoogte {?height} in Woonwijk A moet kleiner zijn dan 19 meter." ;
+        sh:severity sh:Violation ;
+        sh:datatype xsd:string ;
+        sh:select '''
+PREFIX exd: <https://example.org/def/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+
+SELECT ?this ?height
+WHERE {
+    ?this a dbo:Building ;
+              exd:Hoogte ?height ;
+              exd:Woonwijk "A" .
+    FILTER (?height > 19)
+}
+''' ] .
+# TODO improve this constraint
+#     sh:sparql [
+#         a sh:SPARQLConstraint;
+#         sh:message "Neighborhood C must have at least 30% of buildings with a Residence destination. Instead {?totalResidenceBuildings} out of {?totalBuildings} were Residence buildings!" ;
+#         sh:severity sh:Violation ;
+#         sh:datatype xsd:string ;
+#         sh:select '''
+# PREFIX exd: <https://example.org/def/>
+# PREFIX dbo: <http://dbpedia.org/ontology/>
+
+# SELECT (COUNT(?this) AS ?totalBuildings) (COUNT(?residenceBuilding) AS ?totalResidenceBuildings)
+
+# WHERE {
+#     ?this a dbo:Building ;
+#               exd:Neighborhood "C" .
+#     OPTIONAL {
+#         ?residenceBuilding a dbo:Building ;
+#             exd:buildingType "Residence";
+#             exd:Neighborhood "C" .
+#     }
+              
+#     }
+# GROUP BY ?this
+# HAVING (((COUNT(?residenceBuilding)/ COUNT(?building)) * 100) < 30)
+# ''' ].
+
+
+ex:BouwlaagShape
+    a sh:NodeShape ;
+    sh:targetClass ex:Bouwlaag ;
+    sh:property [
+        sh:path exd:bouwlaagElementen ;
+        sh:minCount 1;
+        sh:message "Bouwlaag moet bouwlaag elementen hebben." ;
+        sh:severity sh:Violation ;
+    ] ;
+    sh:property [
+        sh:path (exd:bouwlaagElementen exd:Hoogte) ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:minInclusive 0 ;
+        sh:message "Bouwlaag moet een hoogte hebben." ;
+        sh:severity sh:Violation ;
+    ] ;
+    sh:property [
+        sh:path (exd:bouwlaagElementen exd:Verdieping) ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:minInclusive 0 ;
+        sh:message "Bouwlaag moet een verdieping hebben." ;
+        sh:severity sh:Violation ;
+    ] ;
+    sh:property [
+        sh:path (exd:bouwlaagElementen rdfs:label) ;
+        sh:datatype xsd:string ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:pattern "^Verdieping [0-9]{2}$" ;
+        sh:message "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn." ;
+        sh:severity sh:Violation ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Het aantal bouwlaagElementen mag niet hoger zijn dan 3, het aantal was {?count}." ;
+        sh:severity sh:Violation ;
+        sh:select '''
+PREFIX exd: <https://example.org/def/>
+SELECT ?this (COUNT(?floorElement) as ?count)
+WHERE {
+    ?this exd:bouwlaagElementen ?floorElement .
+}
+GROUP BY ?this
+HAVING (COUNT(?floorElement) > 3)
+        ''' ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Het ziet er naar uit dat gebouw {?this} van hoogte {?height} niet dezelfde hoogte heeft als de som van bouwlaag hoogtes: {?sumHeight}!" ;
+        sh:severity sh:Violation ;
+        sh:select '''
+PREFIX exd: <https://example.org/def/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+
+SELECT ?this ?height (SUM(?floorHeight) AS ?sumHeight)
+WHERE {
+    ?this a dbo:Building ;
+          exd:Hoogte ?height ;
+          exd:heeftBouwlaag ?floor .
+    ?floor exd:bouwlaagElementen ?floorElement .
+    ?floorElement exd:Hoogte ?floorHeight .
+}
+GROUP BY ?this ?height
+HAVING (SUM(?floorHeight) != ?height)
+        ''' ;
+    ] .

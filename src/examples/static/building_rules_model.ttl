@@ -15,7 +15,7 @@ ex:BuildingShape
         sh:path ex:NumberOfPeople ;
         sh:minCount 1;
         sh:maxCount 1;
-        sh:message "Building must have a BuildingID." ;
+        sh:message "Building must have a NumberOfPeople." ;
     ] ;
     sh:property [
         sh:path ex:Height ;
@@ -28,18 +28,14 @@ ex:BuildingShape
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint;
-        sh:message "Building {$this} of type {$buildingType} must be one of Residence, Office, or Commercial." ;
+        sh:message "Building {$this} of type {$buildingType} must be of type Residence, Office, or Commercial." ;
         sh:select '''
 PREFIX ex: <https://example.org/>
-SELECT $this $buildingType
+SELECT ?this ?buildingType
 WHERE {
-$this a ex:Building;
-        ex:BuildingType $buildingType .
-        values ($buildingType) {
-            ("Residence")
-            ("Office")
-            ("Commercial")
-        }
+?this a ex:Building;
+        ex:BuildingType ?buildingType .
+FILTER (?gender NOT IN ("Residence", "Office", "Commercial"))
 }
 ''' ].
 
@@ -48,7 +44,7 @@ ex:HeightViolationRule
     sh:targetClass ex:Building ;
     sh:rule [
         a sh:SPARQLRule ;
-        rdfs:label "Check if building height violation" ;
+        rdfs:label "Check if building has height violation" ;
         sh:construct """
 PREFIX ex: <https://example.org/>
             CONSTRUCT {
