@@ -3,636 +3,334 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix ex: <http://example.org/>.
 
-_:e3c81 a sh:ValidationReport;
+_:32f51 a sh:ValidationReport;
     sh:conforms false;
-    sh:result _:e3c82, _:e3c83, _:e3c84, _:e3c85, _:e3c86, _:e3c87, _:e3c88, _:e3c89, _:e3c810, _:e3c811, _:e3c812, _:e3c813, _:e3c814, _:e3c815, _:e3c816, _:e3c817, _:e3c818, _:e3c819, _:e3c820, _:e3c821, _:e3c822, _:e3c823, _:e3c824, _:e3c825, _:e3c826, _:e3c827, _:e3c828, _:e3c829, _:e3c830, _:e3c831, _:e3c832, _:e3c833, _:e3c834, _:e3c835, _:e3c836, _:e3c837, _:e3c838, _:e3c839, _:e3c840, _:e3c841, _:e3c842, _:e3c843, _:e3c844, _:e3c845, _:e3c846, _:e3c847, _:e3c848, _:e3c849, _:e3c850, _:e3c851, _:e3c852, _:e3c853, _:e3c854, _:e3c855, _:e3c856, _:e3c857, _:e3c858, _:e3c859, _:e3c860, _:e3c861, _:e3c862, _:e3c863, _:e3c864, _:e3c865, _:e3c866, _:e3c867, _:e3c868, _:e3c869, _:e3c870, _:e3c871, _:e3c872, _:e3c873, _:e3c874, _:e3c875, _:e3c876, _:e3c877, _:e3c878, _:e3c879, _:e3c880, _:e3c881, _:e3c882, _:e3c883, _:e3c884, _:e3c885, _:e3c886, _:e3c80, _:e3c887, _:e3c888, _:e3c889, _:e3c890.
-_:e3c82 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c83 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c84 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c85 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c86 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c87 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c88 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c89 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c810 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c811 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c812 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c813 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c814 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c815 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c816 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c817 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c818 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c819 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c820 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c821 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c822 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_5>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c823 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_5>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c824 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_5>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c825 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_5>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c826 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_5>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c827 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_6>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c828 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_6>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c829 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_6>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c830 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_6>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c831 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_A_6>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c832 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c833 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c834 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c835 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c836 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c837 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c838 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c839 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c840 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c841 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c842 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c843 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c844 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c845 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c846 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c847 a sh:ValidationResult;
+    sh:result _:32f52, _:32f53, _:32f54, _:32f55, _:32f56, _:32f59, _:32f512, _:32f515, _:32f518, _:32f521, _:32f524, _:32f527, _:32f530, _:32f533, _:32f536, _:32f539, _:32f542, _:32f545, _:32f548, _:32f551, _:32f554, _:32f557, _:32f560, _:32f563, _:32f566, _:32f569, _:32f572, _:32f575, _:32f50, _:32f578, _:32f579, _:32f580, _:32f581.
+_:32f52 a sh:ValidationResult;
     sh:focusNode <https://example.org/id/gebouw_B_4>;
     sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c848 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
+    sh:sourceConstraintComponent sh:PatternConstraintComponent;
+    sh:sourceShape _:bc59133;
     sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c849 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c850 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c851 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_B_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c852 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c853 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c854 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c855 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c856 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c857 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c858 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c859 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c860 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c861 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_2>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c862 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c863 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c864 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c865 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c866 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_3>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c867 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c868 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c869 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c870 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c871 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_4>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c872 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_5>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c873 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_5>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c874 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_5>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c875 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_5>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c876 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_5>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c877 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_6>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
-    sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c878 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_6>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c879 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_6>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c880 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_6>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
-    sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c881 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_C_6>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
-    sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c882 a sh:ValidationResult;
+    sh:resultPath <https://example.org/def/Woonwijk>;
+    sh:value "9".
+_:32f53 a sh:ValidationResult;
     sh:focusNode <https://example.org/id/gebouw_E_1>;
     sh:resultSeverity sh:Violation;
     sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237132;
+    sh:sourceShape _:bc59132;
     sh:resultMessage "Een gebouw moet een AantalPersonen hebben.";
-    sh:resultPath <http://example.org/def/AantalPersonen>.
-_:e3c883 a sh:ValidationResult;
+    sh:resultPath <https://example.org/def/AantalPersonen>.
+_:32f54 a sh:ValidationResult;
     sh:focusNode <https://example.org/id/gebouw_E_1>;
     sh:resultSeverity sh:Violation;
     sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237133;
-    sh:resultMessage "Een gebouw moet een Woonwijk met correcte code hebben.";
-    sh:resultPath <http://example.org/def/Woonwijk>.
-_:e3c884 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_E_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237134;
-    sh:resultMessage "Een gebouw moet bouwlagen hebben.";
-    sh:resultPath <http://example.org/def/heeftBouwlaag>.
-_:e3c885 a sh:ValidationResult;
-    sh:focusNode <https://example.org/id/gebouw_E_1>;
-    sh:resultSeverity sh:Violation;
-    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237135;
+    sh:sourceShape _:bc59135;
     sh:resultMessage "Een gebouw moet een type hebben.";
-    sh:resultPath <http://example.org/def/GebouwType>.
-_:e3c886 a sh:ValidationResult;
+    sh:resultPath <https://example.org/def/GebouwType>.
+_:32f55 a sh:ValidationResult;
     sh:focusNode <https://example.org/id/gebouw_E_1>;
     sh:resultSeverity sh:Violation;
     sh:sourceConstraintComponent sh:MinCountConstraintComponent;
-    sh:sourceShape _:4237136;
+    sh:sourceShape _:bc59136;
     sh:resultMessage "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
-    sh:resultPath <http://example.org/def/Hoogte>.
-_:e3c80 a sh:ValidationResult;
+    sh:resultPath <https://example.org/def/Hoogte>.
+_:32f56 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/79afad7305c8f534869a64b3463d517f>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MaxCountConstraintComponent;
+    sh:sourceShape _:bc59143;
+    sh:resultMessage "Bouwlaag moet een verdieping hebben.";
+    sh:resultPath _:32f57.
+_:32f57 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f58.
+_:32f58 rdf:first <https://example.org/def/Verdieping>;
+    rdf:rest rdf:nil.
+_:32f59 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/79afad7305c8f534869a64b3463d517f>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f510.
+_:32f510 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f511.
+_:32f511 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f512 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/ab6cb319d09d538cfdbd69ad9110122e>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MaxCountConstraintComponent;
+    sh:sourceShape _:bc59143;
+    sh:resultMessage "Bouwlaag moet een verdieping hebben.";
+    sh:resultPath _:32f513.
+_:32f513 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f514.
+_:32f514 rdf:first <https://example.org/def/Verdieping>;
+    rdf:rest rdf:nil.
+_:32f515 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/ab6cb319d09d538cfdbd69ad9110122e>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f516.
+_:32f516 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f517.
+_:32f517 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f518 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/306693591085689818d7a71fc5748ba5>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MaxCountConstraintComponent;
+    sh:sourceShape _:bc59143;
+    sh:resultMessage "Bouwlaag moet een verdieping hebben.";
+    sh:resultPath _:32f519.
+_:32f519 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f520.
+_:32f520 rdf:first <https://example.org/def/Verdieping>;
+    rdf:rest rdf:nil.
+_:32f521 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/306693591085689818d7a71fc5748ba5>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f522.
+_:32f522 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f523.
+_:32f523 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f524 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/32e3a2385f9ebb409ab76b77cc4f454e>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MaxCountConstraintComponent;
+    sh:sourceShape _:bc59143;
+    sh:resultMessage "Bouwlaag moet een verdieping hebben.";
+    sh:resultPath _:32f525.
+_:32f525 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f526.
+_:32f526 rdf:first <https://example.org/def/Verdieping>;
+    rdf:rest rdf:nil.
+_:32f527 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/32e3a2385f9ebb409ab76b77cc4f454e>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f528.
+_:32f528 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f529.
+_:32f529 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f530 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/56a1b00aab54bc0078a79b25df719fd2>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MaxCountConstraintComponent;
+    sh:sourceShape _:bc59143;
+    sh:resultMessage "Bouwlaag moet een verdieping hebben.";
+    sh:resultPath _:32f531.
+_:32f531 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f532.
+_:32f532 rdf:first <https://example.org/def/Verdieping>;
+    rdf:rest rdf:nil.
+_:32f533 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/56a1b00aab54bc0078a79b25df719fd2>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f534.
+_:32f534 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f535.
+_:32f535 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f536 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/295041d635722a170fb8aa1e89e9f685>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MaxCountConstraintComponent;
+    sh:sourceShape _:bc59143;
+    sh:resultMessage "Bouwlaag moet een verdieping hebben.";
+    sh:resultPath _:32f537.
+_:32f537 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f538.
+_:32f538 rdf:first <https://example.org/def/Verdieping>;
+    rdf:rest rdf:nil.
+_:32f539 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/295041d635722a170fb8aa1e89e9f685>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f540.
+_:32f540 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f541.
+_:32f541 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f542 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/35f129839eb261e1a88b0dd6eb147abe>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MaxCountConstraintComponent;
+    sh:sourceShape _:bc59143;
+    sh:resultMessage "Bouwlaag moet een verdieping hebben.";
+    sh:resultPath _:32f543.
+_:32f543 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f544.
+_:32f544 rdf:first <https://example.org/def/Verdieping>;
+    rdf:rest rdf:nil.
+_:32f545 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/35f129839eb261e1a88b0dd6eb147abe>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f546.
+_:32f546 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f547.
+_:32f547 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f548 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/b3a8004f904f4e5ebea40dfcfae7b499>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f549.
+_:32f549 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f550.
+_:32f550 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f551 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/4eea65e49edc59344e350220394fa6c0>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f552.
+_:32f552 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f553.
+_:32f553 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f554 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/2ab6708545c066e6de26302cba1fe07d>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f555.
+_:32f555 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f556.
+_:32f556 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f557 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/e5cfee2d37ad725186423cd1b4189a8d>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f558.
+_:32f558 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f559.
+_:32f559 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f560 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/0b3b1c4070064503857dc4ca60dc07bd>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MaxCountConstraintComponent;
+    sh:sourceShape _:bc59143;
+    sh:resultMessage "Bouwlaag moet een verdieping hebben.";
+    sh:resultPath _:32f561.
+_:32f561 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f562.
+_:32f562 rdf:first <https://example.org/def/Verdieping>;
+    rdf:rest rdf:nil.
+_:32f563 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/0b3b1c4070064503857dc4ca60dc07bd>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f564.
+_:32f564 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f565.
+_:32f565 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f566 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/dd4f7298c48cbc82eb45d498e9a745f4>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f567.
+_:32f567 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f568.
+_:32f568 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f569 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/340c5d12427836c9dfe232a29c133c3f>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f570.
+_:32f570 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f571.
+_:32f571 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f572 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/0b43f590c09ec4bdbc9b185296b3f38b>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MaxCountConstraintComponent;
+    sh:sourceShape _:bc59143;
+    sh:resultMessage "Bouwlaag moet een verdieping hebben.";
+    sh:resultPath _:32f573.
+_:32f573 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f574.
+_:32f574 rdf:first <https://example.org/def/Verdieping>;
+    rdf:rest rdf:nil.
+_:32f575 a sh:ValidationResult;
+    sh:focusNode <https://example.org/Bouwlaag/0b43f590c09ec4bdbc9b185296b3f38b>;
+    sh:resultSeverity sh:Violation;
+    sh:sourceConstraintComponent sh:MinCountConstraintComponent;
+    sh:sourceShape _:bc59146;
+    sh:resultMessage "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+    sh:resultPath _:32f576.
+_:32f576 rdf:first <https://example.org/def/bouwlaagElementen>;
+    rdf:rest _:32f577.
+_:32f577 rdf:first <https://www.w3.org/2000/01/rdf-schema#label>;
+    rdf:rest rdf:nil.
+_:32f50 a sh:ValidationResult;
     sh:focusNode <https://example.org/id/gebouw_B_3>;
     sh:resultSeverity sh:Violation;
     sh:sourceConstraintComponent sh:SPARQLConstraintComponent;
-    sh:sourceShape ex:GebouwShape;
+    sh:sourceShape <https://example.org/GebouwShape>;
     sh:resultMessage "Gebouw https://example.org/id/gebouw_B_3 van type Ongedefinieerd moet een Woonhuis, Kantoor, of Commercieel zijn.";
-    sh:sourceConstraint _:4237137.
-_:e3c887 a sh:ValidationResult;
+    sh:sourceConstraint _:bc59137.
+_:32f578 a sh:ValidationResult;
     sh:focusNode <https://example.org/id/gebouw_A_5>;
     sh:resultSeverity sh:Violation;
     sh:sourceConstraintComponent sh:SPARQLConstraintComponent;
-    sh:sourceShape ex:GebouwShape;
+    sh:sourceShape <https://example.org/GebouwShape>;
     sh:resultMessage "Gebouw https://example.org/id/gebouw_A_5 met hoogte 20 in Woonwijk A moet kleiner zijn dan 19 meter.";
-    sh:sourceConstraint _:4237138.
-_:e3c888 a sh:ValidationResult;
+    sh:sourceConstraint _:bc59138.
+_:32f579 a sh:ValidationResult;
     sh:focusNode <https://example.org/Bouwlaag/32e3a2385f9ebb409ab76b77cc4f454e>;
     sh:resultSeverity sh:Violation;
     sh:sourceConstraintComponent sh:SPARQLConstraintComponent;
-    sh:sourceShape ex:BouwlaagShape;
+    sh:sourceShape <https://example.org/BouwlaagShape>;
     sh:resultMessage "Het aantal bouwlaagElementen mag niet hoger zijn dan 3, het aantal was 6.";
-    sh:sourceConstraint _:4237149.
-_:e3c889 a sh:ValidationResult;
+    sh:sourceConstraint _:bc59149.
+_:32f580 a sh:ValidationResult;
     sh:focusNode <https://example.org/id/gebouw_A_2>;
     sh:resultSeverity sh:Violation;
     sh:sourceConstraintComponent sh:SPARQLConstraintComponent;
-    sh:sourceShape ex:BouwlaagShape;
+    sh:sourceShape <https://example.org/BouwlaagShape>;
     sh:resultMessage "Het ziet er naar uit dat gebouw https://example.org/id/gebouw_A_2 van hoogte 5 niet dezelfde hoogte heeft als de som van bouwlaag hoogtes: 6!";
-    sh:sourceConstraint _:4237150.
-_:e3c890 a sh:ValidationResult;
+    sh:sourceConstraint _:bc59150.
+_:32f581 a sh:ValidationResult;
     sh:focusNode <https://example.org/id/gebouw_A_6>;
     sh:resultSeverity sh:Violation;
     sh:sourceConstraintComponent sh:SPARQLConstraintComponent;
-    sh:sourceShape ex:BouwlaagShape;
+    sh:sourceShape <https://example.org/BouwlaagShape>;
     sh:resultMessage "Het ziet er naar uit dat gebouw https://example.org/id/gebouw_A_6 van hoogte 6 niet dezelfde hoogte heeft als de som van bouwlaag hoogtes: 20!";
-    sh:sourceConstraint _:4237150.
+    sh:sourceConstraint _:bc59150.
