@@ -26,7 +26,6 @@ ex:GebouwShape
     sh:property [
         sh:path exd:heeftBouwlaag ;
         sh:minCount 1;
-        sh:maxCount 1;
         sh:message "Een gebouw moet bouwlagen hebben." ;
         sh:severity sh:Violation ;
     ] ;
@@ -78,32 +77,37 @@ WHERE {
               exd:Woonwijk "A" .
     FILTER (?height > 19)
 }
-''' ] .
-# TODO improve this constraint
-#     sh:sparql [
-#         a sh:SPARQLConstraint;
-#         sh:message "Neighborhood C must have at least 30% of buildings with a Residence destination. Instead {?totalResidenceBuildings} out of {?totalBuildings} were Residence buildings!" ;
-#         sh:severity sh:Violation ;
-#         sh:datatype xsd:string ;
-#         sh:select '''
-# PREFIX exd: <https://example.org/def/>
-# PREFIX dbo: <http://dbpedia.org/ontology/>
+''' ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint;
+        sh:message "Neighborhood C must have at least 30% of buildings with a Residence destination. Instead {?woonhuisBuildings} out of {?totalBuildings} were Residence buildings, that is {?this}% !" ;
+        sh:severity sh:Violation ;
+        sh:datatype xsd:string ;
+        sh:select '''
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ex: <https://example.org/def/>
+prefix dbo: <http://dbpedia.org/ontology/>
 
-# SELECT (COUNT(?this) AS ?totalBuildings) (COUNT(?residenceBuilding) AS ?totalResidenceBuildings)
 
-# WHERE {
-#     ?this a dbo:Building ;
-#               exd:Neighborhood "C" .
-#     OPTIONAL {
-#         ?residenceBuilding a dbo:Building ;
-#             exd:buildingType "Residence";
-#             exd:Neighborhood "C" .
-#     }
-              
-#     }
-# GROUP BY ?this
-# HAVING (((COUNT(?residenceBuilding)/ COUNT(?building)) * 100) < 30)
-# ''' ].
+SELECT ?woonhuisBuildings ?totalBuildings ((SUM(?woonhuisBuildings) / SUM(?totalBuildings)) * 100 AS ?this)
+WHERE {
+  {
+    SELECT (COUNT(?building) AS ?totalBuildings) WHERE {
+      ?building a dbo:Building;
+               ex:Woonwijk "C".
+    }
+  }
+  {
+    SELECT (COUNT(?woonhuis) AS ?woonhuisBuildings) WHERE {
+      ?woonhuis a dbo:Building;
+                ex:Woonwijk "C";
+                ex:GebouwType "Woonhuis".
+    }
+  }
+}
+GROUP BY ?this ?woonhuisBuildings ?totalBuildings
+HAVING(((SUM(?woonhuisBuildings) / SUM(?totalBuildings)) * 100) < 30)
+''' ].
 
 
 ex:BouwlaagShape
@@ -113,33 +117,6 @@ ex:BouwlaagShape
         sh:path exd:bouwlaagElementen ;
         sh:minCount 1;
         sh:message "Bouwlaag moet bouwlaag elementen hebben." ;
-        sh:severity sh:Violation ;
-    ] ;
-    sh:property [
-        sh:path (exd:bouwlaagElementen exd:Hoogte) ;
-        sh:datatype xsd:integer ;
-        sh:minCount 1;
-        sh:maxCount 1;
-        sh:minInclusive 0 ;
-        sh:message "Bouwlaag moet een hoogte hebben." ;
-        sh:severity sh:Violation ;
-    ] ;
-    sh:property [
-        sh:path (exd:bouwlaagElementen exd:Verdieping) ;
-        sh:datatype xsd:integer ;
-        sh:minCount 1;
-        sh:maxCount 1;
-        sh:minInclusive 0 ;
-        sh:message "Bouwlaag moet een verdieping hebben." ;
-        sh:severity sh:Violation ;
-    ] ;
-    sh:property [
-        sh:path (exd:bouwlaagElementen rdfs:label) ;
-        sh:datatype xsd:string ;
-        sh:minCount 1;
-        sh:maxCount 1;
-        sh:pattern "^Verdieping [0-9]{2}$" ;
-        sh:message "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn." ;
         sh:severity sh:Violation ;
     ] ;
     sh:sparql [
@@ -175,4 +152,49 @@ WHERE {
 GROUP BY ?this ?height
 HAVING (SUM(?floorHeight) != ?height)
         ''' ;
+    ] .
+
+ex:BouwlaagElementShape
+    a sh:NodeShape ;
+    sh:target [
+    a sh:SPARQLTarget ;
+    sh:select """
+PREFIX exd: <https://example.org/def/>
+PREFIX ex: <https://example.org/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?this
+WHERE {
+    ?bouwlaag a ex:Bouwlaag ;
+        exd:bouwlaagElementen ?this .
+}
+    """ ;
+  ] ;
+    sh:property [
+        sh:path exd:Hoogte ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:minInclusive 0 ;
+        sh:message "Bouwlaag moet een hoogte hebben." ;
+        sh:severity sh:Violation ;
+    ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:datatype xsd:string ;
+        sh:pattern "^Verdieping \\d\\d$" ;
+        sh:message "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn." ;
+        sh:severity sh:Violation ;
+    ] ;
+    sh:property [
+        sh:path exd:Verdieping ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:minInclusive 0 ;
+        sh:message "Bouwlaag moet een verdieping hebben." ;
+        sh:severity sh:Violation ;
     ] .
