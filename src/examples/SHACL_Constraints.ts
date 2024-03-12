@@ -72,10 +72,10 @@ export default async function (): Promise<Etl> {
         triple('_gebouwID', rdfs.comment, 'opmerking')
       )
     ]),
-    validate(Source.file('./src/examples/static/building_knowledge_model.ttl')),
+    validate(Source.file('./src/examples/static/buildingInformationModel.ttl')),
 
     // Dataset lokaal naar bestand schrijven
-    toRdf(Destination.file('./src/examples/MWE_Constraint.ttl'))
+    toRdf(Destination.file('./src/examples/MWE_SHACLConstraintOutput.ttl'))
 
     // Dataset uploaden naar demo.triplydb.com
     // toTriplyDb({

@@ -80,7 +80,7 @@ WHERE {
 ''' ] ;
     sh:sparql [
         a sh:SPARQLConstraint;
-        sh:message "Neighborhood C must have at least 30% of buildings with a Residence destination. Instead {?woonhuisBuildings} out of {?totalBuildings} were Residence buildings, that is {?this}% !" ;
+        sh:message "Woonwijk C moet gebouwen met bestemming Woonhuis hebben voor minstens 30%. {?woonhuisBuildings}/{?totalBuildings} van de gebouwen hebben bestemming Woonhuis, dit is {?this}%." ;
         sh:severity sh:Violation ;
         sh:datatype xsd:string ;
         sh:select '''

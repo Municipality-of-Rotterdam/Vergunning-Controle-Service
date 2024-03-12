@@ -21,7 +21,7 @@ export default async function (): Promise<Etl> {
     triple(baseIri.concat('Lisa'), baseIri.concat('Name'), literal(str('Lisa'), xsd.string)),
     triple(baseIri.concat('Lisa'), baseIri.concat('Gender'), literal(str('1'), xsd.integer)),
     logQuads(),
-    validate(Source.file('./src/examples/simple_example/simpleKnowledgeModel.ttl'))
+    validate(Source.file('./src/examples/simple_example/simpleInformationModel.ttl'))
   )
   return etl
 }
