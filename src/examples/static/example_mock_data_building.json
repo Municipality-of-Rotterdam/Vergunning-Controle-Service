@@ -146,6 +146,28 @@
           "opmerking": "Illustreert schending van de som van hoogtes voor verdiepingen van het gebouw en onjuiste verdiepingshoogte ten opzichte van de gebouwhoogtewaarschuwing"
       },
       {
+          "@id": "gebouw_A_7",
+          "hoogte": 6,
+          "gebouwType": "Woonhuis",
+          "woonwijkCode": "A",
+          "aantalPersonen": 4,
+          "bouwlaag": [
+              {
+                  "hoogte": 3,
+                  "id": "Verdieping 00"
+              },
+              {
+                  "verdieping": 1,
+                  "id": "Verdieping 01"
+              },
+              {
+                "hoogte": 3,
+                "verdieping": 1
+              }
+          ],
+          "opmerking": "Illustreert schending van bouwlaag ontbrekende properties"
+      },
+      {
           "@id": "gebouw_B_1",
           "hoogte": 12,
           "gebouwType": "Kantoor",

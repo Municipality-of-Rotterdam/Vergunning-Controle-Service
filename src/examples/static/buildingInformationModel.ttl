@@ -3,7 +3,7 @@
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix dbo: <http://dbpedia.org/ontology/> .
-@prefix rdfs: <https://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
 ex:GebouwShape
     a sh:NodeShape ;
@@ -86,7 +86,7 @@ WHERE {
         sh:select '''
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX ex: <https://example.org/def/>
-prefix dbo: <http://dbpedia.org/ontology/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
 
 
 SELECT ?woonhuisBuildings ?totalBuildings ((SUM(?woonhuisBuildings) / SUM(?totalBuildings)) * 100 AS ?this)

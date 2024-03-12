@@ -1,7 +1,7 @@
 import { declarePrefix, Destination, Etl, fromJson, Source, toRdf, when, whenForEach } from '@triplyetl/etl/generic'
 import { addHashedIri, addIri, literal, pairs, triple } from '@triplyetl/etl/ratt'
 import { a, dbo, rdfs, xsd } from '@triplyetl/etl/vocab'
-import { validate } from '@triplyetl/etl/shacl'
+// import { validate } from '@triplyetl/etl/shacl'
 
 // Declare the base for all Iri's & other Iri's used in this ETL:
 const baseIri = declarePrefix('https://example.org')
@@ -72,7 +72,7 @@ export default async function (): Promise<Etl> {
         triple('_gebouwID', rdfs.comment, 'opmerking')
       )
     ]),
-    validate(Source.file('./src/examples/static/buildingInformationModel.ttl')),
+    // validate(Source.file('./src/examples/static/buildingInformationModel.ttl')),
 
     // Dataset lokaal naar bestand schrijven
     toRdf(Destination.file('./src/examples/MWE_SHACLConstraintOutput.ttl'))
