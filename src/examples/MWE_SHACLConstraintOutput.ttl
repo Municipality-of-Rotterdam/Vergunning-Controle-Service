@@ -115,12 +115,12 @@
     <https://example.org/def/heeftBouwlaag> <https://example.org/Bouwlaag/93501999bb934f6336bbb40c6e6cfccc>;
     rdfs:comment "Illustreert schending van bouwlaag ontbrekende properties".
 <https://example.org/Bouwlaag/93501999bb934f6336bbb40c6e6cfccc> a <https://example.org/Bouwlaag>;
-    <https://example.org/def/bouwlaagElementen> <https://example.org/bouwlaagID/7ed2231d4b8be6fe3e5e9f808e245173>, <https://example.org/bouwlaagID/4726bb6bf292c170d5df4e94be7cfbdc>, <https://example.org/bouwlaagID/79bda82a5a36f2995984c0929237e16b>.
+    <https://example.org/def/bouwlaagElementen> <https://example.org/bouwlaagID/7ed2231d4b8be6fe3e5e9f808e245173>, <https://example.org/bouwlaagID/4726bb6bf292c170d5df4e94be7cfbdc>, <https://example.org/bouwlaagID/4042237aaf0783fd4b8e2ce575142387>.
 <https://example.org/bouwlaagID/7ed2231d4b8be6fe3e5e9f808e245173> <https://example.org/def/Hoogte> 3;
     rdfs:label "Verdieping 00".
 <https://example.org/bouwlaagID/4726bb6bf292c170d5df4e94be7cfbdc> rdfs:label "Verdieping 01";
     <https://example.org/def/Verdieping> 1.
-<https://example.org/bouwlaagID/79bda82a5a36f2995984c0929237e16b> <https://example.org/def/Hoogte> 3;
+<https://example.org/bouwlaagID/4042237aaf0783fd4b8e2ce575142387> <https://example.org/def/Hoogte> 3;
     <https://example.org/def/Verdieping> 1.
 <https://example.org/id/gebouw_B_1> a <http://dbpedia.org/ontology/Building>;
     <https://example.org/def/Hoogte> 12;
