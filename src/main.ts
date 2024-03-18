@@ -74,9 +74,9 @@ export default async function (): Promise<Etl> {
       )
     ]),
     validate(source.model,
-        {
-          graph: baseIri.concat('graph/report'),
-          terminateOn: 'Never'
+      {
+        graph: baseIri.concat('graph/report'),
+        terminateOn: 'Never'
       }
     ),
     toTriplyDb(destination.vergunningscontroleservice)
