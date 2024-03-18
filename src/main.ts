@@ -76,6 +76,6 @@ export default async function (): Promise<Etl> {
     validate(source.model),
     toTriplyDb(destination.vergunningscontroleservice)
   )
-  await etl.copySource(source.model, destination['vergunningscontroleservice'])
+  await etl.copySource(source.model, destination.vergunningscontroleservice)
   return etl
 }
