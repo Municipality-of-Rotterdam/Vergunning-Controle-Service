@@ -1,0 +1,38 @@
+@prefix ex: <http://example.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:ExampleShape
+    a sh:NodeShape ;
+    sh:targetClass ex:Example ;
+    sh:property [
+        sh:path ex:Name ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:severity sh:Violation;
+        sh:message "Person must have a Name." ;
+    ] ;
+    sh:property [
+        sh:path ex:Height ;
+        sh:datatype xsd:float ;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:minInclusive 0 ;
+        sh:severity sh:Violation;
+        sh:message "Person must have a height." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation;
+        sh:message "Person {?this} with name {?name}, must be of gender Male, Female, or Other - instead it was gender: {?gender}" ;
+        sh:select '''
+PREFIX ex: <https://example.org/>
+SELECT ?this ?name ?gender
+WHERE {
+?this   a ex:Example;
+        ex:Name ?name;
+        ex:Gender ?gender .
+FILTER  (?gender NOT IN ("Female", "Male", "Other"))
+}
+''' ].
