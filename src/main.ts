@@ -73,7 +73,12 @@ export default async function (): Promise<Etl> {
         triple('_gebouwID', rdfs.comment, 'opmerking')
       )
     ]),
-    validate(source.model),
+    validate(source.model,
+        {
+          graph: baseIri.concat('graph/report'),
+          terminateOn: 'Never'
+      }
+    ),
     toTriplyDb(destination.vergunningscontroleservice)
   )
   await etl.copySource(source.model, destination.vergunningscontroleservice)
