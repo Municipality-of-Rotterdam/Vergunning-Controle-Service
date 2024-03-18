@@ -1,69 +1,207 @@
 # External prefix declarations
-prefix foaf: <http://xmlns.com/foaf/0.1/>
-prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-prefix sh:   <http://www.w3.org/ns/shacl#>
-prefix xsd:  <http://www.w3.org/2001/XMLSchema#>
-prefix owl: <http://www.w3.org/2002/07/owl#>
-
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX sh: <http://www.w3.org/ns/shacl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # Project-specific prefix
+PREFIX def: <https://example.org/def/>
 prefix graph: <https://example.org/graph/>
 prefix shp:   <https://example.org/model/shp/>
 
 graph:model {
 
-  shp:Person
+  shp:GebouwShape
     a sh:NodeShape;
-    sh:closed true;
-    sh:ignoredProperties ( rdf:type );
-    sh:property
-      shp:Person_name,
-      shp:Person_firstName,
-      shp:Person_birthday,
-      shp:Person_sameAs,
-      shp:Person_depiction,
-      shp:Person_lastName;
-    sh:targetClass foaf:Person.
+    sh:targetClass dbo:Building;
+    sh:property [
+      sh:path def:AantalPersonen;
+      sh:minCount 1;
+      sh:maxCount 1;
+      sh:message "Een gebouw moet een AantalPersonen hebben.";
+      sh:severity sh:Violation;
+    ];
+    sh:property [
+      sh:path def:Woonwijk;
+      sh:minCount 1;
+      sh:maxCount 1;
+      sh:message "Een gebouw moet een Woonwijk met correcte code hebben.";
+      sh:pattern "^[A-Z]{1}$";
+      sh:severity sh:Violation;
+    ];
+    sh:property [
+      sh:path def:heeftBouwlaag;
+      sh:minCount 1;
+      sh:message "Een gebouw moet bouwlagen hebben.";
+      sh:severity sh:Violation;
+    ];
+    sh:property [
+      sh:path def:GebouwType;
+      sh:minCount 1;
+      sh:maxCount 1;
+      sh:message "Een gebouw moet een type hebben.";
+      sh:severity sh:Violation;
+    ];
+    sh:property [
+      sh:path def:Hoogte;
+      sh:datatype xsd:integer;
+      sh:minCount 1;
+      sh:maxCount 1;
+      sh:minInclusive 0;
+      sh:maxInclusive 100;
+      sh:message "Een gebouw moet een hoogte tuseen 0 en 100 meters hebben.";
+      sh:severity sh:Violation;
+    ];
+    sh:sparql [
+      a sh:SPARQLConstraint;
+      sh:message "Gebouw {?this} van type {?buildingType} moet een Woonhuis, Kantoor, of Commercieel zijn.";
+      sh:severity sh:Violation;
+      sh:datatype xsd:string;
+      sh:select '''
+  PREFIX def: <https://example.org/def/>
+  PREFIX dbo: <http://dbpedia.org/ontology/>
+  SELECT ?this ?buildingType
+  WHERE {
+  ?this a dbo:Building;
+      def:GebouwType ?buildingType.
+  FILTER (?buildingType NOT IN ("Woonhuis", "Kantoor", "Commercieel"))
+  }
+  ''' ];
+    sh:sparql [
+      a sh:SPARQLConstraint;
+      sh:message "Gebouw {?this} met hoogte {?height} in Woonwijk A moet kleiner zijn dan 19 meter.";
+      sh:severity sh:Violation;
+      sh:datatype xsd:string;
+      sh:select '''
+  PREFIX def: <https://example.org/def/>
+  PREFIX dbo: <http://dbpedia.org/ontology/>
 
-  shp:Person_birthday
-    a sh:PropertyShape;
-    sh:datatype xsd:date;
-    sh:maxCount 1;
-    sh:minCount 1;
-    sh:path foaf:birthday.
+  SELECT ?this ?height
+  WHERE {
+    ?this a dbo:Building;
+          def:Hoogte ?height;
+          def:Woonwijk "A".
+    FILTER (?height > 19)
+  }
+  ''' ];
+    sh:sparql [
+      a sh:SPARQLConstraint;
+      sh:message "Woonwijk C moet gebouwen met bestemming Woonhuis hebben voor minstens 30%. {?woonhuisBuildings}/{?totalBuildings} van de gebouwen hebben bestemming Woonhuis, dit is {?this}%.";
+      sh:severity sh:Violation;
+      sh:datatype xsd:string;
+      sh:select '''
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX shp: <https://example.org/def/>
+  PREFIX dbo: <http://dbpedia.org/ontology/>
 
-  shp:Person_sameAs
-    a sh:PropertyShape;
-    sh:maxCount 1;
-    sh:minCount 1;
-    sh:nodeKind sh:IRI ;
-    sh:path owl:sameAs .
 
-  shp:Person_depiction
-    a sh:PropertyShape;
-    sh:maxCount 1;
-    sh:minCount 1;
-    sh:nodeKind sh:IRI ;
-    sh:path foaf:depiction .
+  SELECT ?woonhuisBuildings ?totalBuildings ((SUM(?woonhuisBuildings) / SUM(?totalBuildings)) * 100 AS ?this)
+  WHERE {
+    {
+    SELECT (COUNT(?building) AS ?totalBuildings) WHERE {
+      ?building a dbo:Building;
+          shp:Woonwijk "C".
+    }
+    }
+    {
+    SELECT (COUNT(?woonhuis) AS ?woonhuisBuildings) WHERE {
+      ?woonhuis a dbo:Building;
+          shp:Woonwijk "C";
+          shp:GebouwType "Woonhuis".
+    }
+    }
+  }
+  GROUP BY ?this ?woonhuisBuildings ?totalBuildings
+  HAVING(((SUM(?woonhuisBuildings) / SUM(?totalBuildings)) * 100) < 30)
+  ''' ].
 
-  shp:Person_name
-    a sh:PropertyShape;
-    sh:datatype xsd:string;
-    sh:maxCount 1;
-    sh:minCount 1;
-    sh:path foaf:name.
 
-  shp:Person_firstName
-    a sh:PropertyShape;
-    sh:datatype xsd:string;
-    sh:minCount 1;
-    sh:path foaf:firstName .
+  shp:BouwlaagShape
+    a sh:NodeShape;
+    sh:targetClass shp:Bouwlaag;
+    sh:property [
+      sh:path def:bouwlaagElementen;
+      sh:minCount 1;
+      sh:message "Bouwlaag moet bouwlaag elementen hebben.";
+      sh:severity sh:Violation;
+    ];
+    sh:sparql [
+      a sh:SPARQLConstraint;
+      sh:message "Het aantal bouwlaagElementen mag niet hoger zijn dan 3, het aantal was {?count}.";
+      sh:severity sh:Violation;
+      sh:select '''
+  PREFIX def: <https://example.org/def/>
+  SELECT ?this (COUNT(?floorElement) as ?count)
+  WHERE {
+    ?this def:bouwlaagElementen ?floorElement.
+  }
+  GROUP BY ?this
+  HAVING (COUNT(?floorElement) > 3)
+      ''';
+    ];
+    sh:sparql [
+      a sh:SPARQLConstraint;
+      sh:message "Het ziet er naar uit dat gebouw {?this} van hoogte {?height} niet dezelfde hoogte heeft als de som van bouwlaag hoogtes: {?sumHeight}!";
+      sh:severity sh:Violation;
+      sh:select '''
+  PREFIX def: <https://example.org/def/>
+  PREFIX dbo: <http://dbpedia.org/ontology/>
 
-  shp:Person_lastName
-    a sh:PropertyShape;
-    sh:datatype xsd:string;
-    sh:maxCount 1;
-    sh:minCount 1;
-    sh:path foaf:lastName .
+  SELECT ?this ?height (SUM(?floorHeight) AS ?sumHeight)
+  WHERE {
+    ?this a dbo:Building;
+        def:Hoogte ?height;
+        def:heeftBouwlaag ?floor.
+    ?floor def:bouwlaagElementen ?floorElement.
+    ?floorElement def:Hoogte ?floorHeight.
+  }
+  GROUP BY ?this ?height
+  HAVING (SUM(?floorHeight) != ?height)
+      ''';
+    ].
 
+  shp:BouwlaagElementShape
+    a sh:NodeShape;
+    sh:target [
+    a sh:SPARQLTarget;
+    sh:select """
+  PREFIX def: <https://example.org/def/>
+  PREFIX shp: <https://example.org/>
+  PREFIX dbo: <http://dbpedia.org/ontology/>
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  SELECT ?this
+  WHERE {
+    ?bouwlaag a shp:Bouwlaag;
+      def:bouwlaagElementen ?this.
+  }
+    """;
+    ];
+    sh:property [
+      sh:path def:Hoogte;
+      sh:datatype xsd:integer;
+      sh:minCount 1;
+      sh:maxCount 1;
+      sh:minInclusive 0;
+      sh:message "Bouwlaag moet een hoogte hebben.";
+      sh:severity sh:Violation;
+    ];
+    sh:property [
+      sh:path rdfs:label;
+      sh:minCount 1;
+      sh:maxCount 1;
+      sh:datatype xsd:string;
+      sh:pattern "^Verdieping \\d\\d$";
+      sh:message "Bouwlaag moet een id label hebben met 'Verdieping XX' waar XX twee nummers zijn.";
+      sh:severity sh:Violation;
+    ];
+    sh:property [
+      sh:path def:Verdieping;
+      sh:datatype xsd:integer;
+      sh:minCount 1;
+      sh:maxCount 1;
+      sh:minInclusive 0;
+      sh:message "Bouwlaag moet een verdieping hebben.";
+      sh:severity sh:Violation;
+    ].
 }

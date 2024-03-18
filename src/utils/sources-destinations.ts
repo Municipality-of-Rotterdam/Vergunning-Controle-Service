@@ -2,7 +2,7 @@ import { Source } from '@triplyetl/etl/generic'
 import { getAccount, getDataset } from './dtap.js'
 
 export const source = {
-  people: Source.file('static/people.csv'),
+  buildings: Source.file('static/example_mock_data_building.json'),
   model: Source.file('static/model.trig')
 }
 

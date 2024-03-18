@@ -1,52 +1,81 @@
-// Import middlewares and other required libraries.
-import { declarePrefix, Etl, fromCsv, toTriplyDb } from '@triplyetl/etl/generic'
-import { concat, pairs, iri, literal, split } from '@triplyetl/etl/ratt'
+import { declarePrefix, Etl, fromJson, toTriplyDb, when, whenForEach } from '@triplyetl/etl/generic'
+import { addHashedIri, addIri, literal, pairs, triple } from '@triplyetl/etl/ratt'
+import { a, dbo, rdfs, xsd } from '@triplyetl/etl/vocab'
 import { validate } from '@triplyetl/etl/shacl'
 import { source, destination } from './utils/sources-destinations.js'
 
-// Import vocabularies.
-import { a, foaf, owl, xsd } from '@triplyetl/etl/vocab'
-
-// Declare the base for all Iri's:
-const baseIri = declarePrefix('https://demo.triplydb.com/GemeenteRotterdam/vergunningscontroleservice/')
+// Declare the base for all Iri's & other Iri's used in this ETL:
+const baseIri = declarePrefix('https://example.org')
+const def = baseIri.concat('def')
+const id = baseIri.concat('id')
+const woonwijk = def.concat('/Woonwijk')
+const hoogte = def.concat('/Hoogte')
+const gebouwType = def.concat('/GebouwType')
+const aantalPersonen = def.concat('/AantalPersonen')
+const heeftBouwlaag = def.concat('/heeftBouwlaag')
+const verdieping = def.concat('/Verdieping')
 
 export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
   const etl = new Etl({ baseIri })
   etl.use(
-
-    // Connect to one or more data sources.
-    fromCsv(source.people),
-
-    // Transformations change data in the Record.
-    concat({
-      content: ['firstName', 'lastName'],
-      separator: ' ',
-      key: 'fullName'
-    }),
-
-    split({
-      content: 'firstName',
-      key: 'names',
-      separator: ' '
-    }),
-
-    // Assertions add linked data to the RDF store.
-    pairs(iri(etl.standardPrefixes.id, '$recordId'),
-      [a, foaf.Person],
-      [foaf.firstName, 'names'],
-      [foaf.lastName, 'lastName'],
-      [foaf.name, 'fullName'],
-      [foaf.birthday, literal('birthday', xsd.date)],
-      [owl.sameAs, iri('WikiPage')],
-      [foaf.depiction, iri('image')]
-    ),
-
-    // Validation ensures that your instance data follows the data model.
+    fromJson(source.buildings),
+    whenForEach('@gebouwen', [
+      addIri({
+        prefix: id.concat('/'),
+        content: '@id',
+        key: '_gebouwID'
+      }),
+      triple('_gebouwID', a, dbo.Building),
+      when('hoogte',
+        triple('_gebouwID', hoogte, literal('hoogte', xsd.integer))
+      ),
+      when('gebouwType',
+        triple('_gebouwID', gebouwType, literal('gebouwType', xsd.string))
+      ),
+      when('woonwijkCode',
+        triple('_gebouwID', woonwijk, literal('woonwijkCode', xsd.string))
+      ),
+      when('aantalPersonen',
+        triple('_gebouwID', aantalPersonen, literal('aantalPersonen', xsd.integer))
+      ),
+      addHashedIri({
+        content: '@id',
+        prefix: baseIri.concat('Bouwlaag/'),
+        key: '_bouwlaag'
+      }),
+      triple('_gebouwID', heeftBouwlaag, '_bouwlaag'),
+      whenForEach('bouwlaag',
+        addHashedIri({
+          content: ['$parent.@id', 'id'],
+          prefix: baseIri.concat('bouwlaagID/'),
+          key: '_bouwlaagID'
+        }),
+        pairs('$parent._bouwlaag',
+          [
+            a, baseIri.concat('Bouwlaag')
+          ],
+          [
+            def.concat('/bouwlaagElementen'), '_bouwlaagID'
+          ]
+        ),
+        when('id',
+          triple('_bouwlaagID', rdfs.label, 'id')
+        ),
+        when('verdieping',
+          triple('_bouwlaagID', verdieping, 'verdieping')
+        ),
+        when('hoogte',
+          triple('_bouwlaagID', hoogte, 'hoogte')
+        )
+      ),
+      when('opmerking',
+        triple('_gebouwID', rdfs.comment, 'opmerking')
+      )
+    ]),
     validate(source.model),
-
-    // Publish your data in TriplyDB.
     toTriplyDb(destination.vergunningscontroleservice)
   )
+  await etl.copySource(source.model, destination['vergunningscontroleservice'])
   return etl
 }
