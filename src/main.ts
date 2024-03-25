@@ -3,7 +3,7 @@ import { addHashedIri, addIri, literal, pairs, triple } from '@triplyetl/etl/rat
 import { a, dbo, rdfs, xsd } from '@triplyetl/etl/vocab'
 import { validate } from '@triplyetl/etl/shacl'
 import { source, destination } from './utils/sources-destinations.js'
-import { baseIri, id, def, prefix_graph } from './utils/declarations.js'
+import { baseIri, id, def, graph } from './utils/declarations.js'
 
 export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
@@ -42,8 +42,8 @@ export default async function (): Promise<Etl> {
           key: '_bouwlaagID'
         }),
         pairs('$parent._bouwlaag',
-          [ a, def.Bouwlaag ],
-          [ def.bouwlaagElement, '_bouwlaagID' ]
+          [a, def.Bouwlaag],
+          [def.bouwlaagElement, '_bouwlaagID']
         ),
         when('id',
           triple('_bouwlaagID', rdfs.label, 'id')
@@ -61,7 +61,7 @@ export default async function (): Promise<Etl> {
     ]),
     validate(source.model,
       {
-        graph: prefix_graph.concat('report'),
+        graph: graph.concat('report'),
         terminateOn: 'Never'
       }
     ),
