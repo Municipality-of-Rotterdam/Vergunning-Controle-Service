@@ -1,19 +1,9 @@
-import { declarePrefix, Etl, fromJson, toTriplyDb, when, whenForEach } from '@triplyetl/etl/generic'
+import { Etl, fromJson, toTriplyDb, when, whenForEach } from '@triplyetl/etl/generic'
 import { addHashedIri, addIri, literal, pairs, triple } from '@triplyetl/etl/ratt'
 import { a, dbo, rdfs, xsd } from '@triplyetl/etl/vocab'
 import { validate } from '@triplyetl/etl/shacl'
 import { source, destination } from './utils/sources-destinations.js'
-
-// Declare the base for all Iri's & other Iri's used in this ETL:
-const baseIri = declarePrefix('https://example.org')
-const def = baseIri.concat('def')
-const id = baseIri.concat('id')
-const woonwijk = def.concat('/Woonwijk')
-const hoogte = def.concat('/Hoogte')
-const gebouwType = def.concat('/GebouwType')
-const aantalPersonen = def.concat('/AantalPersonen')
-const heeftBouwlaag = def.concat('/heeftBouwlaag')
-const verdieping = def.concat('/Verdieping')
+import { baseIri, id, def, prefix_graph } from './utils/declarations.js'
 
 export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
@@ -22,51 +12,47 @@ export default async function (): Promise<Etl> {
     fromJson(source.buildings),
     whenForEach('@gebouwen', [
       addIri({
-        prefix: id.concat('/'),
+        prefix: id.gebouw,
         content: '@id',
         key: '_gebouwID'
       }),
       triple('_gebouwID', a, dbo.Building),
       when('hoogte',
-        triple('_gebouwID', hoogte, literal('hoogte', xsd.integer))
+        triple('_gebouwID', def.hoogte, literal('hoogte', xsd.integer))
       ),
       when('gebouwType',
-        triple('_gebouwID', gebouwType, literal('gebouwType', xsd.string))
+        triple('_gebouwID', def.gebouwType, literal('gebouwType', xsd.string))
       ),
       when('woonwijkCode',
-        triple('_gebouwID', woonwijk, literal('woonwijkCode', xsd.string))
+        triple('_gebouwID', def.woonwijk, literal('woonwijkCode', xsd.string))
       ),
       when('aantalPersonen',
-        triple('_gebouwID', aantalPersonen, literal('aantalPersonen', xsd.integer))
+        triple('_gebouwID', def.aantalPersonen, literal('aantalPersonen', xsd.integer))
       ),
       addHashedIri({
         content: '@id',
-        prefix: baseIri.concat('Bouwlaag/'),
+        prefix: id.bouwlaag,
         key: '_bouwlaag'
       }),
-      triple('_gebouwID', heeftBouwlaag, '_bouwlaag'),
+      triple('_gebouwID', def.bouwlaag, '_bouwlaag'),
       whenForEach('bouwlaag',
         addHashedIri({
           content: ['$parent.@id', 'id'],
-          prefix: baseIri.concat('bouwlaagID/'),
+          prefix: id.bouwlaag,
           key: '_bouwlaagID'
         }),
         pairs('$parent._bouwlaag',
-          [
-            a, baseIri.concat('Bouwlaag')
-          ],
-          [
-            def.concat('/bouwlaagElementen'), '_bouwlaagID'
-          ]
+          [ a, def.Bouwlaag ],
+          [ def.bouwlaagElement, '_bouwlaagID' ]
         ),
         when('id',
           triple('_bouwlaagID', rdfs.label, 'id')
         ),
         when('verdieping',
-          triple('_bouwlaagID', verdieping, 'verdieping')
+          triple('_bouwlaagID', def.verdieping, 'verdieping')
         ),
         when('hoogte',
-          triple('_bouwlaagID', hoogte, 'hoogte')
+          triple('_bouwlaagID', def.hoogte, 'hoogte')
         )
       ),
       when('opmerking',
@@ -75,7 +61,7 @@ export default async function (): Promise<Etl> {
     ]),
     validate(source.model,
       {
-        graph: baseIri.concat('graph/report'),
+        graph: prefix_graph.concat('report'),
         terminateOn: 'Never'
       }
     ),

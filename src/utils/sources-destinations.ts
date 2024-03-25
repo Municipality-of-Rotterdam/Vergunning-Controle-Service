@@ -8,6 +8,6 @@ export const source = {
 
 export const destination = {
   vergunningscontroleservice: {
-    account: getAccount(), dataset: { name: getDataset('vergunningscontroleservice'), displayName: 'Vergunningscontroleservice', description: 'Gepubliceerd door TriplyETL' }
+    account: getAccount(), dataset: { name: getDataset('vcs'), displayName: 'Vergunningscontroleservice', description: 'Gepubliceerd door TriplyETL' }
   }
 }
