@@ -1,7 +1,7 @@
 {
   "@gebouwen": [
       {
-          "@id": "gebouw_A_1",
+          "@id": "Gebouw_A_1",
           "hoogte": 9,
           "gebouwType": "Woonhuis",
           "woonwijkCode": "A",
@@ -26,7 +26,7 @@
           "opmerking": "Dit is een voorbeeld van een correct gebouw"
       },
       {
-          "@id": "gebouw_A_2",
+          "@id": "Gebouw_A_2",
           "hoogte": 5,
           "gebouwType": "Woonhuis",
           "woonwijkCode": "A",
@@ -46,7 +46,7 @@
           "opmerking": "Illustreert onjuiste hoogte: som van verdiepingen ≠ gebouwhoogte"
       },
       {
-          "@id": "gebouw_A_3",
+          "@id": "Gebouw_A_3",
           "hoogte": 6,
           "gebouwType": "Woonhuis",
           "woonwijkCode": "A",
@@ -66,7 +66,7 @@
           "opmerking": "Illustreert onjuiste verdiepingslabel-id"
       },
       {
-          "@id": "gebouw_A_4",
+          "@id": "Gebouw_A_4",
           "hoogte": 18,
           "gebouwType": "Woonhuis",
           "woonwijkCode": "A",
@@ -106,7 +106,7 @@
           "opmerking": "Illustreert schending van het aantal verdiepingen in het gebouw"
       },
       {
-          "@id": "gebouw_A_5",
+          "@id": "Gebouw_A_5",
           "hoogte": 20,
           "gebouwType": "Woonhuis",
           "woonwijkCode": "A",
@@ -126,7 +126,7 @@
           "opmerking": "Illustreert schending van de hoogte van het gebouw"
       },
       {
-          "@id": "gebouw_A_6",
+          "@id": "Gebouw_A_6",
           "hoogte": 6,
           "gebouwType": "Woonhuis",
           "woonwijkCode": "A",
@@ -146,7 +146,7 @@
           "opmerking": "Illustreert schending van de som van hoogtes voor verdiepingen van het gebouw en onjuiste verdiepingshoogte ten opzichte van de gebouwhoogtewaarschuwing"
       },
       {
-          "@id": "gebouw_A_7",
+          "@id": "Gebouw_A_7",
           "hoogte": 6,
           "gebouwType": "Woonhuis",
           "woonwijkCode": "A",
@@ -168,7 +168,7 @@
           "opmerking": "Illustreert schending van bouwlaag ontbrekende properties"
       },
       {
-          "@id": "gebouw_B_1",
+          "@id": "Gebouw_B_1",
           "hoogte": 12,
           "gebouwType": "Kantoor",
           "woonwijkCode": "B",
@@ -176,7 +176,7 @@
           "opmerking": "Dit is een voorbeeld van een correct gebouw met een ontbrekende bouwlaag"
       },
       {
-          "@id": "gebouw_B_2",
+          "@id": "Gebouw_B_2",
           "hoogte": 30,
           "gebouwType": "Commercieel",
           "woonwijkCode": "B",
@@ -196,7 +196,7 @@
           "opmerking": "Dit is een voorbeeld van een correct gebouw"
       },
       {
-          "@id": "gebouw_B_3",
+          "@id": "Gebouw_B_3",
           "hoogte": 5,
           "gebouwType": "Ongedefinieerd",
           "woonwijkCode": "B",
@@ -211,7 +211,7 @@
           "opmerking": "Dit is een voorbeeld van een onjuist gebouwtype"
       },
       {
-          "@id": "gebouw_B_4",
+          "@id": "Gebouw_B_4",
           "hoogte": 5,
           "gebouwType": "Woonhuis",
           "woonwijkCode": "9",
@@ -226,7 +226,7 @@
           "opmerking": "Dit is een voorbeeld van een onjuiste woonwijkcode"
       },
       {
-          "@id": "gebouw_C_1",
+          "@id": "Gebouw_C_1",
           "hoogte": 7,
           "gebouwType": "Commercieel",
           "woonwijkCode": "C",
@@ -241,7 +241,7 @@
           "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
       },
       {
-          "@id": "gebouw_C_2",
+          "@id": "Gebouw_C_2",
           "hoogte": 7,
           "gebouwType": "Commercieel",
           "woonwijkCode": "C",
@@ -256,7 +256,7 @@
           "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
       },
       {
-          "@id": "gebouw_C_3",
+          "@id": "Gebouw_C_3",
           "hoogte": 12,
           "gebouwType": "Commercieel",
           "woonwijkCode": "C",
@@ -276,7 +276,7 @@
           "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
       },
       {
-          "@id": "gebouw_C_4",
+          "@id": "Gebouw_C_4",
           "hoogte": 5,
           "gebouwType": "Commercieel",
           "woonwijkCode": "C",
@@ -291,7 +291,7 @@
           "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
       },
       {
-          "@id": "gebouw_C_5",
+          "@id": "Gebouw_C_5",
           "hoogte": 7,
           "gebouwType": "Commercieel",
           "woonwijkCode": "C",
@@ -306,7 +306,7 @@
           "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
       },
       {
-          "@id": "gebouw_C_6",
+          "@id": "Gebouw_C_6",
           "hoogte": 6,
           "gebouwType": "Woonhuis",
           "woonwijkCode": "C",
@@ -326,7 +326,7 @@
           "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
       },
       {
-          "@id": "gebouw_E_1",
+          "@id": "Gebouw_E_1",
           "opmerking": "Dit is een voorbeeld van een incorrect gebouw",
           "woonwijkCode": "E"
       }
