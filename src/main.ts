@@ -17,6 +17,7 @@ export default async function (): Promise<Etl> {
         key: '_gebouwID'
       }),
       triple('_gebouwID', a, dbo.Building),
+      triple('_gebouwID', rdfs.label, '@id'),
       when('hoogte',
         triple('_gebouwID', def.hoogte, literal('hoogte', xsd.integer))
       ),
