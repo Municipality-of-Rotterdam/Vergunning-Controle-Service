@@ -7,7 +7,7 @@ import { baseIri, id, def, graph } from './utils/declarations.js'
 
 export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
-  const etl = new Etl({ baseIri })
+  const etl = new Etl({ baseIri, defaultGraph: baseIri.concat('default') })
   etl.use(
     fromJson(source.buildings),
     whenForEach('@gebouwen', [
