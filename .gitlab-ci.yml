@@ -48,18 +48,15 @@ main:
     - !reference [.etl-template, rules]
 
 ### Example stage 1: add another ETL with name "collections"
-collections:
+geodataCsv:
   stage: run-etls
   interruptible: true
   allow_failure: false
-  artifacts:
-    !reference [.etl-template, artifacts]
+  artifacts: !reference [.etl-template, artifacts]
   script:
     - !reference [.etl-template, install]
     - !reference [.etl-template, run-etl]
   rules:
-    # Make sure you remove this next line if you want to use this stage:
-    - when: never
     - !reference [.etl-template, rules]
 
 
