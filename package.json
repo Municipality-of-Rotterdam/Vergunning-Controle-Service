@@ -2,7 +2,8 @@
   "author": "Triply <info@triply.cc>",
   "type": "module",
   "dependencies": {
-    "@triplyetl/etl": "^4.1.11"
+    "@triplyetl/etl": "^4.1.11",
+    "cross-env": "^7.0.3"
   },
   "description": "Triply ETL for GemeenteRotterdam",
   "lint-staged": {
@@ -22,12 +23,11 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch --preserveWatchOutput",
-    "util:lint": "ESLINT_STRICT=true ESLINT_EXPENSIVE=true eslint --ext .tsx --ext .ts ./src",
-    "util:lint:fix": "ESLINT_STRICT=true ESLINT_EXPENSIVE=true eslint --fix --ext .tsx --ext .ts ./src",
+    "util:lint": "cross-env ESLINT_STRICT=true eslint --ext .tsx --ext .ts ./src",
+    "util:lint:fix": "cross-env ESLINT_STRICT=true eslint --fix --ext .tsx --ext .ts ./src",
     "util:validateTs": "tsc --noEmit",
     "util:validateTs:watch": "tsc --noEmit --watch --preserveWatchOutput"
   },
   "version": "1.0.0",
   "name": "gemeente-rotterdam"
 }
-
