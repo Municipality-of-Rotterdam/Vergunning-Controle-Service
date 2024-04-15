@@ -36,9 +36,9 @@ export default async function (): Promise<Etl> {
         }),
         triple('_geometry', geo.asWKT, '_point')
       )
-    ])
+    ]),
+    toTriplyDb(destination.vergunningscontroleservice)
   )
-  toTriplyDb(destination.vergunningscontroleservice)
   //   await etl.copySource(source.model, destination.vergunningscontroleservice)
   return etl
 }

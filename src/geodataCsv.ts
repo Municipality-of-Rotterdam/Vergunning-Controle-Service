@@ -41,9 +41,9 @@ export default async function (): Promise<Etl> {
       triple('_geoID', geo.hasGeometry, '_geometry'),
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       triple('_geometry', geo.asWKT, 'WKT')
-    )
+    ),
+    toTriplyDb(destination.geodata)
   )
-  toTriplyDb(destination.geodata)
 
   return etl
 }
