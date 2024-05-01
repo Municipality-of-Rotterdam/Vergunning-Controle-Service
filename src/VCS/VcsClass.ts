@@ -110,13 +110,24 @@ class VCS {
 
     return data;
   }
-
   public async createSHACLConstraint(
     dictionary: { [key: string]: string },
     geometry: Geometry
   ): Promise<string> {
     // Initialize the output string for SHACL Constraint
-    let shaclConstraint = "";
+    let shaclConstraint =`
+    # External prefix declarations
+    prefix dbo:   <http://dbpedia.org/ontology/>
+    prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+    prefix sh:    <http://www.w3.org/ns/shacl#>
+    prefix xsd:   <http://www.w3.org/2001/XMLSchema#>
+    
+    # Project-specific prefix
+    prefix def:   <https://demo.triplydb.com/rotterdam/vcs/model/def/>
+    prefix graph: <https://demo.triplydb.com/rotterdam/vcs/graph/>
+    prefix shp:   <https://demo.triplydb.com/rotterdam/vcs/model/shp/>
+    
+    `;
 
     const rules = await this.getRuleActivity(geometry);
 
@@ -183,9 +194,38 @@ const geo1: GeoJSONPoint = {
     },
   };
 
+  const retrievedNumberPositiveMaxBouwlagen = 2
 // Generate a fake dictionary object
+const maxBouwlaagRule = `
+shp:BuildingMaxAantalPositieveBouwlagenSparql
+  a sh:SPARQLConstraint;
+  sh:message 'Gebouw {?this} heeft {?aantalBouwlagen}, dit moet ${retrievedNumberPositiveMaxBouwlagen} zijn.';
+  sh:severity sh:Violation;
+  sh:datatype xsd:string;
+  sh:select '''
+  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4_3/RC1/OWL#>
+  PREFIX express: <https://w3id.org/express#>
+  
+  SELECT 
+    (COUNT(?positiveFloorLabel) AS ?numPositiveFloors)
+  WHERE {
+    {
+      SELECT ?positiveFloorLabel WHERE {
+        ?storey a ifc:IfcBuildingStorey;
+                ifc:name_IfcRoot ?storeyLabel.
+        ?storeyLabel a ifc:IfcLabel;
+                     express:hasString ?positiveFloorLabel.
+        FILTER(REGEX(?positiveFloorLabel, "^(0?[1-9]|[1-9][0-9]) .*")) # Matches positive floors starting from '01'
+        FILTER(?positiveFloorLabel != "00 begane grond") # Excludes '00 begane grond'
+      }
+    }
+  }
+  FILTER(numPositiveFloors? > ${retrievedNumberPositiveMaxBouwlagen})
+  '''.
+`
 const fakeDictionary = {
-    "exampleWId1": "Example SHACL Rule 1",
+    "exampleWId1": maxBouwlaagRule,
     "exampleWId2": "Example SHACL Rule 2",
     // Add more fake dictionary entries as needed
 };
