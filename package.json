@@ -3,7 +3,10 @@
   "type": "module",
   "dependencies": {
     "@triplyetl/etl": "^4.1.11",
-    "cross-env": "^7.0.3"
+    "adm-zip": "^0.5.12",
+    "cross-env": "^7.0.3",
+    "execa": "^8.0.1",
+    "gltf-pipeline": "^4.1.0"
   },
   "description": "Triply ETL for GemeenteRotterdam",
   "lint-staged": {
@@ -29,5 +32,9 @@
     "util:validateTs:watch": "tsc --noEmit --watch --preserveWatchOutput"
   },
   "version": "1.0.0",
-  "name": "gemeente-rotterdam"
+  "name": "gemeente-rotterdam",
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.5",
+    "@types/fs-extra": "^11.0.4"
+  }
 }
