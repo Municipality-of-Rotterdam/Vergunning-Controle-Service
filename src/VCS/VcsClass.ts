@@ -63,21 +63,14 @@ dotenv.config();
  * This class provides some of the API functionalities of the DSO environment and related APIs to
  * retrieve rule data given a geo location, and generates a SHACL Constraint file, based on the relevant rules which will be used.
  *
- * The DSO APIs work either with a GET or POST request, this can vary depending on the type of request (you can find this information in the OpenAPI JSON specification for each endpoint of the DSO APIs)
- *
- * ### Practical example: Omgevingsdocumenten toepasbaaropvragen API
- *
- * Omgevingsdocumenten toepasbaaropvragen API is one of the APIs from the DSO
- * To find an activity given a particular GeoJSON Point, we send a POST request with the required headers, and required GeoJSON body, to https://service.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/toepasbaaropvragen/v7/activiteitidentificaties/_zoek and get back a list of activity IDs relevant for this location.
- * Then for each activity do a GET request with the required headers to https://service.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/toepasbaaropvragen/v7/activiteiten/{activityID}/regelteksten, which will return the regelteksten (rule text) for this activity.
- * Based on the identifier of the rule, we map it to it's SHACL counterpart and generate a SHACL constraint file for the provided geo location.
+ * The DSO & Ruimtelijke Plannen APIs work either with a GET or POST request, this can vary depending on the type of request (you can find this information in the respective OpenAPI JSON/YAML specification for each endpoint of the APIs)
  */
 
 /**
  * TODO create pipeline ETL
- * [ ] check IFC file with IDS and IFC OpenShell tool - create rapport
- * [ ] IFC to IFC-OWL
- * [ ] IFC to GLTF (for visualization)
+ * [x] check IFC file with IDS and IFC OpenShell tool - create rapport
+ * [x] IFC to IFC-OWL
+ * [x] IFC to GLTF (for visualization)
  * [ ] IFC extract projection
  * [ ] IFC extract WKT coordinates
  * [ ] query for given geometry with SPARQL and generate VCS SHACL constraints
@@ -282,7 +275,7 @@ class IFCTransform {
       const { stdout } = await $`java --version`;
       if (!stdout.startsWith("java version")) {
         throw new Error(
-          "Java is not installed. Please install Java and try again."
+          `Java is not installed. Please install Java and try again.\n${stdout}`
         );
       }
     } catch (error) {
@@ -457,6 +450,7 @@ class VCS {
     } catch (error) {
       throw error;
     }
+    // TODO read file and check if rapport is correct or invalid
     console.log(
       `Validation completed! Please see the validation report: ${destinationPath}`
     );
