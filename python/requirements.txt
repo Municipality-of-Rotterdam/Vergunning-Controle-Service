@@ -1,0 +1,4 @@
+ifcopenshell
+numpy
+shapely
+argparse

@@ -9,6 +9,7 @@ import * as path from "path";
 import * as gltf from "gltf-pipeline";
 
 dotenv.config();
+const __dirname = path.resolve();
 
 //  const exampleGeometry = `{
 //         "geometrie": {
@@ -383,27 +384,24 @@ class IFCTransform {
     await fsp.unlink(glbFilePath);
   }
 
-  async extractProjection() {
-    // [ ] have python script with requirements.txt for lib
-    const pythonScript = "";
-    const requirements = "";
+  async extractFootprint(ifcFilePath: string = this.ifcFilePath!, outputFilePath: string = path.join(__dirname, 'data', 'footprint.csv')) {
+    const pyhtonScriptPath = path.join(__dirname, 'python', 'footprint_approx.py')
+    const requirements = path.join(__dirname, 'pyhton', 'requirements.txt')
     try {
-      // TODO Python script should take in IFC file and output an RDF file?
-      await $`pip install -r ${requirements}`;
-      await $`pyhton3 ${pythonScript}`;
+      await $`pip install -r ${requirements}`
+      await $`python ${pyhtonScriptPath} -ifc_file ${ifcFilePath} -o ${outputFilePath}`;
     } catch (error) {
       throw error;
     }
   }
 
-  async extractWKT() {
-    // [ ] have python script with requirements.txt for lib
-    const pythonScript = "";
-    const requirements = "";
+  async extractWKTCoordinates(ifcFilePath: string = this.ifcFilePath!, outputFilePath: string = path.join(__dirname, 'data', 'extracted_coordinates.csv')) {
+    const pyhtonScriptPath = path.join(__dirname, 'python', 'Cartesian2Csv.py')
+    const requirements = path.join(__dirname, 'pyhton', 'requirements.txt')
+
     try {
-      // TODO Python script should take in IFC file and output an RDF file?
-      await $`pip install -r ${requirements}`;
-      await $`pyhton3 ${pythonScript}`;
+      await $`pip install -r ${requirements}`
+      await $`python ${pyhtonScriptPath} -ifc_file ${ifcFilePath} -o ${outputFilePath}`;
     } catch (error) {
       throw error;
     }
@@ -446,7 +444,7 @@ class VCS {
 
     try {
       await $`pip install -r ifctester`;
-      await $`pyhton3 -m ifctester ${idsFilePath} ${ifcFilePath} -r Html -o ${destinationPath}`;
+      await $`python3 -m ifctester ${idsFilePath} ${ifcFilePath} -r Html -o ${destinationPath}`;
     } catch (error) {
       throw error;
     }
@@ -1022,3 +1020,6 @@ class RuimtelijkePlannenAPI {
 // };
 
 // vcs.createSHACLConstraint(fakeDictionary, geo1).then(res => {console.log(res)}).catch(e => {throw e})
+const t = new IFCTransform('/Users/work/triply/vergunningscontroleservice/python/file.ifc')
+t.extractFootprint().then(_ => {})
+.catch(e => {throw e})
