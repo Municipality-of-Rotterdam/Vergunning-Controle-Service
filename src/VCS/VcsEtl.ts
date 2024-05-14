@@ -1,5 +1,4 @@
 import {
-  fromCsv,
   loadRdf,
   Middleware,
   MiddlewareList,
@@ -66,10 +65,23 @@ export async function vcsEtl(
             try {
             await vcs.IFC.validateWithIds(idsFilePath);
             } catch (error) {
-            console.error("Error during validation! Uploading IDS Validation Report");
-            await dataset.uploadAsset("./data/IDSValidationReport.html");
+                console.error("Error during validation! Uploading IDS Validation Report");
+                try {
+                    const asset = await dataset.getAsset('./data/IDSValidationReport.html')
+                    await asset.delete()
+                } catch (error) {
+                }
+                await dataset.uploadAsset("./data/IDSValidationReport.html");
             reject(error)
             }
+
+            try {
+                const asset = await dataset.getAsset('./data/IDSValidationReport.html')
+                await asset.delete()
+            } catch (error) {
+            }
+
+            await dataset.uploadAsset("./data/IDSValidationReport.html");
         }
 
         // VCS Transform IFC to RDF
@@ -81,18 +93,20 @@ export async function vcsEtl(
         await ifcTransform.IFCtoGLTF();
 
         // upload assets to dataset
+        try {
+            const asset = await dataset.getAsset("./data/output.gltf")
+            await asset.delete()
+        } catch (error) {
+        }
         await dataset.uploadAsset("./data/output.gltf");
-        await dataset.uploadAsset("./data/IDSValidationReport.html");
-
         // read all data and upload local files as assets
         const polygon: string = await readFile("data/footprint.txt");
 
         const mwList = [
             loadRdf(Source.file("./data/ifcOwlData.ttl")),
-            fromCsv(Source.file("./data/footprint.csv")),
             update(`
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4_3/RC1/OWL#>
+            PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
             PREFIX express: <https://w3id.org/express#>
             PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 
@@ -125,18 +139,18 @@ export async function vcsGenerateShacl(
                 async function _vcsGenerateShacl(_ctx, next) {
                     // Initialize the output string for SHACL Constraint
                     let shaclConstraint =`
-                    # External prefix declarations
-                    prefix dbo:   <http://dbpedia.org/ontology/>
-                    prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-                    prefix sh:    <http://www.w3.org/ns/shacl#>
-                    prefix xsd:   <http://www.w3.org/2001/XMLSchema#>
-                    
-                    # Project-specific prefix
-                    prefix def:   <https://demo.triplydb.com/rotterdam/vcs/model/def/>
-                    prefix graph: <https://demo.triplydb.com/rotterdam/vcs/graph/>
-                    prefix shp:   <https://demo.triplydb.com/rotterdam/vcs/model/shp/>
-                    
-                    `;
+# External prefix declarations
+prefix dbo:   <http://dbpedia.org/ontology/>
+prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+prefix sh:    <http://www.w3.org/ns/shacl#>
+prefix xsd:   <http://www.w3.org/2001/XMLSchema#>
+
+# Project-specific prefix
+prefix def:   <https://demo.triplydb.com/rotterdam/vcs/model/def/>
+prefix graph: <https://demo.triplydb.com/rotterdam/vcs/graph/>
+prefix shp:   <https://demo.triplydb.com/rotterdam/vcs/model/shp/>
+
+graph:model {`;
 
                     // get the rule IDs
             
@@ -153,17 +167,17 @@ export async function vcsGenerateShacl(
                     // [ ] get the footprint with query
                     // const getFootprintWkt = `
                     // PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                    // PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4_3/RC1/OWL#>
+                    // PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
                     // PREFIX express: <https://w3id.org/express#>
                     // PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-        
+                            
                     // SELECT ?wktLiteral
                     // WHERE {
-                    //     ?storey a ifc:IfcBuildingStorey;
-                    //             ifc:name_IfcRoot ?storeyLabel.
-                    //     ?storeyLabel a ifc:IfcLabel;
-                    //                 express:hasString "00 begane grond";
-                    //                 geo:asWKT ?wktLiteral.
+                    //   ?storey a ifc:IfcBuildingStorey;
+                    //           ifc:name_IfcRoot ?storeyLabel.
+                    //   ?storeyLabel a ifc:IfcLabel;
+                    //               express:hasString "00 begane grond";
+                    //               geo:asWKT ?wktLiteral.
                     // }
                     // `
 
@@ -183,8 +197,10 @@ export async function vcsGenerateShacl(
                         shaclConstraint += dictionary[articleID];
                         }
                     }
+                    shaclConstraint += '}'
+                    console.log('🪵  | _vcsGenerateShacl | shaclConstraint:', shaclConstraint)
                     // Write SHACL constraint to local file
-                    const filePath = './data/constraintModel.ttl'
+                    const filePath = './data/model.trig'
 
                     fs.writeFile(filePath, shaclConstraint, (err) => {
                         if (err) {
@@ -197,6 +213,11 @@ export async function vcsGenerateShacl(
                     const dataset = await (
                         await triply.getAccount()
                     ).getDataset(destination.vergunningscontroleservice.dataset.name);
+                    try {
+                        const asset = await dataset.getAsset(filePath)
+                        await asset.delete()
+                    } catch (error) {
+                    }
                     await dataset.uploadAsset(filePath);
 
                     return next()
@@ -210,39 +231,47 @@ const maxBouwlaagRule = (retrievedNumberPositiveMaxBouwlagen: string) => {
     return `
 shp:BuildingMaxAantalPositieveBouwlagenSparql
   a sh:SPARQLConstraint;
-  sh:message 'Gebouw {?this} heeft {?aantalBouwlagen}, dit moet ${retrievedNumberPositiveMaxBouwlagen} zijn.';
+  sh:message 'Gebouw {?this} heeft {?totalNumberOfFloors}, dit moet ${retrievedNumberPositiveMaxBouwlagen} zijn.';
   sh:severity sh:Violation;
   sh:datatype xsd:string;
   sh:select '''
-  PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-  PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4_3/RC1/OWL#>
-  PREFIX express: <https://w3id.org/express#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
+PREFIX express: <https://w3id.org/express#>
 
-  SELECT
-    (COUNT(?positiveFloorLabel) + COUNT(?negativeFloorLabel) AS ?totalNumberOfFloors)
-  WHERE {
-    {
-      SELECT ?positiveFloorLabel WHERE {
-        ?storey a ifc:IfcBuildingStorey;
-                ifc:name_IfcRoot ?storeyLabel.
-        ?storeyLabel a ifc:IfcLabel;
-                     express:hasString ?positiveFloorLabel.
-        FILTER(REGEX(?positiveFloorLabel, "^(0?[1-9]|[1-9][0-9]) .*")) # Matches positive floors starting from '01'
-        FILTER(?positiveFloorLabel != "00 begane grond") # Excludes '00 begane grond'
+SELECT ?this ?totalNumberOfFloors
+WHERE {
+  {
+    SELECT ?this (COUNT(?positiveFloorLabel) + COUNT(?negativeFloorLabel) AS ?totalNumberOfFloors)
+    WHERE {
+      {
+        SELECT ?this ?positiveFloorLabel WHERE {
+          ?this a ifc:IfcBuilding .
+          ?storey a ifc:IfcBuildingStorey;
+                  ifc:name_IfcRoot ?storeyLabel.
+          ?storeyLabel a ifc:IfcLabel;
+                      express:hasString ?positiveFloorLabel.
+          FILTER(REGEX(?positiveFloorLabel, "^(0?[1-9]|[1-9][0-9]) .*")) # Matches positive floors starting from '01'
+          FILTER(?positiveFloorLabel != "00 begane grond") # Excludes '00 begane grond'
+        }
+      }
+      UNION
+      {
+        SELECT ?this ?negativeFloorLabel WHERE {
+          ?this a ifc:IfcBuilding .
+          ?storey a ifc:IfcBuildingStorey;
+                  ifc:name_IfcRoot ?storeyLabel.
+          ?storeyLabel a ifc:IfcLabel;
+                       express:hasString ?negativeFloorLabel.
+          FILTER(REGEX(?negativeFloorLabel, "^-(0?[1-9]|[1-9][0-9]) .*")) # Matches negative floors starting from '-01'
+        }
       }
     }
-    UNION
-    {
-      SELECT ?negativeFloorLabel WHERE {
-        ?storey a ifc:IfcBuildingStorey;
-                ifc:name_IfcRoot ?storeyLabel.
-        ?storeyLabel a ifc:IfcLabel;
-                     express:hasString ?negativeFloorLabel.
-        FILTER(REGEX(?negativeFloorLabel, "^-(0?[1-9]|[1-9][0-9]) .*")) # Matches negative floors starting from '-01'
-      }
-    }
+    GROUP BY ?this
   }
-  FILTER(numPositiveFloors? > ${retrievedNumberPositiveMaxBouwlagen})
+  FILTER (?totalNumberOfFloors > 2)
+}
+
   '''.
 `}
 

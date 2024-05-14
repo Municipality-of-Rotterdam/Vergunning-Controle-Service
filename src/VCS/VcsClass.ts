@@ -163,16 +163,16 @@ export default class VCS {
 // const idsFilePathCorrect2 = 'src/VCS/data/IDS_wooden-windows_correct2.ids'
 // const idsArray = [idsFilePathCorrect1, idsFilePathCorrect2]
 // const idsFilePath3 = '/Users/work/triply/vergunningscontroleservice/src/VCS/data/NL_BIM\ Basis\ ILS.ids'
-const vcs = new VCS('src/VCS/data/Kievitsweg_R23_MVP_IFC4.ifc');
+// const vcs = new VCS('src/VCS/data/Kievitsweg_R23_MVP_IFC4.ifc');
 
 // VCS IDS Validation
 // await vcs.IFC.validateWithIds(idsFilePathWrong)
-await vcs.IFC.validateWithIds('src/VCS/data/IDS_Rotterdam_BIM.ids')
-const ifcTransform = vcs.IFC.transform()
+// await vcs.IFC.validateWithIds('src/VCS/data/IDS_Rotterdam_BIM.ids')
+// const ifcTransform = vcs.IFC.transform()
 
-// VCS Transform IFC to RDF
-await ifcTransform.IFCtoIFCOWL("https://www.rotterdam.nl/vcs/graph/");
-await ifcTransform.extractWKTCoordinates();
-await ifcTransform.extractFootprint();
-await ifcTransform.IFCtoGLTF();
+// // VCS Transform IFC to RDF
+// await ifcTransform.IFCtoIFCOWL("https://www.rotterdam.nl/vcs/graph/");
+// await ifcTransform.extractWKTCoordinates();
+// await ifcTransform.extractFootprint();
+// await ifcTransform.IFCtoGLTF();
 

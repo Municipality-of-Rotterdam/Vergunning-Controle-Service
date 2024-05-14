@@ -2,8 +2,7 @@ import { Source } from '@triplyetl/etl/generic'
 import { getAccount, getDataset } from './dtap.js'
 
 export const source = {
-  buildings: Source.file('static/example_mock_data_building.json'),
-  model: Source.file('static/model.trig')
+  model: Source.file('./data/model.trig')
 }
 
 export const destination = {
