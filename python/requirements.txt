@@ -1,4 +1,6 @@
 ifcopenshell
+ifctester
+pystache
 numpy
 shapely
 argparse
