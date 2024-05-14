@@ -23,5 +23,6 @@ export const def = {
 export const id = {
   bouwlaag: prefixId.concat('bouwlaag/'),
   gebouw: prefixId.concat('gebouw/'),
-  geo: prefixId.concat('geo/')
+  geo: prefixId.concat('geo/'),
+  geometry: prefixId.concat('geometry/')
 }

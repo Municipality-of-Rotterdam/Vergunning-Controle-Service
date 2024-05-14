@@ -1,11 +1,10 @@
 import { Etl, Source, fromCsv, toTriplyDb, when } from "@triplyetl/etl/generic";
 import {
-  addHashedIri,
   addIri,
   iri,
   pairs,
   str,
-  triple,
+  triple
 } from "@triplyetl/etl/ratt";
 import { a, geo, rdfs } from "@triplyetl/etl/vocab";
 import { baseIri, id } from "./utils/declarations.js";
@@ -27,8 +26,8 @@ export default async function (): Promise<Etl> {
         "./static/geodata/csv/eenkelvoudigeBestem.csv",
         "./static/geodata/csv/nummers.csv",
         "./static/geodata/csv/nummersN.csv",
-        "./static/geodata/csv/staandVr.csv",
-        "./static/geodata/csv/standplaats.csv",
+        // "./static/geodata/csv/staandVr.csv",
+        // "./static/geodata/csv/standplaats.csv",
         "./static/geodata/csv/vigerendeBestem.csv",
       ])
     ),
@@ -36,11 +35,8 @@ export default async function (): Promise<Etl> {
       "PLANID",
       addIri({ prefix: id.geo, content: "PLANID", key: "_geoID" }),
       triple("_geoID", a, geo.Feature),
-      addHashedIri({
-        content: ["PLANID"],
-        prefix: geo.Geometry,
-        key: "_geometry",
-      }),
+      addIri({ prefix: id.geometry, content: "PLANID", key: "_geometry" }),
+
       pairs(
         "_geoID",
         [
