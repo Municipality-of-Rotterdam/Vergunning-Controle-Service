@@ -198,7 +198,7 @@ graph:model {`;
                         }
                     }
                     shaclConstraint += '}'
-                    console.log('🪵  | _vcsGenerateShacl | shaclConstraint:', shaclConstraint)
+
                     // Write SHACL constraint to local file
                     const filePath = './data/model.trig'
 
@@ -269,7 +269,7 @@ WHERE {
     }
     GROUP BY ?this
   }
-  FILTER (?totalNumberOfFloors > 2)
+  FILTER (?totalNumberOfFloors > ${retrievedNumberPositiveMaxBouwlagen})
 }
 
   '''.
