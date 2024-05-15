@@ -9,6 +9,7 @@ export default async function (): Promise<Etl> {
 
   etl.use(
     loadRdf(Source.TriplyDb.rdf(destination.vergunningscontroleservice.dataset.name)),
+    
     validate(source.model, {
       graph: graph.concat("report"),
       terminateOn: "Never",

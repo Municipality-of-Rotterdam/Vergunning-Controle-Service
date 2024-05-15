@@ -140,7 +140,8 @@ export async function vcsGenerateShacl(
     return addMwCallSiteToError(
                 async function _vcsGenerateShacl(_ctx, next) {
                     // Initialize the output string for SHACL Constraint
-                    let shaclConstraint =`
+                    let shaclConstraint = (sparqlConstraintNodeNames: string, sparqlConstraintNodes: string) => `
+
 # External prefix declarations
 prefix dbo:   <http://dbpedia.org/ontology/>
 prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
@@ -150,9 +151,17 @@ prefix xsd:   <http://www.w3.org/2001/XMLSchema#>
 # Project-specific prefix
 prefix def:   <https://demo.triplydb.com/rotterdam/vcs/model/def/>
 prefix graph: <https://demo.triplydb.com/rotterdam/vcs/graph/>
+prefix ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
 prefix shp:   <https://demo.triplydb.com/rotterdam/vcs/model/shp/>
-
-graph:model {`;
+graph:model {
+  shp:Building
+   a sh:NodeShape;
+   sh:targetClass ifc:IfcBuilding;
+   sh:sparql
+    ${sparqlConstraintNodeNames}
+  ${sparqlConstraintNodes}
+  }    
+`;
 
                     // get the rule IDs
             
@@ -193,18 +202,22 @@ graph:model {`;
                     const rulesIds = ['id_1']
 
                     // Iterate through each rule id for the geometry
-                    for (const articleID of rulesIds) {
-                        // Check if the "wId" exists in the dictionary
-                        if (dictionary[articleID]) {
-                        shaclConstraint += dictionary[articleID];
-                        }
+                    let sparqlConstraintNodeNames: string = ''
+                    let sparqlConstraintNodes: string = ''
+                    for (let index = 0; index < rulesIds.length; index++) {
+                      const articleID = rulesIds[index];
+                      if (dictionary[articleID]) {
+                        sparqlConstraintNodeNames += dictionary[articleID][0] + `${index +1 == rulesIds.length ? '. \n' : '; \n'}`;
+                        sparqlConstraintNodes += dictionary[articleID][1] + '\n'
+                      }
                     }
-                    shaclConstraint += '}'
+
+                    const shaclConstrainModel = shaclConstraint(sparqlConstraintNodeNames, sparqlConstraintNodes)
 
                     // Write SHACL constraint to local file
                     const filePath = './data/model.trig'
 
-                    fs.writeFile(filePath, shaclConstraint, (err) => {
+                    fs.writeFile(filePath, shaclConstrainModel, (err) => {
                         if (err) {
                           console.error('Error writing to file:', err);
                         }
@@ -233,7 +246,7 @@ const maxBouwlaagRule = (retrievedNumberPositiveMaxBouwlagen: string) => {
     return `
 shp:BuildingMaxAantalPositieveBouwlagenSparql
   a sh:SPARQLConstraint;
-  sh:message 'Gebouw {?this} heeft {?totalNumberOfFloors}, dit moet ${retrievedNumberPositiveMaxBouwlagen} zijn.';
+  sh:message 'Gebouw {?this} heeft in totaal {?totalNumberOfFloors} bouwlagem, dit mag maximaal ${retrievedNumberPositiveMaxBouwlagen} zijn.';
   sh:severity sh:Violation;
   sh:datatype xsd:string;
   sh:select '''
@@ -278,7 +291,7 @@ WHERE {
 `}
 
 export const ruleIdShaclConstraintDictionary = {
-"id_1": maxBouwlaagRule(getMaxAantalBouwlagen()),
-"id_2": "Example SHACL Rule 2",
+"id_1": ["shp:BuildingMaxAantalPositieveBouwlagenSparql", maxBouwlaagRule(getMaxAantalBouwlagen())],
+"id_2": ["NodeName", "NodeRule"],
 // Add more fake dictionary entries as needed
 };
