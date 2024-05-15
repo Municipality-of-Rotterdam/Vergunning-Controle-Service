@@ -1,7 +1,9 @@
 /* eslint-disable no-console */
 import { promisify } from "util";
-import { exec } from "child_process";
+import { exec } from "child_process"
+import { pipeline } from 'stream'
 import axios from "axios";
+import * as AdmZip from "adm-zip";
 import * as fs from "fs";
 
 
@@ -25,27 +27,43 @@ export async function fileFromUrl(url: string): Promise<Buffer> {
   return Buffer.from(response.data, "binary");
 }
 
+const pipelineAsync = promisify(pipeline);
+
 export async function downloadFile(url: string, filePath: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      const fileStream = fs.createWriteStream(filePath);
-      fileFromUrl(url)
-        .then((data) => {
-          fileStream.write(data);
-          fileStream.end();
-        })
-        .then(() => {
-          fileStream.on("finish", () => {
-            console.log(`Downloaded file to ${filePath}`);
-            resolve();
-          });
-        })
-        .catch((error) => {
-          fs.unlink(filePath, () => {
-            reject(error);
-          });
-        });
+  try {
+    const response = await axios({
+      method: 'get',
+      url: url,
+      responseType: 'stream'
     });
-  }  
+
+    await pipelineAsync(response.data, fs.createWriteStream(filePath));
+    console.log(`Downloaded file to ${filePath}`);
+  } catch (error) {
+    await fs.promises.unlink(filePath).catch(err => {
+      console.error('Error deleting incomplete file:', err);
+    });
+    throw error;
+  }
+}
+
+  export async function unzipFile(filePath: string, toolsDir: string) {
+    const zip = new AdmZip.default(filePath);
+  
+    return new Promise<void>((resolve, reject) => {
+      zip.extractAllToAsync(toolsDir, true, true, (err) => {
+        if (err) {
+          console.error('Error during extraction:', err);
+          reject(err);
+        } else {
+          console.log('Extraction complete');
+          resolve();
+        }
+      });
+    });
+  }
+  
+
 
 export function getCurrentDate(format: "US" | "EU" = "US"): string {
   const currentDate = new Date();

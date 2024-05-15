@@ -3,12 +3,10 @@ import os from "os";
 import * as fsp from "fs/promises";
 import { writeJsonSync } from "fs-extra/esm";
 import * as fs from "fs";
-import * as AdmZip from "adm-zip";
 import * as path from "path";
 import gltfPipeline from "gltf-pipeline";
-import { downloadFile, executeCommand } from "./helperFunctions.js";
+import { downloadFile, executeCommand, unzipFile } from "./helperFunctions.js";
 import { __dirname } from "./VcsClass.js";
-import { promisify } from "util";
 
 const { glbToGltf } = gltfPipeline;
 
@@ -74,18 +72,21 @@ export class IFCTransform {
       fs.mkdirSync(toolsDir);
     }
 
+    try {
     // Download the file
     await downloadFile(url, filePath);
 
     // Unzip the downloaded file
-    const zip = new AdmZip.default(filePath);
-    // BUG behaviour of unzipping not consitent! 
-    const extractZip = promisify(zip.extractAllToAsync)
-    await extractZip(toolsDir, true, true); // true to overwrite existing files
-
+    // BUG process seems to exit here for some reason
+    await unzipFile(filePath, toolsDir)
+    console.log(1)
 
     // Remove the downloaded zip file
     await fsp.unlink(filePath);
+    
+  } catch (e){
+    throw e
+  }
 
     console.log(`Downloaded IfcConvert to ${toolsDir}`);
   }
