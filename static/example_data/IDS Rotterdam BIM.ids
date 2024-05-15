@@ -8,7 +8,7 @@
     <purpose>specification IDS Rotterdam BIM</purpose>
   </info>
   <specifications>
-    <specification name="Brandweeringang" description="Brandweeringang" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Brandweeringang" description="Brandweeringang" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -19,9 +19,9 @@
           <propertySet>
             <simpleValue>Pset_DoorCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Brandweer_ingang</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>True</simpleValue>
           </value>
@@ -30,9 +30,9 @@
           <propertySet>
             <simpleValue>Pset_DoorCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Entrance</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>True</simpleValue>
           </value>
@@ -41,9 +41,9 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Uniformat</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>31.*</simpleValue>
           </value>
@@ -54,16 +54,16 @@
           <propertySet>
             <simpleValue>Pset_DoorCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Brandweer_ingang</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>True</simpleValue>
           </value>
         </property>
       </requirements>
     </specification>
-    <specification name="Buildingstory is entrancelevel" description="Buildingstory is entrancelevel" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Buildingstory is entrancelevel" description="Buildingstory is entrancelevel" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -74,9 +74,9 @@
           <propertySet>
             <simpleValue>Pset_BuildingStoreyCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>EntranceLevel</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>True</simpleValue>
           </value>
@@ -87,13 +87,13 @@
           <propertySet>
             <simpleValue>Pset_BuildingStoreyCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>EntranceLevel</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="Gebouwfunctie" description="MarketCategory" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Gebouwfunctie" description="MarketCategory" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -104,9 +104,9 @@
           <propertySet>
             <simpleValue>Pset_BuildingUse</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>MarketCategory</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>woonfunctie</simpleValue>
           </value>
@@ -117,13 +117,13 @@
           <propertySet>
             <simpleValue>Pset_BuildingUse</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>MarketCategory</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="Locatie Check EPSG" description="EPSG-28992" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Locatie Check EPSG" description="EPSG-28992" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -152,16 +152,16 @@
           <propertySet>
             <simpleValue>*</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>EPSG</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>28992</simpleValue>
           </value>
         </property>
       </requirements>
     </specification>
-    <specification name="Terreinopppervlakte" description="Terreinoppervlakte Zone" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Terreinopppervlakte" description="Terreinoppervlakte Zone" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -172,9 +172,9 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Zone</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>Terrein</simpleValue>
           </value>
@@ -185,13 +185,13 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Zone</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="Bebouwd Terreinoppervlakte" description="Bebouwd Terreinoppervlakte Zone" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Bebouwd Terreinoppervlakte" description="Bebouwd Terreinoppervlakte Zone" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -202,9 +202,9 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Long name</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>Bebouwd Terreinoppervlakte</simpleValue>
           </value>
@@ -215,13 +215,13 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Long name</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="Onbebouwd Terreinoppervlakte" description="Onbebouwd Terreinoppervlakte Zone" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Onbebouwd Terreinoppervlakte" description="Onbebouwd Terreinoppervlakte Zone" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -232,9 +232,9 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Long name</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>Onbebouwd Terreinoppervlakte</simpleValue>
           </value>
@@ -245,13 +245,13 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Long name</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="BVO" description="BVO Zone" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="BVO" description="BVO Zone" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -262,9 +262,9 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Zone</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>BVO</simpleValue>
           </value>
@@ -275,13 +275,13 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Long name</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="BVO - MarketSubCategory" description="BVO Zone bevat MarketSubCategory" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="BVO - MarketSubCategory" description="BVO Zone bevat MarketSubCategory" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -292,9 +292,9 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Zone</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>BVO</simpleValue>
           </value>
@@ -303,9 +303,9 @@
           <propertySet>
             <simpleValue>SpaceCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>MarketSubCategory</simpleValue>
-          </name>
+          </baseName>
           <value>
             <xs:restriction base="xs:string">
               <xs:enumeration value="Koop" />
@@ -319,13 +319,13 @@
           <propertySet>
             <simpleValue>SpaceCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>MarketSubCategory</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="BVO - Gebruiksfunctie" description="BVO Zone bevat Gebruiksfunctie" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="BVO - Gebruiksfunctie" description="BVO Zone bevat Gebruiksfunctie" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -336,9 +336,9 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Zone</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>BVO</simpleValue>
           </value>
@@ -347,9 +347,9 @@
           <propertySet>
             <simpleValue>SpaceCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Gebruiksfunctie</simpleValue>
-          </name>
+          </baseName>
           <value>
             <xs:restriction base="xs:string">
               <xs:enumeration value="Woonfunctie" />
@@ -373,13 +373,13 @@
           <propertySet>
             <simpleValue>SpaceCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Gebruiksfunctie</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="Verblijfsgebied" description="VG" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Verblijfsgebied" description="VG" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -390,9 +390,9 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Zone</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>Verblijfsgebied</simpleValue>
           </value>
@@ -403,16 +403,16 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Long name</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>VG*</simpleValue>
           </value>
         </property>
       </requirements>
     </specification>
-    <specification name="Space is Verblijfsgebied" description="Space is Verblijfsgebied" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Space is Verblijfsgebied" description="Space is Verblijfsgebied" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -423,9 +423,9 @@
           <propertySet>
             <simpleValue>Pset_SpaceCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Verblijfsruimte</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>True</simpleValue>
           </value>
@@ -436,16 +436,16 @@
           <propertySet>
             <simpleValue>Pset_SpaceCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Verblijfsruimte</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>True</simpleValue>
           </value>
         </property>
       </requirements>
     </specification>
-    <specification name="FireCompartment" description="brandcompartimenten" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="FireCompartment" description="brandcompartimenten" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -456,9 +456,9 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Zone</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>FireCompartment</simpleValue>
           </value>
@@ -469,13 +469,13 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>Name</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="DistrubitionSystem" description="fcDistrubitionSystem : Warmtedistrubutienet" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="DistrubitionSystem" description="fcDistrubitionSystem : Warmtedistrubutienet" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -489,9 +489,9 @@
           <propertySet>
             <simpleValue>*</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>System</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>Warmtedistributienet</simpleValue>
           </value>
@@ -502,13 +502,13 @@
           <propertySet>
             <simpleValue>Summary</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>System</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="IfcRoof has correct IfcRoofType" description="IfcRoof has correct IfcRoofType" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="IfcRoof has correct IfcRoofType" description="IfcRoof has correct IfcRoofType" ifcVersion="IFC2X3">
       <applicability>
         <entity>
           <name>
@@ -519,9 +519,9 @@
           <propertySet>
             <simpleValue>Pset_RoofCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>IFC Predefined Type</simpleValue>
-          </name>
+          </baseName>
           <value>
             <xs:restriction base="xs:string">
               <xs:enumeration value="BARREL_ROOF" />
@@ -546,21 +546,21 @@
           <propertySet>
             <simpleValue>Pset_RoofCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>IFC Predefined Type</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="Geluidwering CurtainWall" description="Versterkte geluidwering AkousticRating" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Geluidwering CurtainWall" description="Versterkte geluidwering AkousticRating" ifcVersion="IFC2X3">
       <applicability>
         <property>
           <propertySet>
             <simpleValue>Pset_CurtainWallCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>IsExternal</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>True</simpleValue>
           </value>
@@ -569,9 +569,9 @@
           <propertySet>
             <simpleValue>Pset_CurtainWallCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>AkousticRating</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>&gt;=28</simpleValue>
           </value>
@@ -582,21 +582,21 @@
           <propertySet>
             <simpleValue>Pset_CurtainWallCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>AkousticRating</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="Geluidwering Windows" description="Versterkte geluidwering AkousticRating" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Geluidwering Windows" description="Versterkte geluidwering AkousticRating" ifcVersion="IFC2X3">
       <applicability>
         <property>
           <propertySet>
             <simpleValue>Pset_WindowCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>IsExternal</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>True</simpleValue>
           </value>
@@ -605,9 +605,9 @@
           <propertySet>
             <simpleValue>Pset_WindowCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>AkousticRating</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>&gt;=28</simpleValue>
           </value>
@@ -618,21 +618,21 @@
           <propertySet>
             <simpleValue>Pset_WindowCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>AkousticRating</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="Geluidwering Walls" description="Versterkte geluidwering AkousticRating" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Geluidwering Walls" description="Versterkte geluidwering AkousticRating" ifcVersion="IFC2X3">
       <applicability>
         <property>
           <propertySet>
             <simpleValue>Pset_WallCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>IsExternal</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>True</simpleValue>
           </value>
@@ -641,9 +641,9 @@
           <propertySet>
             <simpleValue>Pset_WallCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>AkousticRating</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>&gt;=50</simpleValue>
           </value>
@@ -654,21 +654,21 @@
           <propertySet>
             <simpleValue>Pset_WallCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>AkousticRating</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
-    <specification name="Geluidwering Doors(copy)" description="Versterkte geluidwering AkousticRating" ifcVersion="IFC2X3" minOccurs="0">
+    <specification name="Geluidwering Doors(copy)" description="Versterkte geluidwering AkousticRating" ifcVersion="IFC2X3">
       <applicability>
         <property>
           <propertySet>
             <simpleValue>Pset_DoorCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>IsExternal</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>True</simpleValue>
           </value>
@@ -677,9 +677,9 @@
           <propertySet>
             <simpleValue>Pset_DoorCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>AkousticRating</simpleValue>
-          </name>
+          </baseName>
           <value>
             <simpleValue>&gt;=32</simpleValue>
           </value>
@@ -690,9 +690,9 @@
           <propertySet>
             <simpleValue>Pset_DoorCommon</simpleValue>
           </propertySet>
-          <name>
+          <baseName>
             <simpleValue>AkousticRating</simpleValue>
-          </name>
+          </baseName>
         </property>
       </requirements>
     </specification>
