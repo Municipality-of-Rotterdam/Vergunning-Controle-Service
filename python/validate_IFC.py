@@ -37,7 +37,7 @@ def main(source_ifc_path, source_ids_path, report_destination_path='Ids_report.h
     else:
         # Report validation results for console
         console_reporter.report()
-        raise Exception(f"IFC IDS validation failed! The IFC model does not meet all IDS requirements.\nThe resulting report was is available here: {report_destination_path}")
+        raise Exception(f"IFC IDS validation failed! The IFC model does not meet all IDS requirements.\nThe resulting report is available here: {report_destination_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="IFC IDS Validation Script")

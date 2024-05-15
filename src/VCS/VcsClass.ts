@@ -81,6 +81,9 @@ export default class VCS {
         if (typeof idsFilePath == "string") {
           idsFilePath = [idsFilePath];
         }
+
+        // TODO finish TO BCF output file
+
         for (let index = 0; index < idsFilePath.length; index++) {
           const ids = idsFilePath[index];
           const reportDestinationPath = path.join(
@@ -88,9 +91,13 @@ export default class VCS {
             `IDSValidationReport${idsFilePath.length == 1 ? "" : `${index + 1}`}.html`
           );
           await executeCommand(`pip install -r ${requirements} --quiet`);
-          await executeCommand(
-            `python3 ${pythonScriptPath} "${ifcFilePath}" "${ids}" -r "${reportDestinationPath}"`
-          );
+          try {
+            await executeCommand(
+              `python3 ${pythonScriptPath} "${ifcFilePath}" "${ids}" -r "${reportDestinationPath}"`
+            );
+          } catch (error) {
+            throw error
+          }
         }
       }
     };

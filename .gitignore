@@ -6,7 +6,7 @@ lib
 node_modules
 npm-debug.log*
 report.ttl.gz
-tools/*
+tools
 # Do not accidentally commit files which may contain private a private API Token.
 .etl*
 .env*

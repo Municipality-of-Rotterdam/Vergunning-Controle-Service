@@ -71,7 +71,9 @@ export async function vcsEtl(
                     await asset.delete()
                 } catch (error) {
                 }
-                await dataset.uploadAsset("./data/IDSValidationReport.html");
+                if (fs.existsSync('./data/IDSValidationReport.html')){
+                  await dataset.uploadAsset("./data/IDSValidationReport.html");
+                }
             reject(error)
             }
 

@@ -8,6 +8,7 @@ import * as path from "path";
 import gltfPipeline from "gltf-pipeline";
 import { downloadFile, executeCommand } from "./helperFunctions.js";
 import { __dirname } from "./VcsClass.js";
+import { promisify } from "util";
 
 const { glbToGltf } = gltfPipeline;
 
@@ -78,7 +79,9 @@ export class IFCTransform {
 
     // Unzip the downloaded file
     const zip = new AdmZip.default(filePath);
-    zip.extractAllToAsync(toolsDir, true); // true to overwrite existing files
+    // BUG behaviour of unzipping not consitent! 
+    const extractZip = promisify(zip.extractAllToAsync)
+    await extractZip(toolsDir, true, true); // true to overwrite existing files
 
 
     // Remove the downloaded zip file
