@@ -1,13 +1,3 @@
-
-// TODO implement generate SHACL constrain here
-// class SHACLConstraint{
-//   constructor(RuleIdentifierSHACLMap: { [key: string]: string}){
-//   }
-//   getIdentifiers(){
-//   }
-//   generateSHACLConstraintFile(){
-//   }
-// }
 /**
       All paths for DSO presenteren API:
       "/activiteiten"

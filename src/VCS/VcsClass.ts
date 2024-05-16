@@ -39,22 +39,6 @@ export const __dirname = path.resolve();
  * In this class different transformation scripts are used, mainly Python scripts using IfcOpenShells Python library (no NPM library is available), and a java jar executable to transform the source IFC file into IFC-OWL RDF data.
  *
  */
-
-/**
- * TODO create pipeline ETL
- * [x] check IFC file with IDS and IFC OpenShell tool - create rapport
- * [x] IFC to IFC-OWL
- * [x] IFC to GLTF (for visualization)
- * [x] IFC extract projection
- * [x] IFC extract WKT coordinates
- * [x] Fix functions in transformation tool
- * [ ] TRIPLYETL get query for given footprint geometry with SPARQL
- * [ ] generate VCS SHACL constraints from footprint
- * [ ] perform validation on IFC-OWL data
- * [ ] upload rapport
- *
- */
-
 export default class VCS {
     private apiUrl: string | undefined;
     private key: string | undefined;
@@ -82,18 +66,23 @@ export default class VCS {
           idsFilePath = [idsFilePath];
         }
 
-        // TODO finish TO BCF output file
-
         for (let index = 0; index < idsFilePath.length; index++) {
           const ids = idsFilePath[index];
-          const reportDestinationPath = path.join(
+          const htmlReportDestinationPath = path.join(
             dataDir,
             `IDSValidationReport${idsFilePath.length == 1 ? "" : `${index + 1}`}.html`
           );
+          // BUG BCF reporter doesnt work properly
+          // TODO write issue on https://github.com/IfcOpenShell/IfcOpenShell/issues
+          // const bcfReportDestinationPath = path.join(
+          //   dataDir,
+          //   `IDSValidationReport${idsFilePath.length == 1 ? "" : `${index + 1}`}.bcf`
+          // );
+
           await executeCommand(`pip install -r ${requirements} --quiet`);
           try {
             await executeCommand(
-              `python3 ${pythonScriptPath} "${ifcFilePath}" "${ids}" -r "${reportDestinationPath}"`
+              `python3 ${pythonScriptPath} "${ifcFilePath}" "${ids}" -r "${htmlReportDestinationPath}"` // -b "${bcfReportDestinationPath}"`
             );
           } catch (error) {
             throw error

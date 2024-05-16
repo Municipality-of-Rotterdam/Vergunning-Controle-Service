@@ -46,13 +46,31 @@ type VcsOptions = {
 // type Geometry = GeoJSONPoint | GeoJSONPolygon;
 
 // Should transform all IFC input data and upload to TriplyDB
+// Overload signatures
+export async function vcsEtl(
+  ifcFilePath: string,
+  opts?: VcsOptions
+): Promise<MiddlewareList>;
 export async function vcsEtl(
   ifcFilePath: string,
   idsFilePath?: string,
+  opts?: VcsOptions
+): Promise<MiddlewareList>;
+
+// Implementation
+export async function vcsEtl(
+  ifcFilePath: string,
+  idsFilePathOrOpts?: string | VcsOptions,
   opts: VcsOptions = {
     baseIRI: "https://www.example.org/vcs/",
   }
-): Promise<MiddlewareList> {
+):  Promise<MiddlewareList> {
+    let idsFilePath: string | undefined;
+    if (typeof idsFilePathOrOpts === 'string') {
+      idsFilePath = idsFilePathOrOpts;
+    } else if (typeof idsFilePathOrOpts === 'object') {
+      opts = idsFilePathOrOpts;
+    }
     return new Promise<MiddlewareList>(async (resolve, reject) => {
         const vcs = new VCS(ifcFilePath);
         const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
@@ -134,7 +152,7 @@ export async function vcsEtl(
 
 // given a dictionary with keys being the rule identifiers and the values the SHACL constraint elements, we generate a SHACL file
 export async function vcsGenerateShacl(
-  dictionary: { [key: string]: string }
+  dictionary: { [key: string]: string[] }
 //   geometry?: Geometry
 ): Promise<Middleware> {
     return addMwCallSiteToError(
@@ -215,25 +233,24 @@ graph:model {
                     const shaclConstrainModel = shaclConstraint(sparqlConstraintNodeNames, sparqlConstraintNodes)
 
                     // Write SHACL constraint to local file
-                    const filePath = './data/model.trig'
+                    const shaclModelFilePath = './data/model.trig'
 
-                    fs.writeFile(filePath, shaclConstrainModel, (err) => {
+                    fs.writeFile(shaclModelFilePath, shaclConstrainModel, (err) => {
                         if (err) {
                           console.error('Error writing to file:', err);
                         }
                       });
                     // Upload as asset
-                    // @phil maybe upload as graph instead?
                     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
                     const dataset = await (
                         await triply.getAccount()
                     ).getDataset(destination.vergunningscontroleservice.dataset.name);
                     try {
-                        const asset = await dataset.getAsset(filePath)
+                        const asset = await dataset.getAsset(shaclModelFilePath)
                         await asset.delete()
                     } catch (error) {
                     }
-                    await dataset.uploadAsset(filePath);
+                    await dataset.uploadAsset(shaclModelFilePath);
 
                     return next()
             }
