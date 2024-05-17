@@ -50,7 +50,3 @@ if __name__ == "__main__":
     output_file = "./coordinates/coordinates_georeferenced.csv"
     reference_rd = (84112.801795527557, 431810.28221002209, 0.0)  # Reference RD coordinates for georeferencing
     main(input_file, output_file, reference_rd)
-
-
-
-

@@ -6,7 +6,7 @@ import shapely
 # Frans 2024-04-29: This is a proof-of-concept for extracting a 2D footprint of a building from an IFC file
 
 # Open an IFC file
-ifc_file = ifcopenshell.open('/home/frans/Projects/VCS Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc')
+ifc_file = ifcopenshell.open('./../../static/Kievitsweg_R23_MVP_IFC4.ifc')
 print('IFC version: ',ifc_file.schema, '\n')
 
 # Get parameters for georeferencing

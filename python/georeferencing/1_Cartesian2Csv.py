@@ -32,6 +32,6 @@ def main(ifc_file, output_file):
     save_to_csv(coordinates, output_file)
 
 if __name__ == "__main__":
-    ifc_file = "./input/Kievitsweg_R23_MVP_IFC4.ifc"
+    ifc_file = "./../../static/Kievitsweg_R23_MVP_IFC4.ifc"
     output_file = "./coordinates/coordinates.csv"
     main(ifc_file, output_file)
