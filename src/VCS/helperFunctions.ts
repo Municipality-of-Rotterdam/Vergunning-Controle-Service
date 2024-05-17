@@ -3,7 +3,7 @@ import { promisify } from "util";
 import { exec } from "child_process"
 import { pipeline } from 'stream'
 import axios from "axios";
-import * as AdmZip from "adm-zip";
+import os from "os"
 import * as fs from "fs";
 
 
@@ -12,6 +12,8 @@ const execPromise = promisify(exec);
 export async function executeCommand(command: string): Promise<void> {
   console.log(`${command}`);
   try {
+    // REVIEW stream stde for exec
+    // @phil stdout and stderr are usable as stream (see docs: https://nodejs.org/api/child_process.html), then just resolve/reject it
     const { stdout, stderr } = await execPromise(command);
     console.log(`${stdout}`);
     if (stderr) {
@@ -40,29 +42,19 @@ export async function downloadFile(url: string, filePath: string): Promise<void>
     await pipelineAsync(response.data, fs.createWriteStream(filePath));
     console.log(`Downloaded file to ${filePath}`);
   } catch (error) {
-    await fs.promises.unlink(filePath).catch(err => {
-      console.error('Error deleting incomplete file:', err);
-    });
+    await fs.promises.unlink(filePath)
     throw error;
   }
 }
-
   export async function unzipFile(filePath: string, toolsDir: string) {
-    const zip = new AdmZip.default(filePath);
-  
-    return new Promise<void>((resolve, reject) => {
-      zip.extractAllToAsync(toolsDir, true, true, (err) => {
-        if (err) {
-          console.error('Error during extraction:', err);
-          reject(err);
-        } else {
-          console.log('Extraction complete');
-          resolve();
-        }
-      });
-    });
+    console.log('Unzipping file...')
+    const platform = os.platform();
+    if (platform == "win32"){
+      await executeCommand(`Expand-Archive -Path "${filePath}" -DestinationPath "${toolsDir}"`)
+    }else{
+      await executeCommand(`unzip "${filePath}" -d "${toolsDir}"`)
+    }
   }
-  
 
 
 export function getCurrentDate(format: "US" | "EU" = "US"): string {

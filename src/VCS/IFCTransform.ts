@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import os from "os";
-import * as fsp from "fs/promises";
 import { writeJsonSync } from "fs-extra/esm";
 import * as fs from "fs";
 import * as path from "path";
@@ -69,7 +68,7 @@ export class IFCTransform {
     const toolsDir = path.join(__dirname, targetDir);
     const filePath = path.join(toolsDir, "IfcConvert.zip");
     if (!fs.existsSync(toolsDir)) {
-      fs.mkdirSync(toolsDir);
+      await fs.promises.mkdir(toolsDir);
     }
 
     try {
@@ -77,12 +76,10 @@ export class IFCTransform {
     await downloadFile(url, filePath);
 
     // Unzip the downloaded file
-    // BUG process seems to exit here for some reason
     await unzipFile(filePath, toolsDir)
-    console.log(1)
 
     // Remove the downloaded zip file
-    await fsp.unlink(filePath);
+    await fs.promises.unlink(filePath);
     
   } catch (e){
     throw e
@@ -113,11 +110,11 @@ export class IFCTransform {
     const filePath = path.join(toolsDir, fileName!);
     // Check if tools directory exists
     if (!fs.existsSync(toolsDir)) {
-      fs.mkdirSync(toolsDir);
+      await fs.promises.mkdir(toolsDir);
     }
     //Check if data directory exists
     if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir);
+      await fs.promises.mkdir(dataDir);
     }
     // Check if Java is installed
     try {
@@ -193,15 +190,15 @@ export class IFCTransform {
     const glbFilePath = path.join(dataDir, "output.glb");
     const gltfFilePath = path.join(dataDir, "output.gltf");
     if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir);
+      await fs.promises.mkdir(dataDir);
     }
     // remove glb file if it exists already
     if (fs.existsSync(glbFilePath)) {
-      await fsp.unlink(glbFilePath);
+      await fs.promises.unlink(glbFilePath);
     }
     // remove gltf file if it exists already
     if (fs.existsSync(gltfFilePath)) {
-      await fsp.unlink(gltfFilePath);
+      await fs.promises.unlink(gltfFilePath);
     }
 
     // Run IfcConvert script to create GLB file
@@ -219,13 +216,13 @@ export class IFCTransform {
       throw new Error("GLB file was not created!");
     }
 
-    const glb = fs.readFileSync(glbFilePath);
+    const glb = await fs.promises.readFile(glbFilePath);
 
     const results = await glbToGltf(glb);
 
     writeJsonSync(gltfFilePath, results.gltf);
     // Remove GLB file
-    await fsp.unlink(glbFilePath);
+    await fs.promises.unlink(glbFilePath);
   }
 
   async extractFootprint(

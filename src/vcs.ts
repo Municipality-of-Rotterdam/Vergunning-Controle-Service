@@ -14,7 +14,7 @@ export default async function (): Promise<Etl> {
       graph: graph.concat("report"),
       terminateOn: "Never",
     }),
-    toTriplyDb(destination.vergunningscontroleservice)
+    toTriplyDb(destination.vergunningscontroleservice),
   );
   await etl.copySource(source.model, destination.vergunningscontroleservice);
   return etl;

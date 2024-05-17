@@ -6,6 +6,12 @@ import {
   vcsEtl,
   vcsGenerateShacl,
 } from "./VCS/VcsEtl.js";
+
+// FOR CI
+// TODO need a pyhton + nodeJS + java image | or we need to create one
+
+
+// FOR ETL
 // TODO need time logging per request
 // TODO should have original applied rule (juridische regel) text element included
 // TODO vraag Abe over identifiers voor regels
@@ -31,4 +37,3 @@ export default async function (): Promise<Etl> {
   );
   return etl;
 }
-      

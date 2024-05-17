@@ -10,7 +10,10 @@ import { RuimtelijkePlannenAPI } from "./RuimtelijkePlannenAPI.js";
 // TODO add documentation/tool/community links for each tool + code library
 
 dotenv.config();
+
+// TODO replace every __dirname for relative path
 export const __dirname = path.resolve();
+
 
 /**
  * # Vergunnings Controle Service (VCS)
@@ -48,10 +51,7 @@ export default class VCS {
       this.ifcFilePath = ifcFilePath;
     }
   
-    IFC : {
-      transform: () => IFCTransform,
-      validateWithIds: (idsFilePath: string | string[], ifcFilePath?: string) => Promise<void>
-    } = {
+    IFC = {
       transform: () => new IFCTransform(this.ifcFilePath),
       validateWithIds: async (idsFilePath: string | string[], ifcFilePath: string = this.ifcFilePath): Promise<void> => {
         const pythonScriptPath = path.join(__dirname, "python", "validate_IFC.py");
@@ -60,7 +60,7 @@ export default class VCS {
     
         //Check if data directory exists
         if (!fs.existsSync(dataDir)) {
-          fs.mkdirSync(dataDir);
+          await fs.promises.mkdir(dataDir);
         }
         if (typeof idsFilePath == "string") {
           idsFilePath = [idsFilePath];
@@ -91,10 +91,7 @@ export default class VCS {
       }
     };
   
-    API: {
-      RuimtelijkePlannen: () => RuimtelijkePlannenAPI;
-      DSOPresenteren: (environment: "Production" | "Pre-Production") => DSOAPI;
-    } = {
+    API = {
       RuimtelijkePlannen: (): RuimtelijkePlannenAPI => {
         checkAPIKey("Ruitemlijke Plannen API");
         this.key = process.env.Ruimtelijke_plannen_aanvragen_API_TOKEN;

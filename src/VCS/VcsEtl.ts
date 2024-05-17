@@ -12,18 +12,6 @@ import { update } from "@triplyetl/etl/sparql";
 import { destination } from "../utils/sources-destinations.js";
 import { addMwCallSiteToError } from "@triplyetl/etl/utils";
 
-async function readFile(filePath: string): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    fs.readFile(filePath, "utf8", (err, data) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(data);
-    });
-  });
-}
-
 type VcsOptions = {
   baseIRI?: string;
 };
@@ -71,7 +59,7 @@ export async function vcsEtl(
     } else if (typeof idsFilePathOrOpts === 'object') {
       opts = idsFilePathOrOpts;
     }
-    return new Promise<MiddlewareList>(async (resolve, reject) => {
+    return new Promise<MiddlewareList>(async (resolve, _reject) => {
         const vcs = new VCS(ifcFilePath);
         const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
         const dataset = await (
@@ -92,7 +80,6 @@ export async function vcsEtl(
                 if (fs.existsSync('./data/IDSValidationReport.html')){
                   await dataset.uploadAsset("./data/IDSValidationReport.html");
                 }
-            reject(error)
             }
 
             try {
@@ -120,7 +107,7 @@ export async function vcsEtl(
         }
         await dataset.uploadAsset("./data/output.gltf");
         // read all data and upload local files as assets
-        const polygon: string = await readFile("data/footprint.txt");
+        const polygon: string = await fs.promises.readFile("data/footprint.txt", 'utf-8');
 
         const mwList = [
             loadRdf(Source.file("./data/ifcOwlData.ttl")),
@@ -139,7 +126,7 @@ export async function vcsEtl(
                 ?storeyLabel a ifc:IfcLabel;
                             express:hasString "00 begane grond".
 
-                BIND("${polygon}}" AS ?wktLiteral)
+                BIND("${polygon}" AS ?wktLiteral)
             }
 
             `),
@@ -234,24 +221,11 @@ graph:model {
 
                     // Write SHACL constraint to local file
                     const shaclModelFilePath = './data/model.trig'
-
-                    fs.writeFile(shaclModelFilePath, shaclConstrainModel, (err) => {
-                        if (err) {
-                          console.error('Error writing to file:', err);
-                        }
-                      });
-                    // Upload as asset
-                    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
-                    const dataset = await (
-                        await triply.getAccount()
-                    ).getDataset(destination.vergunningscontroleservice.dataset.name);
                     try {
-                        const asset = await dataset.getAsset(shaclModelFilePath)
-                        await asset.delete()
+                      await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel)
                     } catch (error) {
+                      throw error
                     }
-                    await dataset.uploadAsset(shaclModelFilePath);
-
                     return next()
             }
         )
@@ -303,7 +277,6 @@ WHERE {
   }
   FILTER (?totalNumberOfFloors > ${retrievedNumberPositiveMaxBouwlagen})
 }
-
   '''.
 `}
 
