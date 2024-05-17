@@ -82,7 +82,7 @@ def write_coordinates_to_csv(coordinates, output_file):
 # Example usage
 if __name__ == "__main__":
     # Read coordinates from CSV file
-    csv_file = './output_coordinates_georeferenced.csv'  # Replace with your CSV file path
+    csv_file = './static/coordinates/coordinates_georeferenced.csv'  # Replace with your CSV file path
     coordinates = load_coordinates_from_csv(csv_file)
 
     # Define the fixed corner coordinates (corner that remains fixed)
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     final_coordinates = [inverse_translate(coord, fixed_corner) for coord in rotated_coordinates]
 
     # Write final coordinates to CSV file
-    output_file = './rotated_coordinates.csv'  # Replace with desired output file path
+    output_file = './static/coordinates/coordinates_rotated.csv'  # Replace with desired output file path
     write_coordinates_to_csv(final_coordinates, output_file)
 
     print(f"Rotated coordinates written to '{output_file}'.")

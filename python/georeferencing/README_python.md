@@ -27,12 +27,12 @@ Er is een code beschikbaar die alle Cartesische punten uit een IFC-bestand kan e
 import ifcopenshell
 import numpy as np
 ```
-2.1.3.  Open Cartesian2Csv.py bestaand.
+2.1.3.  Open 1_Cartesian2Csv.py bestaand.
 Als nodig update de path naar ifc file of hernoemen de `output` bestaand.
 
 2.1.4. Om coordinaten te extracten run het volgende commando in de terminal:
 
-`pyhton3 Cartesian2Csv.py`
+`pyhton3 1_Cartesian2Csv.py`
 
 # 2.2. Georeferentie van coordinaten
 
@@ -41,7 +41,7 @@ Als nodig update de path naar `input` file of hernoemen de `output` bestaand.
 
 2.2.2. Om coordinaten te georefereren run het volgende commando in de terminal:
 
-`pyhton3 Georef.py`
+`pyhton3 2_Georef.py`
 
 # 2.3. Rotatie (draaien) van een gebouw
 
@@ -50,4 +50,4 @@ Als nodig update de path naar `input` file of hernoemen de `output` bestaand.
 
 2.2.2. Om coordinaten te georefereren run het volgende commando in de terminal:
 
-`pyhton3 Rotate.py`
+`pyhton3 3_Rotate.py`
