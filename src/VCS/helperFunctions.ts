@@ -1,27 +1,42 @@
 /* eslint-disable no-console */
-import { promisify } from "util";
 import { exec } from "child_process"
+import { promisify } from "util";
 import { pipeline } from 'stream'
 import axios from "axios";
 import os from "os"
 import * as fs from "fs";
 
 
-const execPromise = promisify(exec);
-
 export async function executeCommand(command: string): Promise<void> {
   console.log(`${command}`);
-  try {
-    // REVIEW stream stde for exec
-    // @phil stdout and stderr are usable as stream (see docs: https://nodejs.org/api/child_process.html), then just resolve/reject it
-    const { stdout, stderr } = await execPromise(command);
-    console.log(`${stdout}`);
-    if (stderr) {
-      throw new Error(`Error! Command stderr:\n${stderr}`);
+
+  return new Promise((resolve, reject) => {
+    const child = exec(command);
+
+    if (child.stdout) {
+      child.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+      });
     }
-  } catch (error) {
-    throw new Error(`Error executing the command: "${command}"\n\n${error}`);
-  }
+
+    if (child.stderr) {
+      child.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+      });
+    }
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Command "${command}" exited with code ${code}`));
+      } else {
+        resolve();
+      }
+    });
+
+    child.on('error', (err) => {
+      reject(new Error(`Error executing the command: "${command}"\n\n${err}`));
+    });
+  });
 }
 
 export async function fileFromUrl(url: string): Promise<Buffer> {
