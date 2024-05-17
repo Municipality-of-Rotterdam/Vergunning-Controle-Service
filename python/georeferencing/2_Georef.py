@@ -46,8 +46,8 @@ def main(input_file, output_file, reference_rd):
     save_to_csv(georeferenced_coordinates, output_file)
 
 if __name__ == "__main__":
-    input_file = "./static/coordinates/coordinates.csv"
-    output_file = "./static/coordinates/coordinates_georeferenced.csv"
+    input_file = "./coordinates/coordinates.csv"
+    output_file = "./coordinates/coordinates_georeferenced.csv"
     reference_rd = (84112.801795527557, 431810.28221002209, 0.0)  # Reference RD coordinates for georeferencing
     main(input_file, output_file, reference_rd)
 
