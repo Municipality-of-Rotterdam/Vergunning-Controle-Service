@@ -5,7 +5,7 @@ import numpy as np
 import shapely
 import matplotlib.pyplot as pp
 import geopandas as gpd
-from typing import Optional, Literal, Union, Iterable
+from typing import Optional, Literal
 
 # Frans 2024-04-29: This is a proof-of-concept for extracting a 2D footprint of a building from an IFC file
 # For ifcopenshell geometry processing, see https://docs.ifcopenshell.org/ifcopenshell-python/geometry_processing.html
@@ -18,17 +18,31 @@ from typing import Optional, Literal, Union, Iterable
 # - Make a concave hull from edges:
 #
 # to do:
-# - Build polygons from edges, merge them, select the polygon with the largest area.
 # - Optimise code and make it pyhonic
 # - Allow multiple instances of ifc classes
 # - Run with commandline arguments, e.g. footprint.py my.ifc IfcRoof IfcSlab
-#
-# to try:
-# - Make a good alpha shape from verices (if building polygons from edges does not work)
 
 tol = 1e-6
 AXIS_LITERAL = Literal["X", "Y", "Z"]
 VECTOR_3D = tuple[float, float, float]
+
+def georeference(polygon):
+       #print('function - polygon coords:',polygon.exterior.coords[:])
+    map_conversion = ifc_file.by_type('IfcMapConversion')
+    delta_x = map_conversion[0][2]
+    delta_y = map_conversion[0][3]
+    height = map_conversion[0][4]
+    rotation = -1 * np.arctan(map_conversion[0][6]/map_conversion[0][5])
+    verts_georef = []
+    verts = polygon.exterior.coords[:]
+    print('verts:',verts)
+    print('vert0:',verts[0])
+    for vert in verts :
+        x_georef = (vert[0] * np.cos(rotation) + vert[1] * np.sin(rotation)) + delta_x
+        y_georef = (-1 * vert[0] * np.sin(rotation) + vert[1] * np.cos(rotation)) + delta_y
+        verts_georef.append([round(x_georef,3),round(y_georef,3)])
+    return shapely.Polygon(verts_georef)
+
 
 def get_footprint( # copied from ifcopenshell.util.shape.get_footprint_area)
     geometry,
@@ -111,7 +125,6 @@ def get_footprint( # copied from ifcopenshell.util.shape.get_footprint_area)
     polygons = [shapely.Polygon(vertices_2d[face]) for face in filtered_faces]
     unioned_polygon = shapely.ops.unary_union(polygons)
 
-    #return unioned_polygon.area
     return unioned_polygon
 
 
@@ -152,19 +165,20 @@ print('perim:',perim)
 fpa = ifcopenshell.util.shape.get_footprint_area(roof_shape.geometry)
 print('footprint area:', fpa)
 
-footprint = get_footprint(roof_shape.geometry)
-#print('footprint:',footprint)
+full_footprint = get_footprint(roof_shape.geometry)
+footprint_exterior = shapely.Polygon(full_footprint.exterior)
+
+ring_coords = full_footprint.exterior.coords
+print('ring_coords:',ring_coords)
+
+footprint_georef = georeference(footprint_exterior)
+
+print('footprint:',footprint_georef)
 
 
 # myPoly = gpd.GeoSeries([footprint])
 # myPoly.plot()
 # pp.show()
-
-fp_exterior = footprint.exterior
-
-myPoly = gpd.GeoSeries([fp_exterior])
-myPoly.plot()
-pp.show()
 
 
 exit(0)
