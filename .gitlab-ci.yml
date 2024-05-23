@@ -73,6 +73,8 @@ vcs:
     - !reference [.etl-template, run-etl]
   rules:
     - !reference [.etl-template, rules]
+  dependencies:
+    - main
 
 ### Example stage 1: add another ETL with name "collections"
 geodataCsv:
