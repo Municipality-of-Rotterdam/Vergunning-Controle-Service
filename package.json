@@ -2,8 +2,7 @@
   "author": "Triply <info@triply.cc>",
   "type": "module",
   "dependencies": {
-    "@triplyetl/etl": "^4.1.11",
-    "cross-env": "^7.0.3"
+    "@triplyetl/etl": "^4.1.11"
   },
   "description": "Triply ETL for GemeenteRotterdam",
   "lint-staged": {
