@@ -8,7 +8,8 @@
   "description": "Triply ETL for GemeenteRotterdam",
   "lint-staged": {
     "*.ts?(x)": [
-      "npm run util:lint:fix"
+      "npm run util:lint:fix",
+      "prettier --write --ignore-unknown"
     ]
   },
   "main": "lib/main.js",
@@ -16,8 +17,8 @@
   "license": "UNLICENSED",
   "contributors": [
     {
-      "name": "tanja.ronzhina",
-      "email": "tanja.ronzhina@triply.cc"
+      "name": "Triply",
+      "email": "info@triply.cc"
     }
   ],
   "scripts": {
