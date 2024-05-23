@@ -11,6 +11,7 @@ workflow:
 
 
 stages:
+  - release
   # 0: Only install, lint and build, gets triggered on push and merge-requests:
   - preflight
   # 1: Run all regular ETL's:
