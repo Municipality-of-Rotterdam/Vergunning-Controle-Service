@@ -4,7 +4,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { DSOAPI } from "./DSOAPI.js";
 import { IFCTransform } from "./IFCTransform.js";
-import { checkAPIKey, executeCommand, parsePolygonString } from "./helperFunctions.js";
+import { checkAPIKey, executeCommand } from "./helperFunctions.js"; //  parsePolygonString
 import { RuimtelijkePlannenAPI } from "./RuimtelijkePlannenAPI.js";
 
 // TODO add documentation/tool/community links for each tool + code library
