@@ -236,7 +236,7 @@ export class IFCTransform {
     );
     const requirements = path.join(__dirname, "python", "requirements.txt");
     try {
-      await executeCommand(`pip install -r ${requirements} --quiet`);
+      await executeCommand(`python3 -m pip install -r ${requirements} --quiet`);
       await executeCommand(
         `python3 ${pythonScriptPath} -ifc_file "${ifcFilePath}" -o "${outputFilePath}"`
       );
@@ -257,7 +257,7 @@ export class IFCTransform {
     const requirements = path.join(__dirname, "python", "requirements.txt");
 
     try {
-      await executeCommand(`pip install -r ${requirements} --quiet`);
+      await executeCommand(`python3 -m pip install -r ${requirements} --quiet`);
       await executeCommand(
         `python3 ${pythonScriptPath} -ifc_file "${ifcFilePath}" -o "${outputFilePath}"`
       );
