@@ -16,7 +16,7 @@ export default async function (): Promise<Etl> {
   // const idsWoodWindow = 'static/example_data/IDS_wooden-windows.ids'
   etl.use(
     await vcsEtl(ifcFile, idsFile, {
-      baseIRI: "https://www.roterdam.nl/vcs/graph/",
+      baseIRI: "https://www.rotterdam.nl/vcs/graph/",
     }),
     await vcsGenerateShacl(ruleIdShaclConstraintDictionary),
     toTriplyDb(destination.vergunningscontroleservice)
