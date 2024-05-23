@@ -141,3 +141,23 @@ export function checkAPIKey(
     );
   }
 }
+
+export function parsePolygonString(polygonString: string): number[][] {
+  const regex = /POLYGON\s*\(\(\s*([^\)]+)\s*\)\)/;
+  const match = polygonString.match(regex);
+
+  if (!match || match.length < 2) {
+    throw new Error('Invalid POLYGON string format');
+  }
+
+  const coordinatesString = match[1];
+  const coordinatePairs = coordinatesString.split(',');
+
+  const coordinates = coordinatePairs.map(pair => {
+    const [x, y] = pair.trim().split(/\s+/).map(Number);
+    return [x, y];
+  });
+
+  return coordinates;
+}
+

@@ -4,7 +4,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { DSOAPI } from "./DSOAPI.js";
 import { IFCTransform } from "./IFCTransform.js";
-import { checkAPIKey, executeCommand } from "./helperFunctions.js";
+import { checkAPIKey, executeCommand, parsePolygonString } from "./helperFunctions.js";
 import { RuimtelijkePlannenAPI } from "./RuimtelijkePlannenAPI.js";
 
 // TODO add documentation/tool/community links for each tool + code library
@@ -14,6 +14,15 @@ dotenv.config();
 // TODO replace every __dirname for relative path
 export const __dirname = path.resolve();
 
+// FOR CI
+// TODO need a pyhton + nodeJS + java image
+
+// FOR ETL
+// TODO need time logging per request
+// TODO should have original applied rule (juridische regel) text element included
+// TODO fix API ruimtelijke plannen
+
+// welstand bron data ophalen, nog niet regels/use cases aanpakken
 
 /**
  * # Vergunnings Controle Service (VCS)
@@ -72,17 +81,16 @@ export default class VCS {
             dataDir,
             `IDSValidationReport${idsFilePath.length == 1 ? "" : `${index + 1}`}.html`
           );
-          // BUG BCF reporter doesnt work properly
-          // TODO write issue on https://github.com/IfcOpenShell/IfcOpenShell/issues
-          // const bcfReportDestinationPath = path.join(
-          //   dataDir,
-          //   `IDSValidationReport${idsFilePath.length == 1 ? "" : `${index + 1}`}.bcf`
-          // );
+
+          const bcfReportDestinationPath = path.join(
+            dataDir,
+            `IDSValidationReport${idsFilePath.length == 1 ? "" : `${index + 1}`}.bcf`
+          );
 
           await executeCommand(`pip install -r ${requirements} --quiet`);
           try {
             await executeCommand(
-              `python3 ${pythonScriptPath} "${ifcFilePath}" "${ids}" -r "${htmlReportDestinationPath}"` // -b "${bcfReportDestinationPath}"`
+              `python3 ${pythonScriptPath} "${ifcFilePath}" "${ids}" -r "${htmlReportDestinationPath}" -b "${bcfReportDestinationPath}"`
             );
           } catch (error) {
             throw error
@@ -156,12 +164,41 @@ export default class VCS {
 // const idsFilePathCorrect2 = 'src/VCS/data/IDS_wooden-windows_correct2.ids'
 // const idsArray = [idsFilePathCorrect1, idsFilePathCorrect2]
 // const idsFilePath3 = '/Users/work/triply/vergunningscontroleservice/src/VCS/data/NL_BIM\ Basis\ ILS.ids'
+
 // const vcs = new VCS('src/VCS/data/Kievitsweg_R23_MVP_IFC4.ifc');
+// await vcs.IFC.transform().IFCtoGLTF()
+
 
 // VCS IDS Validation
 // await vcs.IFC.validateWithIds(idsFilePathWrong)
 // await vcs.IFC.validateWithIds('src/VCS/data/IDS_Rotterdam_BIM.ids')
 // const ifcTransform = vcs.IFC.transform()
+
+
+// const ruimtelijkePlannen = vcs.API.RuimtelijkePlannen()
+// const polygon: string = await fs.promises.readFile("data/footprint.txt", 'utf-8');
+// const coordinates = parsePolygonString(polygon)
+
+// for (const coordinate of coordinates){
+//   const jsonObj = {
+//       "_geo": {
+//         "contains": {
+//           "type": "Point",
+//           "coordinates": coordinate
+//         }
+//       }
+//   }
+//   const r = await ruimtelijkePlannen.plannen(jsonObj)
+//   console.log('🪵  | r:', r)
+//   const plannen = r['_embedded']['plannen']
+//   for (let index = 0; index < plannen.length; index++) {
+//     const element = plannen[index];
+  
+//     console.log('🪵  | element:', element)
+//   }
+// }
+
+
 
 // // VCS Transform IFC to RDF
 // await ifcTransform.IFCtoIFCOWL("https://www.rotterdam.nl/vcs/graph/");

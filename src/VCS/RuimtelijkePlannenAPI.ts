@@ -92,17 +92,18 @@ export class RuimtelijkePlannenAPI {
                         }
                       }
      */
-  async plannen(geoJson: object) {
+  async plannen(geoJson: object, parameters?: string) {
     const path = "plannen/_zoek";
-    const url = this.url + path;
+    const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "EPSG:28992");
+    headers.append("content-Crs", "epsg:28992");
     headers.append("Content-Type", "application/json");
+    headers.append("maxRedirects", "20")
 
     const body = JSON.stringify(geoJson);
-
-    const response = await postRequest(url, headers, body);
+    
+    const response = await postRequest(url!, headers, body);
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
@@ -113,9 +114,9 @@ export class RuimtelijkePlannenAPI {
     return data;
   }
 
-  async teksten(planId: object) {
+  async teksten(planId: object, parameters?: string) {
     const path = "plannen/_zoek";
-    const url = this.url + path;
+    const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
     headers.append("content-Crs", "EPSG:28992");
@@ -123,7 +124,7 @@ export class RuimtelijkePlannenAPI {
 
     const body = JSON.stringify(planId);
 
-    const response = await postRequest(url, headers, body);
+    const response = await postRequest(url!, headers, body);
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
@@ -134,9 +135,9 @@ export class RuimtelijkePlannenAPI {
     return data;
   }
 
-  async artikelen(zoekObject: object) {
+  async artikelen(zoekObject: object, parameters?: string) {
     const path = "plannen/{planId}/artikelen/_zoek";
-    const url = this.url + path;
+    const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
     headers.append("content-Crs", "EPSG:28992");
@@ -154,9 +155,9 @@ export class RuimtelijkePlannenAPI {
     return data;
   }
 
-  async bestemmingsvlakZoek(zoekObject: object) {
-    const path = "plannen/{planId}/bestemmingsvlakken/_zoek";
-    const url = this.url + path;
+  async bestemmingsvlakZoek(zoekObject: object, planId: string, parameters?: string) {
+    const path = `plannen/${planId}/bestemmingsvlakken/_zoek`
+    const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
     headers.append("content-Crs", "EPSG:28992");
@@ -175,9 +176,9 @@ export class RuimtelijkePlannenAPI {
     return data;
   }
 
-  async bestemmingsvlak(planId: string, bestemingsvlakId: string) {
+  async bestemmingsvlak(planId: string, bestemingsvlakId: string, parameters?: string) {
     const path = `plannen/${planId}/bestemmingsvlakken/${bestemingsvlakId}`;
-    const url = this.url + path;
+    const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
     headers.append("content-Crs", "EPSG:28992");
@@ -194,9 +195,9 @@ export class RuimtelijkePlannenAPI {
     return data;
   }
 
-  async maatvoeringen(planId: string) {
+  async maatvoeringen(planId: string, parameters?: string) {
     const path = `plannen/${planId}/maatvoeringen`;
-    const url = this.url + path;
+    const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
     headers.append("content-Crs", "EPSG:28992");

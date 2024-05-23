@@ -138,6 +138,7 @@ export async function vcsEtl(
 }
 
 // given a dictionary with keys being the rule identifiers and the values the SHACL constraint elements, we generate a SHACL file
+// TODO This can be improved to use an AST or datafactory objects to generate the SHACL model, instead of string manipulation (current approach)
 export async function vcsGenerateShacl(
   dictionary: { [key: string]: string[] }
 //   geometry?: Geometry
@@ -237,7 +238,7 @@ const maxBouwlaagRule = (retrievedNumberPositiveMaxBouwlagen: string) => {
     return `
 shp:BuildingMaxAantalPositieveBouwlagenSparql
   a sh:SPARQLConstraint;
-  sh:message 'Gebouw {?this} heeft in totaal {?totalNumberOfFloors} bouwlagem, dit mag maximaal ${retrievedNumberPositiveMaxBouwlagen} zijn.';
+  sh:message 'Gebouw {?this} heeft in totaal {?totalNumberOfFloors} bouwlagen, dit mag maximaal ${retrievedNumberPositiveMaxBouwlagen} zijn.';
   sh:severity sh:Violation;
   sh:datatype xsd:string;
   sh:select '''
