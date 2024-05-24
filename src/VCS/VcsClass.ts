@@ -87,7 +87,7 @@ export default class VCS {
             `IDSValidationReport${idsFilePath.length == 1 ? "" : `${index + 1}`}.bcf`
           );
 
-          await executeCommand(`pip install -r ${requirements} --quiet`);
+          await executeCommand(`python3 -m pip install -r ${requirements} --quiet`);
           try {
             await executeCommand(
               `python3 ${pythonScriptPath} "${ifcFilePath}" "${ids}" -r "${htmlReportDestinationPath}" -b "${bcfReportDestinationPath}"`
