@@ -6,6 +6,7 @@ import {
   toTriplyDb,
 } from "@triplyetl/etl/generic";
 import App from "@triply/triplydb";
+import * as path from "path";
 import * as fs from "fs";
 import VCS from "./VcsClass.js";
 import { update } from "@triplyetl/etl/sparql";
@@ -66,6 +67,11 @@ export async function vcsEtl(
             await triply.getAccount()
         ).getDataset(destination.vergunningscontroleservice.dataset.name);
 
+       const reportPath = path.join(__dirname, "data", "IDSValidationReport.html")
+       const footprintPath = path.join(__dirname, "data", "footprint.txt");
+       const gltfPath = path.join(__dirname, "data", "output.gltf");
+       const ifcOwlPath = path.join(__dirname, "data", "ifcOwlData.ttl");
+
         // VCS IDS Validation
         if (idsFilePath) {
             try {
@@ -73,22 +79,22 @@ export async function vcsEtl(
             } catch (error) {
                 console.error("Error during validation! Uploading IDS Validation Report");
                 try {
-                    const asset = await dataset.getAsset('./data/IDSValidationReport.html')
+                    const asset = await dataset.getAsset(reportPath);
                     await asset.delete()
                 } catch (error) {
                 }
-                if (fs.existsSync('./data/IDSValidationReport.html')){
-                  await dataset.uploadAsset("./data/IDSValidationReport.html");
+                if (fs.existsSync(reportPath)){
+                  await dataset.uploadAsset(reportPath);
                 }
             }
 
             try {
-                const asset = await dataset.getAsset('./data/IDSValidationReport.html')
+                const asset = await dataset.getAsset(reportPath)
                 await asset.delete()
             } catch (error) {
             }
 
-            await dataset.uploadAsset("./data/IDSValidationReport.html");
+            await dataset.uploadAsset(reportPath);
         }
 
         // VCS Transform IFC to RDF
@@ -101,16 +107,16 @@ export async function vcsEtl(
 
         // upload assets to dataset
         try {
-            const asset = await dataset.getAsset("./data/output.gltf")
+            const asset = await dataset.getAsset(gltfPath)
             await asset.delete()
         } catch (error) {
         }
-        await dataset.uploadAsset("./data/output.gltf");
+        await dataset.uploadAsset(gltfPath);
         // read all data and upload local files as assets
-        const polygon: string = await fs.promises.readFile("data/footprint.txt", 'utf-8');
+        const polygon: string = await fs.promises.readFile(footprintPath, 'utf-8');
 
         const mwList = [
-            loadRdf(Source.file("./data/ifcOwlData.ttl")),
+            loadRdf(Source.file(ifcOwlPath)),
             update(`
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
@@ -221,7 +227,7 @@ graph:model {
                     const shaclConstrainModel = shaclConstraint(sparqlConstraintNodeNames, sparqlConstraintNodes)
 
                     // Write SHACL constraint to local file
-                    const shaclModelFilePath = './data/model.trig'
+                    const shaclModelFilePath = path.join(__dirname, 'data', 'model.trig')
                     try {
                       await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel)
                     } catch (error) {

@@ -12,7 +12,7 @@ import { RuimtelijkePlannenAPI } from "./RuimtelijkePlannenAPI.js";
 dotenv.config();
 
 // TODO replace every __dirname for relative path
-export const __dirname = path.resolve();
+export const __dirname = process.env.CI ? "." : path.resolve();
 
 // FOR CI
 // TODO need a pyhton + nodeJS + java image
