@@ -145,8 +145,11 @@ export class IFCTransform {
     }
   }
 
+  /**
+   * Manual page: https://docs.ifcopenshell.org/ifcconvert/usage.html
+   * @returns GLTF file in ./data directory
+   */
   async IFCtoGLTF() {
-    // Manual page: https://docs.ifcopenshell.org/ifcconvert/usage.html
     const toolsDir = path.join(__dirname, "tools");
     const ifcConverterPath = path.join(toolsDir, "IfcConvert");
     // Transform IFC to GLB

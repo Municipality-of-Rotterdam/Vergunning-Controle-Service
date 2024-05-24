@@ -3,22 +3,17 @@ import { getRequest, postRequest } from "./helperFunctions.js";
 /**
  * All Ruimtelijke Plannen Opvragen API paths:
 - /plannen
-TODO 1st requirement to get planID
 - /plannen/_zoek
 - /plannen/_suggesties
 - /plannen/_plansuggesties
 - /plannen/{planId}
 - /plannen/{planId}/cartografiesummaries
 - /plannen/{planId}/cartografiesummaries/{id}
-TODO check out:
 - /plannen/{planId}/teksten
 - /plannen/{planId}/teksten/{id}
-TODO check out:
 - /plannen/{planId}/artikelen/_zoek
 - /plannen/{planId}/bestemmingsvlakken
-TODO check out:
 - /plannen/{planId}/bestemmingsvlakken/_zoek
-TODO check out:
 - /plannen/{planId}/bestemmingsvlakken/{id}
 - /plannen/{planId}/bouwvlakken
 - /plannen/{planId}/bouwvlakken/_zoek
@@ -32,14 +27,12 @@ TODO check out:
 - /plannen/{planId}/lettertekenaanduidingen
 - /plannen/{planId}/lettertekenaanduidingen/_zoek
 - /plannen/{planId}/lettertekenaanduidingen/{id}
-TODO check out:
 - /plannen/{planId}/maatvoeringen
 - /plannen/{planId}/maatvoeringen/_zoek
 - /plannen/{planId}/maatvoeringen/{id}
 - /plannen/{planId}/figuren
 - /plannen/{planId}/figuren/_zoek
 - /plannen/{planId}/figuren/{id}
-TODO check out:
 - /plannen/{planId}/gebiedsaanduidingen
 - /plannen/{planId}/gebiedsaanduidingen/_zoek
 - /plannen/{planId}/gebiedsaanduidingen/{id}
@@ -63,6 +56,9 @@ TODO check out:
 - /info
 - /health
 */
+
+// IMPORTANT! This class and API are a WIP, the implementation is subject to change so please check the links in the doc comment below!
+
 /**
  * Ruimtelijke Plannen Opvragen API
  * @description this API contains all data w.r.t. bestemmingsplannen. This API will eventually be replaced by the DSO, when all data has migrated.
@@ -93,6 +89,11 @@ export class RuimtelijkePlannenAPI {
                       }
      */
   async plannen(geoJson: object, parameters?: string) {
+    if (parameters == undefined){
+      parameters = '?pageSize=100'
+    }else{
+      parameters += '&pageSize=100'
+    }
     const path = "plannen/_zoek";
     const url = this.url + path + parameters;
     const headers = new Headers();
@@ -107,88 +108,108 @@ export class RuimtelijkePlannenAPI {
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${data}\nGiven URL: ${url}`
+        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`
       );
     }
 
     return data;
   }
 
-  async teksten(planId: object, parameters?: string) {
-    const path = "plannen/_zoek";
+  async tekstenZoek(planId: string, geoJson: object, parameters?: string) {
+    if (parameters == undefined){
+      parameters = '?pageSize=100'
+    }else{
+      parameters += '&pageSize=100'
+    }
+    const path = `plannen/${planId}/artikelen/_zoek`;
     const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "EPSG:28992");
+    headers.append("content-Crs", "epsg:28992");
     headers.append("Content-Type", "application/json");
-
-    const body = JSON.stringify(planId);
+    headers.append("maxRedirects", "20")
+    
+    const body = JSON.stringify(geoJson);
 
     const response = await postRequest(url!, headers, body);
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${data}\nGiven URL: ${url}`
+        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`
       );
     }
 
     return data;
   }
-
-  async artikelen(zoekObject: object, parameters?: string) {
-    const path = "plannen/{planId}/artikelen/_zoek";
+  async enkeleTekst(planId: string, tekstId: string, parameters?: string) {
+    if (parameters == undefined){
+      parameters = ''
+    }
+    const path = `plannen/${planId}/teksten/${tekstId}`;
     const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "EPSG:28992");
+    headers.append("content-Crs", "epsg:28992");
     headers.append("Content-Type", "application/json");
+    headers.append("maxRedirects", "20")
 
-    const body = JSON.stringify(zoekObject);
-
-    const response = await postRequest(url, headers, body);
+    const response = await getRequest(url!, headers);
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${data}\nGiven URL: ${url}`
+        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`
       );
     }
+
     return data;
   }
 
-  async bestemmingsvlakZoek(zoekObject: object, planId: string, parameters?: string) {
+  async bestemmingsvlakZoek(planId: string, geoJson: object, parameters?: string) {
+    if (parameters == undefined){
+      parameters = '?pageSize=100'
+    }else{
+      parameters += '&pageSize=100'
+    }
     const path = `plannen/${planId}/bestemmingsvlakken/_zoek`
     const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "EPSG:28992");
+    headers.append("content-Crs", "epsg:28992");
     headers.append("Content-Type", "application/json");
 
-    const body = JSON.stringify(zoekObject);
+    const body = JSON.stringify(geoJson);
 
     const response = await postRequest(url, headers, body);
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${data}\nGiven URL: ${url}`
+        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`
       );
     }
 
     return data;
   }
 
-  async bestemmingsvlak(planId: string, bestemingsvlakId: string, parameters?: string) {
-    const path = `plannen/${planId}/bestemmingsvlakken/${bestemingsvlakId}`;
+  async bouwaanduidingenZoek(planId: string, geoJson: object, parameters?: string) {
+    if (parameters == undefined){
+      parameters = '?pageSize=100'
+    }else{
+      parameters += '&pageSize=100'
+    }
+    const path = `plannen/${planId}/bouwaanduidingen/_zoek`
     const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "EPSG:28992");
+    headers.append("content-Crs", "epsg:28992");
     headers.append("Content-Type", "application/json");
 
-    const response = await getRequest(url, headers);
+    const body = JSON.stringify(geoJson);
+
+    const response = await postRequest(url, headers, body);
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${data}\nGiven URL: ${url}`
+        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`
       );
     }
 
@@ -196,18 +217,23 @@ export class RuimtelijkePlannenAPI {
   }
 
   async maatvoeringen(planId: string, parameters?: string) {
+    if (parameters == undefined){
+      parameters = '?pageSize=100'
+    }else{
+      parameters += '&pageSize=100'
+    }
     const path = `plannen/${planId}/maatvoeringen`;
     const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "EPSG:28992");
+    headers.append("content-Crs", "epsg:28992");
     headers.append("Content-Type", "application/json");
 
     const response = await getRequest(url, headers);
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${data}\nGiven URL: ${url}`
+        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`
       );
     }
 

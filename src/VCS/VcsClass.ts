@@ -4,25 +4,17 @@ import * as path from "path";
 import * as fs from "fs";
 import { DSOAPI } from "./DSOAPI.js";
 import { IFCTransform } from "./IFCTransform.js";
-import { checkAPIKey, executeCommand, parsePolygonString } from "./helperFunctions.js";
+import { checkAPIKey, executeCommand } from "./helperFunctions.js";
 import { RuimtelijkePlannenAPI } from "./RuimtelijkePlannenAPI.js";
-
-// TODO add documentation/tool/community links for each tool + code library
 
 dotenv.config();
 
 // TODO replace every __dirname for relative path
 export const __dirname = path.resolve();
 
-// FOR CI
-// TODO need a pyhton + nodeJS + java image
-
 // FOR ETL
-// TODO need time logging per request
-// TODO should have original applied rule (juridische regel) text element included
-// TODO fix API ruimtelijke plannen
-
-// welstand bron data ophalen, nog niet regels/use cases aanpakken
+// TODO need time logging per request - a retrieved rule should have a timelog attached in the SHACL data message string
+// TODO should have original applied rule (juridische regel) text element included in the SHACL data message string
 
 /**
  * # Vergunnings Controle Service (VCS)
@@ -49,7 +41,6 @@ export const __dirname = path.resolve();
  *
  * ## Data Transformation
  * In this class different transformation scripts are used, mainly Python scripts using IfcOpenShells Python library (no NPM library is available), and a java jar executable to transform the source IFC file into IFC-OWL RDF data.
- *
  */
 export default class VCS {
     private apiUrl: string | undefined;
@@ -123,86 +114,4 @@ export default class VCS {
       },
     };
 }
-
-/**
- * Order:
- * [DONE] 
- *  1. IFC file   
- *            -> validate with IDS
- *            -> transform to IFC OWL RDF
- *            -> get coordinates CSV
- *            -> get footprint CSV
- *            -> create GLTF file
- *
- * [DONE BUT NEEDS TO BE TESTED] 
- * 2. Triply ETL 
- *      -> do VCS class stuff from step 1 (vcsEtl)
- *      -> RDF with from CSV data and GLTF as asset
- *      -> Upload to TriplyDB
- *
- * 
- * 3. Generate SHACL rapport by querying the graph for the building's footprint
- *      -> query for buildings footprint to get rule identifiers for use case 2
- *      -> query for rule's omgevings waarde
- *      -> map identifier to get the relating SHACL constraint + give omgevingswaarde too
- *      -> generate SHACL constraint file
- *      -> validate IDS data
- *
- * omgevingsplannen
- * IMOW identificatie van juridische regels als IDENTIFIER
- * regeltekst wordt hieraan gekoppeld
- *
- * bestemmingsplannen
- * identificatie hiervan is nog een vraag
- */
-
-// DEMO ETL Transformation
-
-// const ifcFilePath = 'src/VCS/data/IDS_wooden-windows_IFC.ifc'
-// const idsFilePathWrong = 'src/VCS/data/IDS_wooden-windows.ids'
-// const idsFilePathCorrect1 = 'src/VCS/data/IDS_wooden-windows_correct1.ids'
-// const idsFilePathCorrect2 = 'src/VCS/data/IDS_wooden-windows_correct2.ids'
-// const idsArray = [idsFilePathCorrect1, idsFilePathCorrect2]
-// const idsFilePath3 = '/Users/work/triply/vergunningscontroleservice/src/VCS/data/NL_BIM\ Basis\ ILS.ids'
-
-// const vcs = new VCS('src/VCS/data/Kievitsweg_R23_MVP_IFC4.ifc');
-// await vcs.IFC.transform().IFCtoGLTF()
-
-
-// VCS IDS Validation
-// await vcs.IFC.validateWithIds(idsFilePathWrong)
-// await vcs.IFC.validateWithIds('src/VCS/data/IDS_Rotterdam_BIM.ids')
-// const ifcTransform = vcs.IFC.transform()
-
-
-// const ruimtelijkePlannen = vcs.API.RuimtelijkePlannen()
-// const polygon: string = await fs.promises.readFile("data/footprint.txt", 'utf-8');
-// const coordinates = parsePolygonString(polygon)
-
-// for (const coordinate of coordinates){
-//   const jsonObj = {
-//       "_geo": {
-//         "contains": {
-//           "type": "Point",
-//           "coordinates": coordinate
-//         }
-//       }
-//   }
-//   const r = await ruimtelijkePlannen.plannen(jsonObj)
-//   console.log('🪵  | r:', r)
-//   const plannen = r['_embedded']['plannen']
-//   for (let index = 0; index < plannen.length; index++) {
-//     const element = plannen[index];
-  
-//     console.log('🪵  | element:', element)
-//   }
-// }
-
-
-
-// // VCS Transform IFC to RDF
-// await ifcTransform.IFCtoIFCOWL("https://www.rotterdam.nl/vcs/graph/");
-// await ifcTransform.extractWKTCoordinates();
-// await ifcTransform.extractFootprint();
-// await ifcTransform.IFCtoGLTF();
 

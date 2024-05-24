@@ -114,6 +114,7 @@
 
 import { getCurrentDate, postRequest } from "./helperFunctions.js";
 
+// IMPORTANT! This class and API are a WIP, the implementation is subject to change so please check the links in the doc comment below!
 /**
  * Omgevingsdocument presenteren API
  * @description this API contains all data w.r.t. the DSO and should contain the bestemmingsplannen/omgevingswet data
@@ -148,7 +149,7 @@ export class DSOAPI {
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${data}\nGiven URL: ${url}`
+        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`
       );
     }
 
@@ -175,7 +176,7 @@ export class DSOAPI {
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${data}\nGiven URL: ${url}`
+        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`
       );
     }
 
@@ -207,7 +208,7 @@ export class DSOAPI {
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${data}\nGiven URL: ${url}`
+        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`
       );
     }
 
@@ -239,7 +240,7 @@ export class DSOAPI {
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${data}\nGiven URL: ${url}`
+        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`
       );
     }
 

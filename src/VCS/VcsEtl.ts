@@ -11,30 +11,15 @@ import VCS from "./VcsClass.js";
 import { update } from "@triplyetl/etl/sparql";
 import { destination } from "../utils/sources-destinations.js";
 import { addMwCallSiteToError } from "@triplyetl/etl/utils";
+import * as xml2js from "xml2js";
+import { parsePolygonString } from "./helperFunctions.js";
 
 type VcsOptions = {
   baseIRI?: string;
 };
-// type GeoJSONPolygon = {
-//   spatialOperator: string;
-//   geometrie: {
-//     type: "Polygon";
-//     coordinates: number[][][];
-//   };
-// };
 
-// type GeoJSONPoint = {
-//   spatialOperator: string;
-//   geometrie: {
-//     type: "Point";
-//     coordinates: number[];
-//   };
-// };
-
-// type Geometry = GeoJSONPoint | GeoJSONPolygon;
-
-// Should transform all IFC input data and upload to TriplyDB
 // Overload signatures
+// Should transform all IFC input data and upload to TriplyDB
 export async function vcsEtl(
   ifcFilePath: string,
   opts?: VcsOptions
@@ -52,66 +37,70 @@ export async function vcsEtl(
   opts: VcsOptions = {
     baseIRI: "https://www.example.org/vcs/",
   }
-):  Promise<MiddlewareList> {
-    let idsFilePath: string | undefined;
-    if (typeof idsFilePathOrOpts === 'string') {
-      idsFilePath = idsFilePathOrOpts;
-    } else if (typeof idsFilePathOrOpts === 'object') {
-      opts = idsFilePathOrOpts;
-    }
-    return new Promise<MiddlewareList>(async (resolve, _reject) => {
-        const vcs = new VCS(ifcFilePath);
-        const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
-        const dataset = await (
-            await triply.getAccount()
-        ).getDataset(destination.vergunningscontroleservice.dataset.name);
+): Promise<MiddlewareList> {
+  let idsFilePath: string | undefined;
+  if (typeof idsFilePathOrOpts === "string") {
+    idsFilePath = idsFilePathOrOpts;
+  } else if (typeof idsFilePathOrOpts === "object") {
+    opts = idsFilePathOrOpts;
+  }
+  return new Promise<MiddlewareList>(async (resolve, _reject) => {
+    const vcs = new VCS(ifcFilePath);
+    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
+    const dataset = await (
+      await triply.getAccount()
+    ).getDataset(destination.vergunningscontroleservice.dataset.name);
 
-        // VCS IDS Validation
-        if (idsFilePath) {
-            try {
-            await vcs.IFC.validateWithIds(idsFilePath);
-            } catch (error) {
-                console.error("Error during validation! Uploading IDS Validation Report");
-                try {
-                    const asset = await dataset.getAsset('./data/IDSValidationReport.html')
-                    await asset.delete()
-                } catch (error) {
-                }
-                if (fs.existsSync('./data/IDSValidationReport.html')){
-                  await dataset.uploadAsset("./data/IDSValidationReport.html");
-                }
-            }
-
-            try {
-                const asset = await dataset.getAsset('./data/IDSValidationReport.html')
-                await asset.delete()
-            } catch (error) {
-            }
-
-            await dataset.uploadAsset("./data/IDSValidationReport.html");
-        }
-
-        // VCS Transform IFC to RDF
-        const ifcTransform = vcs.IFC.transform();
-        await ifcTransform.IFCtoIFCOWL(opts.baseIRI!);
-
-        // await ifcTransform.extractWKTCoordinates(); // not needed
-        await ifcTransform.extractFootprint();
-        await ifcTransform.IFCtoGLTF();
-
-        // upload assets to dataset
+    // VCS IDS Validation
+    if (idsFilePath) {
+      try {
+        await vcs.IFC.validateWithIds(idsFilePath);
+      } catch (error) {
+        console.error(
+          "Error during validation! Uploading IDS Validation Report"
+        );
         try {
-            const asset = await dataset.getAsset("./data/output.gltf")
-            await asset.delete()
-        } catch (error) {
+          const asset = await dataset.getAsset(
+            "./data/IDSValidationReport.html"
+          );
+          await asset.delete();
+        } catch (error) {}
+        if (fs.existsSync("./data/IDSValidationReport.html")) {
+          await dataset.uploadAsset("./data/IDSValidationReport.html");
         }
-        await dataset.uploadAsset("./data/output.gltf");
-        // read all data and upload local files as assets
-        const polygon: string = await fs.promises.readFile("data/footprint.txt", 'utf-8');
+      }
 
-        const mwList = [
-            loadRdf(Source.file("./data/ifcOwlData.ttl")),
-            update(`
+      try {
+        const asset = await dataset.getAsset("./data/IDSValidationReport.html");
+        await asset.delete();
+      } catch (error) {}
+
+      await dataset.uploadAsset("./data/IDSValidationReport.html");
+    }
+
+    // VCS Transform IFC to RDF
+    const ifcTransform = vcs.IFC.transform();
+    await ifcTransform.IFCtoIFCOWL(opts.baseIRI!);
+
+    // await ifcTransform.extractWKTCoordinates(); // not needed
+    await ifcTransform.extractFootprint();
+    await ifcTransform.IFCtoGLTF();
+
+    // upload assets to dataset
+    try {
+      const asset = await dataset.getAsset("./data/output.gltf");
+      await asset.delete();
+    } catch (error) {}
+    await dataset.uploadAsset("./data/output.gltf");
+    // read all data and upload local files as assets
+    const polygon: string = await fs.promises.readFile(
+      "data/footprint.txt",
+      "utf-8"
+    );
+
+    const mwList = [
+      loadRdf(Source.file("./data/ifcOwlData.ttl")),
+      update(`
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
             PREFIX express: <https://w3id.org/express#>
@@ -130,23 +119,25 @@ export async function vcsEtl(
             }
 
             `),
-            // upload data to Triply DB
-            toTriplyDb(destination.vergunningscontroleservice)
-    ]
-        resolve(mwList)
-    })
+      // upload data to Triply DB
+      toTriplyDb(destination.vergunningscontroleservice),
+    ];
+    resolve(mwList);
+  });
 }
 
 // given a dictionary with keys being the rule identifiers and the values the SHACL constraint elements, we generate a SHACL file
 // TODO This can be improved to use an AST or datafactory objects to generate the SHACL model, instead of string manipulation (current approach)
 export async function vcsGenerateShacl(
   dictionary: { [key: string]: string[] }
-//   geometry?: Geometry
+  //   geometry?: Geometry
 ): Promise<Middleware> {
-    return addMwCallSiteToError(
-                async function _vcsGenerateShacl(_ctx, next) {
-                    // Initialize the output string for SHACL Constraint
-                    let shaclConstraint = (sparqlConstraintNodeNames: string, sparqlConstraintNodes: string) => `
+  return addMwCallSiteToError(async function _vcsGenerateShacl(ctx, next) {
+    // Initialize the output string for SHACL Constraint
+    let shaclConstraint = (
+      sparqlConstraintNodeNames: string,
+      sparqlConstraintNodes: string
+    ) => `
 
 # External prefix declarations
 prefix dbo:   <http://dbpedia.org/ontology/>
@@ -168,74 +159,146 @@ graph:model {
   ${sparqlConstraintNodes}
   }    
 `;
+    const usedRulesIds = [];
+    const vcs = new VCS("");
+    const ruimtelijkePlannen = vcs.API.RuimtelijkePlannen();
+    const polygon: string = await fs.promises.readFile(
+      "data/footprint.txt",
+      "utf-8"
+    );
+    const coordinates = parsePolygonString(polygon);
+    const totalPlannen: Set<any> = new Set();
+    const totalTeksten: Set<any> = new Set();
+    const jsonObj = {
+      _geo: {
+        intersects: {
+          type: "Polygon",
+          coordinates: [coordinates],
+        },
+      },
+    };
+    let pageNum = 1;
+    let planId;
 
-                    // get the rule IDs
-            
-                    // const api = new VCS('').API.RuimtelijkePlannen()
-                    // const plannen = await api.plannen(geometry!)
-                    // const artikelen = await api.artikelen({})
-                    // const bestemmingsvlakZoek = await api.bestemmingsvlakZoek({})
-                    // const maatvoeringen = await api.maatvoeringen('')
-                    // const teksten = await api.teksten({})
-                    // console.log('🪵  | _vcsGenerateShacl | plannen:', plannen)
-                    // const id = plannen.id
+    // First we get all the plannen from the API
+    while (true) {
+      const plannenRequest = await ruimtelijkePlannen.plannen(
+        jsonObj,
+        `?page=${pageNum}`
+      );
+      const plannen = plannenRequest["_embedded"]["plannen"];
+      if (plannen.length == 0) {
+        break;
+      } else {
+        plannen.forEach((plan: object) => {
+          totalPlannen.add(plan);
+        });
+        pageNum++;
+      }
+    }
+    pageNum = 1;
 
-                    // TODO get the specific rules for given geometry
-                    // [ ] get the footprint with query
-                    // const getFootprintWkt = `
-                    // PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                    // PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
-                    // PREFIX express: <https://w3id.org/express#>
-                    // PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-                            
-                    // SELECT ?wktLiteral
-                    // WHERE {
-                    //   ?storey a ifc:IfcBuildingStorey;
-                    //           ifc:name_IfcRoot ?storeyLabel.
-                    //   ?storeyLabel a ifc:IfcLabel;
-                    //               express:hasString "00 begane grond";
-                    //               geo:asWKT ?wktLiteral.
-                    // }
-                    // `
+    // Out of these plans we want to grab the Hoogvliet Noordoost plan id
+    // This information was looked up by investigating https://omgevingswet.overheid.nl/regels-op-de-kaart/viewer/(documenten/gemeente//rechter-paneel:document/NL.IMRO.0599.BP1133HvtNoord-va01/regels)?regelsandere=regels&locatie-stelsel=RD&locatie-x=84207&locatie-y=431716&session=ec9787ea-19c5-4919-bda9-9fb778e38691&geodocId=NL-IMRO-0599-BP1133HvtNoord-va01-2&locatie-getekend-gebied=POLYGON((84118.677%20431760.27,84094.175%20431771.98,84100.696%20431805.561,84135.786%20431792.836,84118.677%20431760.27))
+    for (const plan of totalPlannen) {
+      if (plan["naam"] == "Hoogvliet Noordoost") {
+        planId = plan["id"];
+      }
+    }
 
-                    // [ ] query with geometry
+    // Paginate over all the article elements from the given plan id for Hoogvliet Noordoost
+    while (true) {
+      const tekstenRequest = await ruimtelijkePlannen.tekstenZoek(
+        planId!,
+        jsonObj,
+        `?page=${pageNum}`
+      );
+      const teksten = tekstenRequest["_embedded"]["teksten"];
+      if (teksten.length == 0) {
+        break;
+      } else {
+        teksten.forEach((tekst: object) => {
+          totalTeksten.add(tekst);
+        });
+        pageNum++;
+      }
+    }
 
-
-
-                    // TODO get specific omgevingswaarde to fill in for rule
-                    // const rulesIds = plannen.id
-
-                    const rulesIds = ['id_1']
-
-                    // Iterate through each rule id for the geometry
-                    let sparqlConstraintNodeNames: string = ''
-                    let sparqlConstraintNodes: string = ''
-                    for (let index = 0; index < rulesIds.length; index++) {
-                      const articleID = rulesIds[index];
-                      if (dictionary[articleID]) {
-                        sparqlConstraintNodeNames += dictionary[articleID][0] + `${index +1 == rulesIds.length ? '. \n' : '; \n'}`;
-                        sparqlConstraintNodes += dictionary[articleID][1] + '\n'
-                      }
-                    }
-
-                    const shaclConstrainModel = shaclConstraint(sparqlConstraintNodeNames, sparqlConstraintNodes)
-
-                    // Write SHACL constraint to local file
-                    const shaclModelFilePath = './data/model.trig'
-                    try {
-                      await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel)
-                    } catch (error) {
-                      throw error
-                    }
-                    return next()
+    // Loop over the elements, we know the max bouwlagen rule is in article 23.2.2 Bebouwingsnormen from the regels op de kaart website
+    for (const tekst of totalTeksten) {
+      if (tekst["titel"] == "Artikel 23 Wonen") {
+        for (const element of tekst["_links"]["children"]) {
+          const parts = element["href"].split("/");
+          const tekstId = parts[parts.length - 1];
+          if (tekstId == "NL.IMRO.PT.regels._23.2_Bouwregels") {
+            const art23_2 = await ruimtelijkePlannen.enkeleTekst(
+              planId,
+              tekstId
+            );
+            for (const norm of art23_2["_links"]["children"]) {
+              const parts = norm["href"].split("/");
+              const normId = parts[parts.length - 1];
+              if (normId == "NL.IMRO.PT.regels._23.2.2_Bebouwingsnormen") {
+                const regel = await ruimtelijkePlannen.enkeleTekst(
+                  planId,
+                  normId
+                );
+                const regelTeksten = (
+                  await xml2js.parseStringPromise(regel["inhoud"])
+                )["ol"]["li"];
+                for (const regelTekst of regelTeksten) {
+                  const retrievedRegelTekst = regelTekst["_"];
+                  if (
+                    retrievedRegelTekst ==
+                    'de bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven;'
+                  ) {
+                    ctx.app.info(
+                      "Voor de gegeven geometrie is de maximum aantal bouwlagen regel gevonden! De representatieve SHACL regel is toegevoegd aan het model."
+                    );
+                    usedRulesIds.push("maxbouwlagen");
+                  }
+                }
+              }
             }
-        )
+          }
+        }
+      }
+    }
+
+    // Iterate through each rule id for the geometry
+    let sparqlConstraintNodeNames: string = "";
+    let sparqlConstraintNodes: string = "";
+    for (let index = 0; index < usedRulesIds.length; index++) {
+      const articleID = usedRulesIds[index];
+      if (dictionary[articleID]) {
+        sparqlConstraintNodeNames +=
+          dictionary[articleID][0] +
+          `${index + 1 == usedRulesIds.length ? ". \n" : "; \n"}`;
+        sparqlConstraintNodes += dictionary[articleID][1] + "\n";
+      }
+    }
+
+    const shaclConstrainModel = shaclConstraint(
+      sparqlConstraintNodeNames,
+      sparqlConstraintNodes
+    );
+
+    // Write SHACL constraint to local file
+    const shaclModelFilePath = "./data/model.trig";
+    try {
+      await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel);
+    } catch (error) {
+      throw error;
+    }
+    return next();
+  });
 }
 
-const getMaxAantalBouwlagen = () => '2'
+// TODO this value needs to be grapped with WFS query
+const getMaxAantalBouwlagen = () => "2";
 
 const maxBouwlaagRule = (retrievedNumberPositiveMaxBouwlagen: string) => {
-    return `
+  return `
 shp:BuildingMaxAantalPositieveBouwlagenSparql
   a sh:SPARQLConstraint;
   sh:message 'Gebouw {?this} heeft in totaal {?totalNumberOfFloors} bouwlagen, dit mag maximaal ${retrievedNumberPositiveMaxBouwlagen} zijn.';
@@ -279,10 +342,14 @@ WHERE {
   FILTER (?totalNumberOfFloors > ${retrievedNumberPositiveMaxBouwlagen})
 }
   '''.
-`}
+`;
+};
 
+// Add more dictionary entries for the use case here
 export const ruleIdShaclConstraintDictionary = {
-"id_1": ["shp:BuildingMaxAantalPositieveBouwlagenSparql", maxBouwlaagRule(getMaxAantalBouwlagen())],
-"id_2": ["NodeName", "NodeRule"],
-// Add more fake dictionary entries as needed
+  maxbouwlagen: [
+    "shp:BuildingMaxAantalPositieveBouwlagenSparql",
+    maxBouwlaagRule(getMaxAantalBouwlagen()),
+  ],
+  customRuleName: ["NodeName", "NodeRule"],
 };
