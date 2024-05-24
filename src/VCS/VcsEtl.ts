@@ -9,6 +9,7 @@ import App from "@triply/triplydb";
 import * as path from "path";
 import * as fs from "fs";
 import VCS from "./VcsClass.js";
+import { __dirname } from "./VcsClass.js";
 import { update } from "@triplyetl/etl/sparql";
 import { destination } from "../utils/sources-destinations.js";
 import { addMwCallSiteToError } from "@triplyetl/etl/utils";
