@@ -160,27 +160,27 @@ export class IFCTransform {
           downloadUrl =
             "https://s3.amazonaws.com/ifcopenshell-builds/IfcConvert-v0.7.0-f7c03db-macosm164.zip";
           await this.downloadAndUnzip(downloadUrl);
-          return;
+          break;
         case "MacOS 64bit":
           downloadUrl =
             "https://s3.amazonaws.com/ifcopenshell-builds/IfcConvert-v0.7.0-f7c03db-macos64.zip";
           await this.downloadAndUnzip(downloadUrl);
-          return;
+          break;
         case "Windows 64bit":
           downloadUrl =
             "https://s3.amazonaws.com/ifcopenshell-builds/IfcConvert-v0.7.0-f7c03db-win64.zip";
           await this.downloadAndUnzip(downloadUrl);
-          return;
+          break;
         case "Windows 32bit":
           downloadUrl =
             "https://s3.amazonaws.com/ifcopenshell-builds/IfcConvert-v0.7.0-f7c03db-win32.zip";
           await this.downloadAndUnzip(downloadUrl);
-          return;
+          break;
         case "Linux 64bit":
           downloadUrl =
             "https://s3.amazonaws.com/ifcopenshell-builds/IfcConvert-v0.7.0-f7c03db-linux64.zip";
           await this.downloadAndUnzip(downloadUrl);
-          return;
+          break;
         default:
           break;
       }
@@ -203,10 +203,10 @@ export class IFCTransform {
 
     // Run IfcConvert script to create GLB file
     try {
+      let cmd = `${ifcConverterPath} "${this.ifcFilePath!}" "${glbFilePath}"`;
+      console.log(cmd)
       await executeCommand(`chmod u+x ${ifcConverterPath}`);
-      await executeCommand(
-        `${ifcConverterPath} "${this.ifcFilePath!}" "${glbFilePath}"`
-      );
+      await executeCommand(cmd);
     } catch (error) {
       throw error;
     }
