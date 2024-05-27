@@ -234,6 +234,16 @@ graph:model {
                     } catch (error) {
                       throw error
                     }
+
+                    // ... and as an asset to TriplyDB
+                    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
+                    const dataset = await (
+                      await triply.getAccount()
+                    ).getDataset(destination.vergunningscontroleservice.dataset.name);
+                    if (fs.existsSync(shaclModelFilePath)){
+                      await dataset.uploadAsset(shaclModelFilePath);
+                    }
+
                     return next()
             }
         )
