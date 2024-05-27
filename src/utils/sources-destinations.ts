@@ -13,6 +13,7 @@ export const destination = {
 export const source = {
   // model: Source.file('./data/model.trig')
   model: Source.TriplyDb.asset(
-    destination.vergunningscontroleservice.dataset.name,
+    getAccount(),
+    'vcs',
     { name: 'data/model.trig' }),
 }
