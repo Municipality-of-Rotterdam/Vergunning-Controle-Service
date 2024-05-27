@@ -73,7 +73,7 @@ vcs:
     - !reference [.etl-template, run-etl]
   rules:
     - !reference [.etl-template, rules]
-  dependencies:
+  needs:
     - main
 
 ### Example stage 1: add another ETL with name "collections"
