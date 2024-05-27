@@ -65,7 +65,7 @@ export async function vcsEtl(
         const vcs = new VCS(ifcFilePath);
         const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
         const dataset = await (
-            await triply.getAccount()
+            await triply.getAccount("rotterdam")
         ).getDataset(destination.vergunningscontroleservice.dataset.name);
 
        const reportPath = path.join(__dirname, "data", "IDSValidationReport.html")
@@ -238,7 +238,7 @@ graph:model {
                     // ... and as an asset to TriplyDB
                     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
                     const dataset = await (
-                      await triply.getAccount()
+                      await triply.getAccount("rotterdam")
                     ).getDataset(destination.vergunningscontroleservice.dataset.name);
 
                     try {
