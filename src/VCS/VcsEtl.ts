@@ -151,10 +151,10 @@ export async function vcsEtl(
 
 // given a dictionary with keys being the rule identifiers and the values the SHACL constraint elements, we generate a SHACL file
 // TODO This can be improved to use an AST or datafactory objects to generate the SHACL model, instead of string manipulation (current approach)
-export async function vcsGenerateShacl(
+export function vcsGenerateShacl(
   dictionary: { [key: string]: string[] }
 //   geometry?: Geometry
-): Promise<Middleware> {
+): Middleware {
     return addMwCallSiteToError(
                 async function _vcsGenerateShacl(_ctx, next) {
                     // Initialize the output string for SHACL Constraint
@@ -231,34 +231,24 @@ graph:model {
                     }
 
                     const shaclConstrainModel = shaclConstraint(sparqlConstraintNodeNames, sparqlConstraintNodes)
-
                     // Write SHACL constraint to local file
-                    const shaclModelFilePath = path.join(__dirname, 'data', 'model.trig')
-                    try {
-                      await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel)
-                    } catch (error) {
-                      throw error
-                    }
-
+                    const shaclModelFilePath = path.join(__dirname, 'model.trig')
+                    await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel)
                     // ... and as an asset to TriplyDB
                     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
                     
-                    let user;
-                    if (destination.vergunningscontroleservice.account == "me") {
-                      user = await triply.getAccount()
-                    }
-                    else {
-                      user = await triply.getAccount(destination.vergunningscontroleservice.account)
-                    }
+                    const user = await triply.getAccount(
+                      destination.vergunningscontroleservice.account == "me"
+                      ? undefined
+                      : destination.vergunningscontroleservice.account)
+                    
                     const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
-
                     try {
                       const asset = await dataset.getAsset("model.trig")
                       await asset.delete()
                     } catch (error) {
                     }
                     await dataset.uploadAsset("model.trig");
-
                     return next()
             }
         )

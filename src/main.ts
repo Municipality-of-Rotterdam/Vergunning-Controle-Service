@@ -18,7 +18,7 @@ export default async function (): Promise<Etl> {
     await vcsEtl(ifcFile, idsFile, {
       baseIRI: "https://www.rotterdam.nl/vcs/graph/",
     }),
-    await vcsGenerateShacl(ruleIdShaclConstraintDictionary),
+     vcsGenerateShacl(ruleIdShaclConstraintDictionary),
     toTriplyDb(destination.vergunningscontroleservice)
   );
   return etl;
