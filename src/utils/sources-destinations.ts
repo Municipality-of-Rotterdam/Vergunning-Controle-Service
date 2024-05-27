@@ -1,5 +1,6 @@
 import { Source } from '@triplyetl/etl/generic'
 import { getAccount, getDataset } from './dtap.js'
+import path from "path";
 
 export const destination = {
   vergunningscontroleservice: {
@@ -14,5 +15,5 @@ export const source = {
   // model: Source.file('./data/model.trig')
   model: Source.TriplyDb.asset(
     destination.vergunningscontroleservice.dataset.name,
-    { name: './data/model.trig' }),
+    { name: path.join('.', 'data', 'model.trig') }),
 }
