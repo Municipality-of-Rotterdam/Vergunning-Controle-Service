@@ -12,9 +12,9 @@ export const destination = {
 }
 
 export const source = {
-  model: Source.file('./data/model.trig'),
-  /*model: Source.TriplyDb.asset(
-    getAccount(),
+  //model: Source.file('./data/model.trig'),
+  model: Source.TriplyDb.asset(
+    //getAccount(),
     getDataset('vcs'),
-    { name: 'data/model.trig' }),*/
+    { name: 'model.trig' }),
 }
