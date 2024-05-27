@@ -240,9 +240,13 @@ graph:model {
                     const dataset = await (
                       await triply.getAccount()
                     ).getDataset(destination.vergunningscontroleservice.dataset.name);
-                    if (fs.existsSync(shaclModelFilePath)){
-                      await dataset.uploadAsset(shaclModelFilePath);
+
+                    try {
+                      const asset = await dataset.getAsset(shaclModelFilePath)
+                      await asset.delete()
+                    } catch (error) {
                     }
+                    await dataset.uploadAsset(shaclModelFilePath);
 
                     return next()
             }
