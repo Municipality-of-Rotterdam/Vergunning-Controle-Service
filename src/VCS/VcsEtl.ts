@@ -64,9 +64,14 @@ export async function vcsEtl(
     return new Promise<MiddlewareList>(async (resolve, _reject) => {
         const vcs = new VCS(ifcFilePath);
         const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
-        const dataset = await (
-            await triply.getAccount(destination.vergunningscontroleservice.account)
-        ).getDataset(destination.vergunningscontroleservice.dataset.name);
+        let user;
+        if (destination.vergunningscontroleservice.account == "me") {
+          user = await triply.getAccount()
+        }
+        else {
+          user = await triply.getAccount(destination.vergunningscontroleservice.account)
+        }
+        const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
 
        const reportPath = path.join(__dirname, "data", "IDSValidationReport.html")
        const footprintPath = path.join(__dirname, "data", "footprint.txt");
@@ -237,9 +242,15 @@ graph:model {
 
                     // ... and as an asset to TriplyDB
                     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
-                    const dataset = await (
-                      await triply.getAccount(destination.vergunningscontroleservice.account)
-                    ).getDataset(destination.vergunningscontroleservice.dataset.name);
+                    
+                    let user;
+                    if (destination.vergunningscontroleservice.account == "me") {
+                      user = await triply.getAccount()
+                    }
+                    else {
+                      user = await triply.getAccount(destination.vergunningscontroleservice.account)
+                    }
+                    const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
 
                     try {
                       const asset = await dataset.getAsset(shaclModelFilePath)
