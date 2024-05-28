@@ -285,7 +285,7 @@ graph:model {
                       sparqlConstraintNodeNames,
                       sparqlConstraintNodes)
                     // Write SHACL constraint to local file
-                    const shaclModelFilePath = path.join(__dirname, 'data', 'model.trig')
+                    const shaclModelFilePath = path.join(__dirname, 'model.trig')
                     await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel)
                     // ... and as an asset to TriplyDB
                     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
