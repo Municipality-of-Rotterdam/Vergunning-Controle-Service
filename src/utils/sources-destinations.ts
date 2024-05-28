@@ -13,8 +13,13 @@ export const destination = {
 
 export const source = {
   //model: Source.file('./data/model.trig'),
-  model: Source.TriplyDb.asset(
-    //getAccount(),
-    getDataset('vcs'),
-    { name: 'model.trig' }),
+  model: getAccount() == 'me'
+    ? Source.TriplyDb.asset(
+      getDataset('vcs'),
+      { name: 'model.trig' })
+    : Source.TriplyDb.asset(
+      getAccount(),
+      getDataset('vcs'),
+      { name: 'model.trig' }
+    ),
 }
