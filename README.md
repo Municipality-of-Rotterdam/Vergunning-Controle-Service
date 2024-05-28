@@ -11,6 +11,12 @@ To be able to run code from this repository it is required to have:
 
 For local development, you can make sure all dependencies are installed for python with the command `python3 -m pip install -r ./python/requirements.txt`.
 
+It might be necessary to work within a virtual environment. Use these commands: 
+```
+python3 -m venv myenv
+source myenv/bin/activate
+```
+
 Most of the functionality of the code needed for the VCS is implemented in `src/VCS/VCSclass.ts` and the middleware implementation is done in `src/VCS/VcsEtl.ts`. The VCSClass uses the IFCTransform class (which does all of the transformation functions of the IFC file) and the API classes: DSOAPI and RuimtelijkePlannenAPI (subject to change/more APIs will be added in the future).
 
 --------------

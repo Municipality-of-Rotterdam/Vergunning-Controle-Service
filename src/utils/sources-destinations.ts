@@ -13,6 +13,14 @@ export const destination = {
       description: "Gepubliceerd door TriplyETL",
     },
   },
+  shacl_example: {
+    account: account,
+    dataset: {
+      name: getDataset("shacl-example"),
+      displayName: "SHACL Example",
+      description: "Gepubliceerd door TriplyETL",
+    },
+  },
   geodata: {
     account: account,
     dataset: { name: getDataset("geodata"), displayName: "Geodata", description: "Gepubliceerd door TriplyETL" },
@@ -20,7 +28,8 @@ export const destination = {
 };
 
 export const source = {
-  //model: Source.file('./data/model.trig'),
+  shacl_example_buildings: Source.file("static/example_mock_data_building.json"),
+  shacl_example_model: Source.file("static/shacl-example-model.trig"),
   model: account
     ? Source.TriplyDb.asset(account, getDataset("vcs"), { name: "model.trig" })
     : Source.TriplyDb.asset(getDataset("vcs"), { name: "model.trig" }),
