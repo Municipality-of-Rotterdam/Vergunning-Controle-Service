@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "es2017",
     "module": "NodeNext",
     "strict": true,
     "noUnusedLocals": true,
@@ -10,5 +10,5 @@
     "outDir": "./lib",
     "rootDir": "./src"
   },
-  "include": ["src/**/*.ts", "src/main.ts"]
+  "include": ["src/**/*.ts", "src/main.ts", "global.d.ts"]
 }

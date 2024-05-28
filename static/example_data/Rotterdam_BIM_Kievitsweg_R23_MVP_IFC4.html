@@ -1,0 +1,795 @@
+<!--
+    IfcTester - IDS based model auditing
+    Copyright (C) 2022 Dion Moult <dion@thinkmoult.com>
+
+    This file is part of IfcTester.
+
+    IfcTester is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    IfcTester is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with IfcTester.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html lang=>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="foobaro">
+    <title></title>
+    <link href="https://fonts.googleapis.com/css?family=Comfortaa|Inconsolata|Open+Sans&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green: #97cc64;
+            --light-green: #b6cca1;
+            --red: #fb5a3e;
+            --light-red: #fbb4a8;
+        }
+        body { font-family: 'Arial', sans-serif; padding: 10px 40px; }
+        section { padding: 15px; border-radius: 5px; border: 1px solid #eee; margin-bottom: 15px; }
+        section>h2 { margin-top: 0px; }
+        span.time { color: #999; font-style: italic; float: right; }
+        span.step-time { float: right; color: #555; font-size: 0.8em; font-style: italic; }
+        span.item { padding: 5px; border-radius: 5px; margin-right: 5px; border: 1px solid #eee; }
+        span.item.pass, span.item.fail { color: #FFF; font-weight: bold; border: 0px; }
+        p.fail { background-color: #fb5a3e; padding: 5px; border-radius: 5px; color: #fff; }
+        p.unspecified { background-color: #994f00; padding: 5px; border-radius: 5px; color: #fff; }
+        p.skipped { background-color: #8b8d8f; padding: 5px; border-radius: 5px; color: #fff; }
+        p.description { background-color: #eee; border-radius: 5px; padding: 20px; margin-left: auto; margin-right: auto; display: inline-block; font-weight: bold;}
+        li { padding: 10px; font-family: monospace; }
+        li.pass { background-color: var(--light-green); color: #333; }
+        li.fail { background-color: var(--light-red); color: #900; }
+        li.unspecified { background-color: #ffd37f; color: #a30; }
+        li.skipped { background-color: #f5f5f5; color: #333; }
+        li p { margin-bottom: 0px; }
+        footer { color: #999; font-size: 0.8em; }
+        header { text-align: center; }
+        hr { margin: 20px; margin-left: 0px; margin-right: 0px;  border: none; border-top: 1px solid #ccc; }
+        summary { display: flex; cursor: pointer; }
+        summary::-webkit-details-marker { display: none; }
+        * {box-sizing:border-box}
+        .container { width: 100%; background-color: #ddd; border-radius: 5px}
+        .percent { text-align: left; padding-top: 5px; padding-left: 5px; padding-bottom: 5px; color: white; border-radius: 5px; white-space: nowrap; }
+        .pass { background-color: var(--green); }
+        .fail { background-color: var(--red); }
+        table { width: 100%; border-bottom: 2px solid var(--red); border-spacing: 0; border-radius: 5px; margin-top: 10px; }
+        th, td { padding: 5px; }
+        thead>tr { background-color: var(--red); font-weight: bold; color: #fff; }
+        tbody tr { border-bottom: 1px solid var(--red); }
+        tbody tr:nth-child(odd) { background-color: rgba(1, 1, 1, 0.05); }
+        tbody tr:nth-child(even) { background-color: rgba(1, 1, 1, 0.1); }
+        tbody tr:hover { background-color: rgba(0, 0, 0, 0); }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>IDS Rotterdam BIM</h1>
+        <p><strong>2024-05-15 21:53:48</strong></p>
+    </header>
+    <h2>Summary</h2>
+    <div class="container">
+        <div class="fail percent" style="width: 100%;">100%</div>
+    </div>
+    <p>
+        <span class="item fail">Fail</span>
+        <span class="item">
+            Specifications passed: <strong>2</strong> / <strong>19</strong>
+        </span>
+        <span class="item">
+            Requirements passed: <strong>2</strong> / <strong>20</strong>
+        </span>
+        <span class="item">
+            Checks passed: <strong>2</strong> / <strong>2</strong>
+        </span>
+    </p>
+    <hr>
+    <section>
+        <h2>Brandweeringang</h2>
+        <p>Brandweeringang</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCDOOR data</li>
+            <li>Elements with Brandweer_ingang data of True in the dataset Pset_DoorCommon</li>
+            <li>Elements with Entrance data of True in the dataset Pset_DoorCommon</li>
+            <li>Elements with Uniformat data of 31.* in the dataset Summary</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        Brandweer_ingang data shall be True and in the dataset Pset_DoorCommon
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Buildingstory is entrancelevel</h2>
+        <p>Buildingstory is entrancelevel</p>
+
+        <div class="container">
+            <div class="pass percent" style="width: 100%;">100%</div>
+        </div>
+        <p>
+            <span class="item pass">Pass</span>
+            <span class="item">
+                Checks passed: <strong>1</strong> / <strong>1</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>1</strong> / <strong>1</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCBUILDINGSTOREY data</li>
+            <li>Elements with EntranceLevel data of True in the dataset Pset_BuildingStoreyCommon</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="pass">
+                <details>
+                    <summary>
+                        EntranceLevel data shall be provided in the dataset Pset_BuildingStoreyCommon
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Gebouwfunctie</h2>
+        <p>MarketCategory</p>
+
+        <div class="container">
+            <div class="pass percent" style="width: 100%;">100%</div>
+        </div>
+        <p>
+            <span class="item pass">Pass</span>
+            <span class="item">
+                Checks passed: <strong>1</strong> / <strong>1</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>1</strong> / <strong>1</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCBUILDING data</li>
+            <li>Elements with MarketCategory data of woonfunctie in the dataset Pset_BuildingUse</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="pass">
+                <details>
+                    <summary>
+                        MarketCategory data shall be provided in the dataset Pset_BuildingUse
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Locatie Check EPSG</h2>
+        <p>EPSG-28992</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCPROJECT data</li>
+            <li>Data where the NAME is CoordinateSystem</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        The NAME shall be IfcProjectedCRS
+                    </summary>
+                </details>
+            </li>
+            <li class="fail">
+                <details>
+                    <summary>
+                        EPSG data shall be 28992 and in the dataset *
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Terreinopppervlakte</h2>
+        <p>Terreinoppervlakte Zone</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCSPACE data</li>
+            <li>Elements with Zone data of Terrein in the dataset Summary</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        Zone data shall be provided in the dataset Summary
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Bebouwd Terreinoppervlakte</h2>
+        <p>Bebouwd Terreinoppervlakte Zone</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCSPACE data</li>
+            <li>Elements with Long name data of Bebouwd Terreinoppervlakte in the dataset Summary</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        Long name data shall be provided in the dataset Summary
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Onbebouwd Terreinoppervlakte</h2>
+        <p>Onbebouwd Terreinoppervlakte Zone</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCSPACE data</li>
+            <li>Elements with Long name data of Onbebouwd Terreinoppervlakte in the dataset Summary</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        Long name data shall be provided in the dataset Summary
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>BVO</h2>
+        <p>BVO Zone</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCSPACE data</li>
+            <li>Elements with Zone data of BVO in the dataset Summary</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        Long name data shall be provided in the dataset Summary
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>BVO - MarketSubCategory</h2>
+        <p>BVO Zone bevat MarketSubCategory</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCSPACE data</li>
+            <li>Elements with Zone data of BVO in the dataset Summary</li>
+            <li>Elements with MarketSubCategory data of {&#x27;enumeration&#x27;: [&#x27;Koop&#x27;, &#x27;Huur&#x27;]} in the dataset SpaceCommon</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        MarketSubCategory data shall be provided in the dataset SpaceCommon
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>BVO - Gebruiksfunctie</h2>
+        <p>BVO Zone bevat Gebruiksfunctie</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCSPACE data</li>
+            <li>Elements with Zone data of BVO in the dataset Summary</li>
+            <li>Elements with Gebruiksfunctie data of {&#x27;enumeration&#x27;: [&#x27;Woonfunctie&#x27;, &#x27;Bijeenkomstfunctie&#x27;, &#x27;Celfunctie&#x27;, &#x27;Gezondheidszorgfunctie&#x27;, &#x27;Industriefunctie&#x27;, &#x27;Kantoorfunctie&#x27;, &#x27;Logiesfunctie&#x27;, &#x27;Onderwijsfunctie&#x27;, &#x27;Sportfunctie&#x27;, &#x27;Winkelfunctie&#x27;, &#x27;Overige gebruiksfunctie&#x27;, &#x27;Bouwwerk geen gebouw zijnde&#x27;]} in the dataset SpaceCommon</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        Gebruiksfunctie data shall be provided in the dataset SpaceCommon
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Verblijfsgebied</h2>
+        <p>VG</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCSPACE data</li>
+            <li>Elements with Zone data of Verblijfsgebied in the dataset Summary</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        Long name data shall be VG* and in the dataset Summary
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Space is Verblijfsgebied</h2>
+        <p>Space is Verblijfsgebied</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCSPACE data</li>
+            <li>Elements with Verblijfsruimte data of True in the dataset Pset_SpaceCommon</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        Verblijfsruimte data shall be True and in the dataset Pset_SpaceCommon
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>FireCompartment</h2>
+        <p>brandcompartimenten</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCSPACE data</li>
+            <li>Elements with Zone data of FireCompartment in the dataset Summary</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        Name data shall be provided in the dataset Summary
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>DistrubitionSystem</h2>
+        <p>fcDistrubitionSystem : Warmtedistrubutienet</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCHEATEXCHANGERTYPE data of type USERDEFINED</li>
+            <li>Elements with System data of Warmtedistributienet in the dataset *</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        System data shall be provided in the dataset Summary
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>IfcRoof has correct IfcRoofType</h2>
+        <p>IfcRoof has correct IfcRoofType</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>All IFCROOF data</li>
+            <li>Elements with IFC Predefined Type data of {&#x27;enumeration&#x27;: [&#x27;BARREL_ROOF&#x27;, &#x27;BUTTERFLY_ROOF&#x27;, &#x27;DOME_ROOF&#x27;, &#x27;FLAT_ROOF&#x27;, &#x27;FREEFORM&#x27;, &#x27;GABLE_ROOF&#x27;, &#x27;GAMBREL_ROOF&#x27;, &#x27;HIPPED_GABLE_ROOF&#x27;, &#x27;HIP_ROOF&#x27;, &#x27;MANSARD_ROOF&#x27;, &#x27;PAVILION_ROOF&#x27;, &#x27;RAINBOW_ROOF&#x27;, &#x27;SHED_ROOF&#x27;]} in the dataset Pset_RoofCommon</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        IFC Predefined Type data shall be provided in the dataset Pset_RoofCommon
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Geluidwering CurtainWall</h2>
+        <p>Versterkte geluidwering AkousticRating</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>Elements with IsExternal data of True in the dataset Pset_CurtainWallCommon</li>
+            <li>Elements with AkousticRating data of &gt;=28 in the dataset Pset_CurtainWallCommon</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        AkousticRating data shall be provided in the dataset Pset_CurtainWallCommon
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Geluidwering Windows</h2>
+        <p>Versterkte geluidwering AkousticRating</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>Elements with IsExternal data of True in the dataset Pset_WindowCommon</li>
+            <li>Elements with AkousticRating data of &gt;=28 in the dataset Pset_WindowCommon</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        AkousticRating data shall be provided in the dataset Pset_WindowCommon
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Geluidwering Walls</h2>
+        <p>Versterkte geluidwering AkousticRating</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>Elements with IsExternal data of True in the dataset Pset_WallCommon</li>
+            <li>Elements with AkousticRating data of &gt;=50 in the dataset Pset_WallCommon</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        AkousticRating data shall be provided in the dataset Pset_WallCommon
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <section>
+        <h2>Geluidwering Doors(copy)</h2>
+        <p>Versterkte geluidwering AkousticRating</p>
+
+        <div class="container">
+            <div class="fail percent" style="width: N/A%;">N/A%</div>
+        </div>
+        <p>
+            <span class="item fail">Fail</span>
+            <span class="item">
+                Checks passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+            <span class="item">
+                Elements passed: <strong>0</strong> / <strong>0</strong>
+            </span>
+        </p>
+        <p>
+            <strong>Applicability</strong>
+        </p>
+        <ul>
+            <li>Elements with IsExternal data of True in the dataset Pset_DoorCommon</li>
+            <li>Elements with AkousticRating data of &gt;=32 in the dataset Pset_DoorCommon</li>
+        </ul>
+        <p>
+            <strong>Requirements</strong>
+        </p>
+        <ol>
+            <li class="fail">
+                <details>
+                    <summary>
+                        AkousticRating data shall be provided in the dataset Pset_DoorCommon
+                    </summary>
+                </details>
+            </li>
+        </ol>
+    </section>
+    <hr>
+    <footer>
+        <p>
+            Report by the <a href="https://blenderbim.org/">BlenderBIM Add-on</a> and <a href="http://ifcopenshell.org/">IfcOpenShell</a>.
+        </p>
+    </footer>
+</body>
+</html>

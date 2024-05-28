@@ -1,5 +1,20 @@
 # Triply ETL for GemeenteRotterdam
 
+## Prerequisites
+This ETL is used to conduct the Vergunning Controle Service for the municipality of Rotterdam. In this repository we use command line executables, python scripts, and java jar scripts to transform the IFC data into linked data. 
+
+To be able to run code from this repository it is required to have:
+- NodeJs installed: https://nodejs.org/en
+- Python version 3.12 installed (at least a type supported version), with working `python3` as CLI command: https://www.python.org/
+- Java installed: https://www.java.com/en/download/
+- docker: https://docs.docker.com/get-docker/
+
+For local development, you can make sure all dependencies are installed for python with the command `python3 -m pip install -r ./python/requirements.txt`.
+
+Most of the functionality of the code needed for the VCS is implemented in `src/VCS/VCSclass.ts` and the middleware implementation is done in `src/VCS/VcsEtl.ts`. The VCSClass uses the IFCTransform class (which does all of the transformation functions of the IFC file) and the API classes: DSOAPI and RuimtelijkePlannenAPI (subject to change/more APIs will be added in the future).
+
+--------------
+
 In order to be able to publish linked data to an online data catalog, TriplyEtl must first be configured.
 This is done with the following steps:
 
