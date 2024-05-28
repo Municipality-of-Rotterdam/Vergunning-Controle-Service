@@ -19,9 +19,9 @@ export const source = {
     ? Source.TriplyDb.asset(
       account,
       getDataset('vcs'),
-      { name: 'model.trig' })
+      { name: 'data/model.trig' })
     : Source.TriplyDb.asset(
       getDataset('vcs'),
-      { name: 'model.trig' }
+      { name: 'data/model.trig' }
     ),
 }

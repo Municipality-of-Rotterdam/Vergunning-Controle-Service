@@ -226,18 +226,18 @@ graph:model {
 
                     const shaclConstrainModel = shaclConstraint(sparqlConstraintNodeNames, sparqlConstraintNodes)
                     // Write SHACL constraint to local file
-                    const shaclModelFilePath = path.join(__dirname, 'model.trig')
+                    const shaclModelFilePath = path.join(__dirname, 'data', 'model.trig')
                     await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel)
                     // ... and as an asset to TriplyDB
                     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
                     const user = await triply.getAccount(destination.vergunningscontroleservice.account)
                     const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
                     try {
-                      const asset = await dataset.getAsset("model.trig")
+                      const asset = await dataset.getAsset(shaclModelFilePath)
                       await asset.delete()
                     } catch (error) {
                     }
-                    await dataset.uploadAsset("model.trig");
+                    await dataset.uploadAsset(shaclModelFilePath);
                     return next()
             }
         )
