@@ -64,19 +64,13 @@ export async function vcsEtl(
     return new Promise<MiddlewareList>(async (resolve, _reject) => {
         const vcs = new VCS(ifcFilePath);
         const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
-        let user;
-        if (destination.vergunningscontroleservice.account == "me") {
-          user = await triply.getAccount()
-        }
-        else {
-          user = await triply.getAccount(destination.vergunningscontroleservice.account)
-        }
+        const user = await triply.getAccount(destination.vergunningscontroleservice.account);
         const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
 
-       const reportPath = path.join(__dirname, "data", "IDSValidationReport.html")
-       const footprintPath = path.join(__dirname, "data", "footprint.txt");
-       const gltfPath = path.join(__dirname, "data", "output.gltf");
-       const ifcOwlPath = path.join(__dirname, "data", "ifcOwlData.ttl");
+        const reportPath = path.join(__dirname, "data", "IDSValidationReport.html")
+        const footprintPath = path.join(__dirname, "data", "footprint.txt");
+        const gltfPath = path.join(__dirname, "data", "output.gltf");
+        const ifcOwlPath = path.join(__dirname, "data", "ifcOwlData.ttl");
 
         // VCS IDS Validation
         if (idsFilePath) {
@@ -236,12 +230,7 @@ graph:model {
                     await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel)
                     // ... and as an asset to TriplyDB
                     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
-                    
-                    const user = await triply.getAccount(
-                      destination.vergunningscontroleservice.account == "me"
-                      ? undefined
-                      : destination.vergunningscontroleservice.account)
-                    
+                    const user = await triply.getAccount(destination.vergunningscontroleservice.account)
                     const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
                     try {
                       const asset = await dataset.getAsset("model.trig")
