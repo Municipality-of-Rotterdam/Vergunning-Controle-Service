@@ -10,7 +10,7 @@ import { RuimtelijkePlannenAPI } from "./RuimtelijkePlannenAPI.js";
 dotenv.config();
 
 // TODO replace every __dirname for relative path
-export const __dirname = path.resolve();
+export const __dirname = ".";
 
 // FOR ETL
 // TODO need time logging per request - a retrieved rule should have a timelog attached in the SHACL data message string
@@ -78,7 +78,7 @@ export default class VCS {
             `IDSValidationReport${idsFilePath.length == 1 ? "" : `${index + 1}`}.bcf`
           );
 
-          await executeCommand(`pip install -r ${requirements} --quiet`);
+          await executeCommand(`python3 -m pip install -r ${requirements} --quiet`);
           try {
             await executeCommand(
               `python3 ${pythonScriptPath} "${ifcFilePath}" "${ids}" -r "${htmlReportDestinationPath}" -b "${bcfReportDestinationPath}"`

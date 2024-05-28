@@ -7,9 +7,15 @@ export default async function (): Promise<Etl> {
   // Get constraint file and validate IFC data
   const etl = new Etl({ baseIri, defaultGraph: baseIri.concat("default") });
 
+  const rdfSource = destination.vergunningscontroleservice.account
+    ? Source.TriplyDb.rdf(
+      destination.vergunningscontroleservice.account,
+      destination.vergunningscontroleservice.dataset.name)
+    : Source.TriplyDb.rdf(
+      destination.vergunningscontroleservice.dataset.name);
+
   etl.use(
-    loadRdf(Source.TriplyDb.rdf(destination.vergunningscontroleservice.dataset.name)),
-    
+    loadRdf(rdfSource),
     validate(source.model, {
       graph: graph.concat("report"),
       terminateOn: "Never",

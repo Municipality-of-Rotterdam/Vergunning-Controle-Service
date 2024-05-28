@@ -11,6 +11,7 @@ workflow:
 
 
 stages:
+  - release
   # 0: Only install, lint and build, gets triggered on push and merge-requests:
   - preflight
   # 1: Run all regular ETL's:
@@ -22,7 +23,19 @@ stages:
   # 4: optional final stage (e.g. to synchronize services for SG)
   - finalize
 
-image: node:20.9-bullseye-slim
+image: ${CI_REGISTRY_IMAGE}:24.05.23
+
+# - Uses the docker image, so we have the docker credentials
+# - Logs-in to the registry of that project (CI_REGISTRY) using the credentials of the person who triggered the CI (CI_REGISTRY_USER).
+# - It publishes using the project name of your project (CI_REGISTRY_NAME) is something like 
+# - Releases / pushes the image
+release-docker:
+  image: docker:20.10.18-cli
+  stage: release
+  script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    - docker build -f docker/Dockerfile -t ${CI_REGISTRY_IMAGE}:24.05.23 .
+    - docker push ${CI_REGISTRY_IMAGE}:24.05.23
 
 ### Stage 0: Only install, lint and build, gets triggered on push and merge-requests:
 preflight:
@@ -46,6 +59,22 @@ main:
     - !reference [.etl-template, run-etl]
   rules:
     - !reference [.etl-template, rules]
+
+vcs:
+  stage: run-etls
+  interruptible: true
+  # WARNING: by setting 'allow_failure' to 'true' scripts that fail
+  # will not stop the ETL from continuing with other stages/scripts.
+  allow_failure: false
+  artifacts:
+    !reference [.etl-template, artifacts]
+  script:
+    - !reference [.etl-template, install]
+    - !reference [.etl-template, run-etl]
+  rules:
+    - !reference [.etl-template, rules]
+  needs:
+    - main
 
 ### Example stage 1: add another ETL with name "collections"
 geodataCsv:

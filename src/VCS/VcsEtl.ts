@@ -6,8 +6,10 @@ import {
   toTriplyDb,
 } from "@triplyetl/etl/generic";
 import App from "@triply/triplydb";
+import * as path from "path";
 import * as fs from "fs";
 import VCS from "./VcsClass.js";
+import { __dirname } from "./VcsClass.js";
 import { update } from "@triplyetl/etl/sparql";
 import { destination } from "../utils/sources-destinations.js";
 import { addMwCallSiteToError } from "@triplyetl/etl/utils";
@@ -37,46 +39,48 @@ export async function vcsEtl(
   opts: VcsOptions = {
     baseIRI: "https://www.example.org/vcs/",
   }
-): Promise<MiddlewareList> {
-  let idsFilePath: string | undefined;
-  if (typeof idsFilePathOrOpts === "string") {
-    idsFilePath = idsFilePathOrOpts;
-  } else if (typeof idsFilePathOrOpts === "object") {
-    opts = idsFilePathOrOpts;
-  }
-  return new Promise<MiddlewareList>(async (resolve, _reject) => {
-    const vcs = new VCS(ifcFilePath);
-    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
-    const dataset = await (
-      await triply.getAccount()
-    ).getDataset(destination.vergunningscontroleservice.dataset.name);
-
-    // VCS IDS Validation
-    if (idsFilePath) {
-      try {
-        await vcs.IFC.validateWithIds(idsFilePath);
-      } catch (error) {
-        console.error(
-          "Error during validation! Uploading IDS Validation Report"
-        );
-        try {
-          const asset = await dataset.getAsset(
-            "./data/IDSValidationReport.html"
-          );
-          await asset.delete();
-        } catch (error) {}
-        if (fs.existsSync("./data/IDSValidationReport.html")) {
-          await dataset.uploadAsset("./data/IDSValidationReport.html");
-        }
-      }
-
-      try {
-        const asset = await dataset.getAsset("./data/IDSValidationReport.html");
-        await asset.delete();
-      } catch (error) {}
-
-      await dataset.uploadAsset("./data/IDSValidationReport.html");
+):  Promise<MiddlewareList> {
+    let idsFilePath: string | undefined;
+    if (typeof idsFilePathOrOpts === 'string') {
+      idsFilePath = idsFilePathOrOpts;
+    } else if (typeof idsFilePathOrOpts === 'object') {
+      opts = idsFilePathOrOpts;
     }
+    return new Promise<MiddlewareList>(async (resolve, _reject) => {
+        const vcs = new VCS(ifcFilePath);
+        const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
+        const user = await triply.getAccount(destination.vergunningscontroleservice.account);
+        const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
+
+        const reportPath = path.join(__dirname, "data", "IDSValidationReport.html")
+        const footprintPath = path.join(__dirname, "data", "footprint.txt");
+        const gltfPath = path.join(__dirname, "data", "output.gltf");
+        const ifcOwlPath = path.join(__dirname, "data", "ifcOwlData.ttl");
+
+        // VCS IDS Validation
+        if (idsFilePath) {
+            try {
+            await vcs.IFC.validateWithIds(idsFilePath);
+            } catch (error) {
+                console.error("Error during validation! Uploading IDS Validation Report");
+                try {
+                    const asset = await dataset.getAsset(reportPath);
+                    await asset.delete()
+                } catch (error) {
+                }
+                if (fs.existsSync(reportPath)){
+                  await dataset.uploadAsset(reportPath);
+                }
+            }
+
+            try {
+                const asset = await dataset.getAsset(reportPath)
+                await asset.delete()
+            } catch (error) {
+            }
+
+            await dataset.uploadAsset(reportPath);
+        }
 
     // VCS Transform IFC to RDF
     const ifcTransform = vcs.IFC.transform();
@@ -86,21 +90,19 @@ export async function vcsEtl(
     await ifcTransform.extractFootprint();
     await ifcTransform.IFCtoGLTF();
 
-    // upload assets to dataset
-    try {
-      const asset = await dataset.getAsset("./data/output.gltf");
-      await asset.delete();
-    } catch (error) {}
-    await dataset.uploadAsset("./data/output.gltf");
-    // read all data and upload local files as assets
-    const polygon: string = await fs.promises.readFile(
-      "data/footprint.txt",
-      "utf-8"
-    );
+        // upload assets to dataset
+        try {
+            const asset = await dataset.getAsset(gltfPath)
+            await asset.delete()
+        } catch (error) {
+        }
+        await dataset.uploadAsset(gltfPath);
+        // read all data and upload local files as assets
+        const polygon: string = await fs.promises.readFile(footprintPath, 'utf-8');
 
-    const mwList = [
-      loadRdf(Source.file("./data/ifcOwlData.ttl")),
-      update(`
+        const mwList = [
+            loadRdf(Source.file(ifcOwlPath)),
+            update(`
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
             PREFIX express: <https://w3id.org/express#>
@@ -128,16 +130,17 @@ export async function vcsEtl(
 
 // given a dictionary with keys being the rule identifiers and the values the SHACL constraint elements, we generate a SHACL file
 // TODO This can be improved to use an AST or datafactory objects to generate the SHACL model, instead of string manipulation (current approach)
-export async function vcsGenerateShacl(
+export function vcsGenerateShacl(
   dictionary: { [key: string]: string[] }
-  //   geometry?: Geometry
-): Promise<Middleware> {
-  return addMwCallSiteToError(async function _vcsGenerateShacl(ctx, next) {
-    // Initialize the output string for SHACL Constraint
-    let shaclConstraint = (
-      sparqlConstraintNodeNames: string,
-      sparqlConstraintNodes: string
-    ) => `
+//   geometry?: Geometry
+): Middleware {
+    return addMwCallSiteToError(
+                async function _vcsGenerateShacl(_ctx, next) {
+                    // Initialize the output string for SHACL Constraint
+                    let shaclConstraint = (
+                      sparqlConstraintNodeNames: string,
+                      sparqlConstraintNodes: string
+                    ) => `
 
 # External prefix declarations
 prefix dbo:   <http://dbpedia.org/ontology/>
@@ -252,7 +255,7 @@ graph:model {
                     retrievedRegelTekst ==
                     'de bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven;'
                   ) {
-                    ctx.app.info(
+                    _ctx.app.info(
                       "Voor de gegeven geometrie is de maximum aantal bouwlagen regel gevonden! De representatieve SHACL regel is toegevoegd aan het model."
                     );
                     usedRulesIds.push("maxbouwlagen");
@@ -278,20 +281,25 @@ graph:model {
       }
     }
 
-    const shaclConstrainModel = shaclConstraint(
-      sparqlConstraintNodeNames,
-      sparqlConstraintNodes
-    );
-
-    // Write SHACL constraint to local file
-    const shaclModelFilePath = "./data/model.trig";
-    try {
-      await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel);
-    } catch (error) {
-      throw error;
-    }
-    return next();
-  });
+                    const shaclConstrainModel = shaclConstraint(
+                      sparqlConstraintNodeNames,
+                      sparqlConstraintNodes)
+                    // Write SHACL constraint to local file
+                    const shaclModelFilePath = path.join(__dirname, 'data', 'model.trig')
+                    await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel)
+                    // ... and as an asset to TriplyDB
+                    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
+                    const user = await triply.getAccount(destination.vergunningscontroleservice.account)
+                    const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
+                    try {
+                      const asset = await dataset.getAsset(shaclModelFilePath)
+                      await asset.delete()
+                    } catch (error) {
+                    }
+                    await dataset.uploadAsset(shaclModelFilePath);
+                    return next()
+            }
+        )
 }
 
 // TODO this value needs to be grapped with WFS query
