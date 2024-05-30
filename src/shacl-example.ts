@@ -3,7 +3,9 @@ import { addHashedIri, addIri, literal, pairs, triple } from "@triplyetl/etl/rat
 import { a, dbo, rdfs, xsd } from "@triplyetl/etl/vocab";
 import { validate } from "@triplyetl/etl/shacl";
 import { source, destination } from "./utils/sources-destinations.js";
-import { baseIri, id, def, graph } from "./utils/declarations.js";
+import { prefixBase, id, def, graph } from "./utils/declarations.js";
+
+const baseIri = prefixBase.concat("rotterdam/shacl-example/");
 
 export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
