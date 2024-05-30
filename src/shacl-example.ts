@@ -3,13 +3,16 @@ import { addHashedIri, addIri, literal, pairs, triple } from "@triplyetl/etl/rat
 import { a, dbo, rdfs, xsd } from "@triplyetl/etl/vocab";
 import { validate } from "@triplyetl/etl/shacl";
 import { source, destination } from "./utils/sources-destinations.js";
-import { prefixBase, id, def, graph } from "./utils/declarations.js";
-
-const baseIri = prefixBase.concat("rotterdam/shacl-example/");
+import {
+  baseIriShaclExample as baseIri,
+  idShaclExample as id,
+  defShaclExample as def,
+  graphShaclExample as graph,
+} from "./utils/declarations.js";
 
 export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
-  const etl = new Etl({ baseIri, defaultGraph: baseIri.concat("default") });
+  const etl = new Etl({ baseIri, defaultGraph: graph });
   etl.use(
     fromJson(source.shacl_example_buildings),
     whenForEach("@gebouwen", [

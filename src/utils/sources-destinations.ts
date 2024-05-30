@@ -1,6 +1,5 @@
 import { Source } from "@triplyetl/etl/generic";
 import { getAccount, getDataset } from "./dtap.js";
-// import vcs from '../vcs.js'
 
 const account = getAccount() == "me" ? undefined : getAccount();
 
@@ -28,8 +27,8 @@ export const destination = {
 };
 
 export const source = {
-  shacl_example_buildings: Source.file("static/example_mock_data_building.json"),
-  shacl_example_model: Source.file("static/shacl-example-model.trig"),
+  shacl_example_buildings: Source.file("static/example_data/shacl/mock_data_building.json"),
+  shacl_example_model: Source.file("static/example_data/shacl/model.trig"),
   model: account
     ? Source.TriplyDb.asset(account, getDataset("vcs"), { name: "model.trig" })
     : Source.TriplyDb.asset(getDataset("vcs"), { name: "model.trig" }),

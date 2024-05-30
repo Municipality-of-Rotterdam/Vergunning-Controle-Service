@@ -1,0 +1,334 @@
+{
+  "@gebouwen": [
+      {
+          "@id": "Gebouw_A_1",
+          "hoogte": 9,
+          "gebouwType": "Woonhuis",
+          "woonwijkCode": "A",
+          "aantalPersonen": 5,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 3,
+                  "id": "Verdieping 00"
+              },
+              {
+                  "verdieping": 1,
+                  "hoogte": 3,
+                  "id": "Verdieping 01"
+              },
+              {
+                  "verdieping": 2,
+                  "hoogte": 3,
+                  "id": "Verdieping 02"
+              }
+          ],
+          "opmerking": "Dit is een voorbeeld van een correct gebouw"
+      },
+      {
+          "@id": "Gebouw_A_2",
+          "hoogte": 5,
+          "gebouwType": "Woonhuis",
+          "woonwijkCode": "A",
+          "aantalPersonen": 3,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 3,
+                  "id": "Verdieping 00"
+              },
+              {
+                  "verdieping": 1,
+                  "hoogte": 3,
+                  "id": "Verdieping 01"
+              }
+          ],
+          "opmerking": "Illustreert onjuiste hoogte: som van verdiepingen ≠ gebouwhoogte"
+      },
+      {
+          "@id": "Gebouw_A_3",
+          "hoogte": 6,
+          "gebouwType": "Woonhuis",
+          "woonwijkCode": "A",
+          "aantalPersonen": 4,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 3,
+                  "id": "Verdieping 00"
+              },
+              {
+                  "verdieping": 1,
+                  "hoogte": 3,
+                  "id": "01"
+              }
+          ],
+          "opmerking": "Illustreert onjuiste verdiepingslabel-id"
+      },
+      {
+          "@id": "Gebouw_A_4",
+          "hoogte": 18,
+          "gebouwType": "Woonhuis",
+          "woonwijkCode": "A",
+          "aantalPersonen": 4,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 3,
+                  "id": "Verdieping 00"
+              },
+              {
+                  "verdieping": 1,
+                  "hoogte": 3,
+                  "id": "Verdieping 01"
+              },
+              {
+                  "verdieping": 2,
+                  "hoogte": 3,
+                  "id": "Verdieping 02"
+              },
+              {
+                  "verdieping": 3,
+                  "hoogte": 3,
+                  "id": "Verdieping 03"
+              },
+              {
+                  "verdieping": 4,
+                  "hoogte": 3,
+                  "id": "Verdieping 04"
+              },
+              {
+                  "verdieping": 5,
+                  "hoogte": 3,
+                  "id": "Verdieping 05"
+              }
+          ],
+          "opmerking": "Illustreert schending van het aantal verdiepingen in het gebouw"
+      },
+      {
+          "@id": "Gebouw_A_5",
+          "hoogte": 20,
+          "gebouwType": "Woonhuis",
+          "woonwijkCode": "A",
+          "aantalPersonen": 4,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 10,
+                  "id": "Verdieping 00"
+              },
+              {
+                  "verdieping": 1,
+                  "hoogte": 10,
+                  "id": "Verdieping 01"
+              }
+          ],
+          "opmerking": "Illustreert schending van de hoogte van het gebouw"
+      },
+      {
+          "@id": "Gebouw_A_6",
+          "hoogte": 6,
+          "gebouwType": "Woonhuis",
+          "woonwijkCode": "A",
+          "aantalPersonen": 4,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 10,
+                  "id": "Verdieping 00"
+              },
+              {
+                  "verdieping": 1,
+                  "hoogte": 10,
+                  "id": "Verdieping 01"
+              }
+          ],
+          "opmerking": "Illustreert schending van de som van hoogtes voor verdiepingen van het gebouw en onjuiste verdiepingshoogte ten opzichte van de gebouwhoogtewaarschuwing"
+      },
+      {
+          "@id": "Gebouw_A_7",
+          "hoogte": 6,
+          "gebouwType": "Woonhuis",
+          "woonwijkCode": "A",
+          "aantalPersonen": 4,
+          "bouwlaag": [
+              {
+                  "hoogte": 3,
+                  "id": "Verdieping 00"
+              },
+              {
+                  "verdieping": 1,
+                  "id": "Verdieping 01"
+              },
+              {
+                "hoogte": 3,
+                "verdieping": 1
+              }
+          ],
+          "opmerking": "Illustreert schending van bouwlaag ontbrekende properties"
+      },
+      {
+          "@id": "Gebouw_B_1",
+          "hoogte": 12,
+          "gebouwType": "Kantoor",
+          "woonwijkCode": "B",
+          "aantalPersonen": 50,
+          "opmerking": "Dit is een voorbeeld van een correct gebouw met een ontbrekende bouwlaag"
+      },
+      {
+          "@id": "Gebouw_B_2",
+          "hoogte": 30,
+          "gebouwType": "Commercieel",
+          "woonwijkCode": "B",
+          "aantalPersonen": 200,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 15,
+                  "id": "Verdieping 00"
+              },
+              {
+                  "verdieping": 1,
+                  "hoogte": 15,
+                  "id": "Verdieping 01"
+              }
+          ],
+          "opmerking": "Dit is een voorbeeld van een correct gebouw"
+      },
+      {
+          "@id": "Gebouw_B_3",
+          "hoogte": 5,
+          "gebouwType": "Ongedefinieerd",
+          "woonwijkCode": "B",
+          "aantalPersonen": 10,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 5,
+                  "id": "Verdieping 00"
+              }
+          ],
+          "opmerking": "Dit is een voorbeeld van een onjuist gebouwtype"
+      },
+      {
+          "@id": "Gebouw_B_4",
+          "hoogte": 5,
+          "gebouwType": "Woonhuis",
+          "woonwijkCode": "9",
+          "aantalPersonen": 10,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 5,
+                  "id": "Verdieping 00"
+              }
+          ],
+          "opmerking": "Dit is een voorbeeld van een onjuiste woonwijkcode"
+      },
+      {
+          "@id": "Gebouw_C_1",
+          "hoogte": 7,
+          "gebouwType": "Commercieel",
+          "woonwijkCode": "C",
+          "aantalPersonen": 90,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 7,
+                  "id": "Verdieping 00"
+              }
+          ],
+          "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
+      },
+      {
+          "@id": "Gebouw_C_2",
+          "hoogte": 7,
+          "gebouwType": "Commercieel",
+          "woonwijkCode": "C",
+          "aantalPersonen": 100,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 7,
+                  "id": "Verdieping 00"
+              }
+          ],
+          "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
+      },
+      {
+          "@id": "Gebouw_C_3",
+          "hoogte": 12,
+          "gebouwType": "Commercieel",
+          "woonwijkCode": "C",
+          "aantalPersonen": 100,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 6,
+                  "id": "Verdieping 00"
+              },
+              {
+                  "verdieping": 1,
+                  "hoogte": 6,
+                  "id": "Verdieping 01"
+              }
+          ],
+          "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
+      },
+      {
+          "@id": "Gebouw_C_4",
+          "hoogte": 5,
+          "gebouwType": "Commercieel",
+          "woonwijkCode": "C",
+          "aantalPersonen": 100,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 5,
+                  "id": "Verdieping 00"
+              }
+          ],
+          "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
+      },
+      {
+          "@id": "Gebouw_C_5",
+          "hoogte": 7,
+          "gebouwType": "Commercieel",
+          "woonwijkCode": "C",
+          "aantalPersonen": 100,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 7,
+                  "id": "Verdieping 00"
+              }
+          ],
+          "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
+      },
+      {
+          "@id": "Gebouw_C_6",
+          "hoogte": 6,
+          "gebouwType": "Woonhuis",
+          "woonwijkCode": "C",
+          "aantalPersonen": 10,
+          "bouwlaag": [
+              {
+                  "verdieping": 0,
+                  "hoogte": 3,
+                  "id": "Verdieping 00"
+              },
+              {
+                  "verdieping": 1,
+                  "hoogte": 3,
+                  "id": "Verdieping 01"
+              }
+          ],
+          "opmerking": "Dit is een voorbeeld van een correct gebouw - gebruikt om bestemming van een 30% Woonhuis woonwijk aan te geven"
+      },
+      {
+          "@id": "Gebouw_E_1",
+          "opmerking": "Dit is een voorbeeld van een incorrect gebouw",
+          "woonwijkCode": "E"
+      }
+  ]
+}
