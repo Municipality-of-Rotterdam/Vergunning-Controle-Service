@@ -5,9 +5,9 @@ prefix sh:    <http://www.w3.org/ns/shacl#>
 prefix xsd:   <http://www.w3.org/2001/XMLSchema#>
 
 # Project-specific prefix
-prefix def:   <https://demo.triplydb.com/rotterdam/vcs/model/def/>
-prefix graph: <https://demo.triplydb.com/rotterdam/vcs/graph/>
-prefix shp:   <https://demo.triplydb.com/rotterdam/vcs/model/shp/>
+prefix def:   <https://demo.triplydb.com/rotterdam/shacl-example/model/def/>
+prefix graph: <https://demo.triplydb.com/rotterdam/shacl-example/graph/>
+prefix shp:   <https://demo.triplydb.com/rotterdam/shacl-example/model/shp/>
 
 graph:model {
 
