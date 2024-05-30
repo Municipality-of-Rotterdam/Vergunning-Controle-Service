@@ -250,7 +250,7 @@ graph:model {
     const user = await triply.getAccount(destination.vergunningscontroleservice.account);
     const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
     try {
-      const asset = await dataset.getAsset(shaclModelFilePath);
+      const asset = await dataset.getAsset("model.trig");
       await asset.delete();
     } catch (error) {}
     await dataset.uploadAsset(shaclModelFilePath, "model.trig");
