@@ -2,8 +2,9 @@ import { loadRdf, Middleware, MiddlewareList, Source, toTriplyDb } from "@triply
 import App from "@triply/triplydb";
 import * as path from "path";
 import * as fs from "fs";
-import VCS from "./VcsClass.js";
-import { __dirname } from "./VcsClass.js";
+import VCS from "./VCSClass.js";
+import API from "./APIClass.js";
+import { __dirname } from "./VCSClass.js";
 import { update } from "@triplyetl/etl/sparql";
 import { destination } from "../utils/sources-destinations.js";
 import { addMwCallSiteToError } from "@triplyetl/etl/utils";
@@ -34,14 +35,15 @@ export async function vcsEtl(
     opts = idsFilePathOrOpts;
   }
   return new Promise<MiddlewareList>(async (resolve, _reject) => {
-    const vcs = new VCS(ifcFilePath);
+    const gltfOutput = "3dmodel";
+    const vcs = new VCS(ifcFilePath, gltfOutput);
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
     const user = await triply.getAccount(destination.vergunningscontroleservice.account);
     const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
 
     const reportPath = path.join(__dirname, "data", "IDSValidationReport.html");
     const footprintPath = path.join(__dirname, "data", "footprint.txt");
-    const gltfPath = path.join(__dirname, "data", "output.gltf");
+    const gltfPath = path.join(__dirname, "data", gltfOutput + ".gltf");
     const ifcOwlPath = path.join(__dirname, "data", "ifcOwlData.ttl");
 
     // VCS IDS Validation
@@ -63,7 +65,6 @@ export async function vcsEtl(
         const asset = await dataset.getAsset(reportPath);
         await asset.delete();
       } catch (error) {}
-
       await dataset.uploadAsset(reportPath);
     }
 
@@ -142,8 +143,8 @@ graph:model {
   }    
 `;
     const usedRulesIds = [];
-    const vcs = new VCS("");
-    const ruimtelijkePlannen = vcs.API.RuimtelijkePlannen();
+    const api = new API();
+    const ruimtelijkePlannen = api.RuimtelijkePlannen.RuimtelijkePlannen();
     const polygon: string = await fs.promises.readFile("data/footprint.txt", "utf-8");
     const coordinates = parsePolygonString(polygon);
     const totalPlannen: Set<any> = new Set();
@@ -240,10 +241,10 @@ graph:model {
       }
     }
 
-    const shaclConstrainModel = shaclConstraint(sparqlConstraintNodeNames, sparqlConstraintNodes);
+    const shaclConstraintModel = shaclConstraint(sparqlConstraintNodeNames, sparqlConstraintNodes);
     // Write SHACL constraint to local file
-    const shaclModelFilePath = path.join(__dirname, "model.trig");
-    await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel);
+    const shaclModelFilePath = path.join(__dirname, "data/model.trig");
+    await fs.promises.writeFile(shaclModelFilePath, shaclConstraintModel);
     // ... and as an asset to TriplyDB
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
     const user = await triply.getAccount(destination.vergunningscontroleservice.account);
@@ -252,7 +253,7 @@ graph:model {
       const asset = await dataset.getAsset(shaclModelFilePath);
       await asset.delete();
     } catch (error) {}
-    await dataset.uploadAsset(shaclModelFilePath);
+    await dataset.uploadAsset(shaclModelFilePath, "model.trig");
     return next();
   });
 }

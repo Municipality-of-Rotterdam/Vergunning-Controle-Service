@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 import dotenv from "dotenv";
-import * as path from "path";
-import * as fs from "fs";
-import { IFCTransform } from "./IFCTransform.js";
-import { executeCommand } from "./helperFunctions.js";
+import { DSOAPI } from "./DSOAPI.js";
+
+import { checkAPIKey } from "./helperFunctions.js";
+import { RuimtelijkePlannenAPI } from "./RuimtelijkePlannenAPI.js";
 
 dotenv.config();
 
@@ -40,51 +40,31 @@ export const __dirname = ".";
  * ## Data Transformation
  * In this class different transformation scripts are used, mainly Python scripts using IfcOpenShells Python library (no NPM library is available), and a java jar executable to transform the source IFC file into IFC-OWL RDF data.
  */
-export default class VCS {
-  private ifcFilePath: string;
-  private gltfOutputName: string;
+export default class API {
+  private apiUrl: string | undefined;
+  private key: string | undefined;
 
-  constructor(ifcFilePath: string, gltfOutputName: string) {
-    this.ifcFilePath = ifcFilePath;
-    this.gltfOutputName = gltfOutputName;
-  }
+  RuimtelijkePlannen = {
+    RuimtelijkePlannen: (): RuimtelijkePlannenAPI => {
+      checkAPIKey("Ruitemlijke Plannen API");
+      this.key = process.env.Ruimtelijke_plannen_aanvragen_API_TOKEN;
+      this.apiUrl = "https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4/";
+      return new RuimtelijkePlannenAPI(this.apiUrl, this.key!);
+    },
+  };
 
-  IFC = {
-    transform: () => new IFCTransform(this.ifcFilePath, this.gltfOutputName),
-    validateWithIds: async (idsFilePath: string | string[], ifcFilePath: string = this.ifcFilePath): Promise<void> => {
-      const pythonScriptPath = path.join(__dirname, "python", "validate_IFC.py");
-      const requirements = path.join(__dirname, "python", "requirements.txt");
-      const dataDir = path.join(__dirname, "data");
-
-      //Check if data directory exists
-      if (!fs.existsSync(dataDir)) {
-        await fs.promises.mkdir(dataDir);
+  DSOPresenteren = {
+    DSOPresenteren: (environment: "Production" | "Pre-Production"): DSOAPI => {
+      if (environment == "Production") {
+        checkAPIKey("DSO Production API");
+        this.key = process.env.DSO_Production_API_TOKEN;
+        this.apiUrl = "https://service.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v7/";
+      } else {
+        checkAPIKey("DSO Pre-Production API");
+        this.key = process.env.DSO_PreProduction_API_TOKEN;
+        this.apiUrl = "https://service.pre.omgevingswet.overheid.nl/publiek/omgevingsdocumenten/api/presenteren/v7/";
       }
-      if (typeof idsFilePath == "string") {
-        idsFilePath = [idsFilePath];
-      }
-
-      for (let index = 0; index < idsFilePath.length; index++) {
-        const ids = idsFilePath[index];
-        const htmlReportDestinationPath = path.join(
-          dataDir,
-          `IDSValidationReport${idsFilePath.length == 1 ? "" : `${index + 1}`}.html`,
-        );
-
-        const bcfReportDestinationPath = path.join(
-          dataDir,
-          `IDSValidationReport${idsFilePath.length == 1 ? "" : `${index + 1}`}.bcf`,
-        );
-
-        await executeCommand(`python3 -m pip install -r ${requirements} --quiet`);
-        try {
-          await executeCommand(
-            `python3 ${pythonScriptPath} "${ifcFilePath}" "${ids}" -r "${htmlReportDestinationPath}" -b "${bcfReportDestinationPath}"`,
-          );
-        } catch (error) {
-          throw error;
-        }
-      }
+      return new DSOAPI(this.apiUrl, this.key!);
     },
   };
 }
