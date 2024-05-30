@@ -87,7 +87,6 @@ export async function vcsEtl(
     const mwList = [
       loadRdf(Source.file(ifcOwlPath)),
       update(`
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
             PREFIX express: <https://w3id.org/express#>
             PREFIX geo: <http://www.opengis.net/ont/geosparql#>
@@ -269,7 +268,6 @@ shp:BuildingMaxAantalPositieveBouwlagenSparql
   sh:severity sh:Violation;
   sh:datatype xsd:string;
   sh:select '''
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
 PREFIX express: <https://w3id.org/express#>
 
