@@ -1,28 +1,36 @@
 import { Iri } from "@triplyetl/etl/generic";
 
-export const prefixBase = Iri("https://demo.triplydb.com/");
+const prefixBase = Iri("https://demo.triplydb.com/rotterdam/");
 
-export const baseIri = prefixBase.concat("rotterdam/vcs/");
+export const baseIri = prefixBase.concat("vcs/");
+export const baseIriShaclExample = prefixBase.concat("shacl-example/");
+
 const prefixId = baseIri.concat("id/");
-const prefixDef = baseIri.concat("model/def/");
-export const graph = baseIri.concat("graph/");
+const prefixIdShaclExample = baseIriShaclExample.concat("id/");
+const prefixDefShaclExample = baseIriShaclExample.concat("model/def/");
 
-export const def = {
+export const graph = baseIri.concat("graph/");
+export const graphShaclExample = baseIriShaclExample.concat("graph/");
+
+export const defShaclExample = {
   // classes
-  Bouwlaag: prefixDef.concat("Bouwlaag"),
+  Bouwlaag: prefixDefShaclExample.concat("Bouwlaag"),
   // properties
-  aantalPersonen: prefixDef.concat("aantalPersonen"),
-  bouwlaag: prefixDef.concat("bouwlaag"),
-  bouwlaagElement: prefixDef.concat("bouwlaagElement"),
-  gebouwType: prefixDef.concat("gebouwType"),
-  hoogte: prefixDef.concat("hoogte"),
-  verdieping: prefixDef.concat("verdieping"),
-  woonwijk: prefixDef.concat("woonwijk"),
+  aantalPersonen: prefixDefShaclExample.concat("aantalPersonen"),
+  bouwlaag: prefixDefShaclExample.concat("bouwlaag"),
+  bouwlaagElement: prefixDefShaclExample.concat("bouwlaagElement"),
+  gebouwType: prefixDefShaclExample.concat("gebouwType"),
+  hoogte: prefixDefShaclExample.concat("hoogte"),
+  verdieping: prefixDefShaclExample.concat("verdieping"),
+  woonwijk: prefixDefShaclExample.concat("woonwijk"),
+};
+
+export const idShaclExample = {
+  bouwlaag: prefixIdShaclExample.concat("bouwlaag/"),
+  gebouw: prefixIdShaclExample.concat("gebouw/"),
 };
 
 export const id = {
-  bouwlaag: prefixId.concat("bouwlaag/"),
-  gebouw: prefixId.concat("gebouw/"),
   geo: prefixId.concat("geo/"),
   geometry: prefixId.concat("geometry/"),
 };
