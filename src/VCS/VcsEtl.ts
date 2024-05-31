@@ -2,8 +2,9 @@ import { loadRdf, Middleware, MiddlewareList, Source, toTriplyDb } from "@triply
 import App from "@triply/triplydb";
 import * as path from "path";
 import * as fs from "fs";
-import VCS from "./VcsClass.js";
-import { __dirname } from "./VcsClass.js";
+import VCS from "./VCSClass.js";
+import API from "./APIClass.js";
+import { __dirname } from "./VCSClass.js";
 import { update } from "@triplyetl/etl/sparql";
 import { destination } from "../utils/sources-destinations.js";
 import { addMwCallSiteToError } from "@triplyetl/etl/utils";
@@ -34,14 +35,15 @@ export async function vcsEtl(
     opts = idsFilePathOrOpts;
   }
   return new Promise<MiddlewareList>(async (resolve, _reject) => {
-    const vcs = new VCS(ifcFilePath);
+    const gltfOutput = "3dmodel";
+    const vcs = new VCS(ifcFilePath, gltfOutput);
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
     const user = await triply.getAccount(destination.vergunningscontroleservice.account);
     const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
 
     const reportPath = path.join(__dirname, "data", "IDSValidationReport.html");
     const footprintPath = path.join(__dirname, "data", "footprint.txt");
-    const gltfPath = path.join(__dirname, "data", "output.gltf");
+    const gltfPath = path.join(__dirname, "data", gltfOutput + ".gltf");
     const ifcOwlPath = path.join(__dirname, "data", "ifcOwlData.ttl");
 
     // VCS IDS Validation
@@ -63,7 +65,6 @@ export async function vcsEtl(
         const asset = await dataset.getAsset(reportPath);
         await asset.delete();
       } catch (error) {}
-
       await dataset.uploadAsset(reportPath);
     }
 
@@ -87,7 +88,6 @@ export async function vcsEtl(
     const mwList = [
       loadRdf(Source.file(ifcOwlPath)),
       update(`
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
             PREFIX express: <https://w3id.org/express#>
             PREFIX geo: <http://www.opengis.net/ont/geosparql#>
@@ -143,8 +143,8 @@ graph:model {
   }    
 `;
     const usedRulesIds = [];
-    const vcs = new VCS("");
-    const ruimtelijkePlannen = vcs.API.RuimtelijkePlannen();
+    const api = new API();
+    const ruimtelijkePlannen = api.RuimtelijkePlannen.RuimtelijkePlannen();
     const polygon: string = await fs.promises.readFile("data/footprint.txt", "utf-8");
     const coordinates = parsePolygonString(polygon);
     const totalPlannen: Set<any> = new Set();
@@ -157,12 +157,11 @@ graph:model {
         },
       },
     };
-    let pageNum = 1;
-    let planId;
 
     // First we get all the plannen from the API
+    let planPageNum = 1;
     while (true) {
-      const plannenRequest = await ruimtelijkePlannen.plannen(jsonObj, `?page=${pageNum}`);
+      const plannenRequest = await ruimtelijkePlannen.plannen(jsonObj, `?page=${planPageNum}`);
       const plannen = plannenRequest["_embedded"]["plannen"];
       if (plannen.length == 0) {
         break;
@@ -170,11 +169,11 @@ graph:model {
         plannen.forEach((plan: object) => {
           totalPlannen.add(plan);
         });
-        pageNum++;
+        planPageNum++;
       }
     }
-    pageNum = 1;
 
+    let planId;
     // Out of these plans we want to grab the Hoogvliet Noordoost plan id
     // This information was looked up by investigating https://omgevingswet.overheid.nl/regels-op-de-kaart/viewer/(documenten/gemeente//rechter-paneel:document/NL.IMRO.0599.BP1133HvtNoord-va01/regels)?regelsandere=regels&locatie-stelsel=RD&locatie-x=84207&locatie-y=431716&session=ec9787ea-19c5-4919-bda9-9fb778e38691&geodocId=NL-IMRO-0599-BP1133HvtNoord-va01-2&locatie-getekend-gebied=POLYGON((84118.677%20431760.27,84094.175%20431771.98,84100.696%20431805.561,84135.786%20431792.836,84118.677%20431760.27))
     for (const plan of totalPlannen) {
@@ -184,8 +183,9 @@ graph:model {
     }
 
     // Paginate over all the article elements from the given plan id for Hoogvliet Noordoost
+    let articlePageNum = 1;
     while (true) {
-      const tekstenRequest = await ruimtelijkePlannen.tekstenZoek(planId!, jsonObj, `?page=${pageNum}`);
+      const tekstenRequest = await ruimtelijkePlannen.tekstenZoek(planId!, jsonObj, `?page=${articlePageNum}`);
       const teksten = tekstenRequest["_embedded"]["teksten"];
       if (teksten.length == 0) {
         break;
@@ -193,7 +193,7 @@ graph:model {
         teksten.forEach((tekst: object) => {
           totalTeksten.add(tekst);
         });
-        pageNum++;
+        articlePageNum++;
       }
     }
 
@@ -241,19 +241,19 @@ graph:model {
       }
     }
 
-    const shaclConstrainModel = shaclConstraint(sparqlConstraintNodeNames, sparqlConstraintNodes);
+    const shaclConstraintModel = shaclConstraint(sparqlConstraintNodeNames, sparqlConstraintNodes);
     // Write SHACL constraint to local file
-    const shaclModelFilePath = path.join(__dirname, "model.trig");
-    await fs.promises.writeFile(shaclModelFilePath, shaclConstrainModel);
+    const shaclModelFilePath = path.join(__dirname, "data/model.trig");
+    await fs.promises.writeFile(shaclModelFilePath, shaclConstraintModel);
     // ... and as an asset to TriplyDB
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
     const user = await triply.getAccount(destination.vergunningscontroleservice.account);
     const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
     try {
-      const asset = await dataset.getAsset(shaclModelFilePath);
+      const asset = await dataset.getAsset("model.trig");
       await asset.delete();
     } catch (error) {}
-    await dataset.uploadAsset(shaclModelFilePath);
+    await dataset.uploadAsset(shaclModelFilePath, "model.trig");
     return next();
   });
 }
@@ -269,7 +269,6 @@ shp:BuildingMaxAantalPositieveBouwlagenSparql
   sh:severity sh:Violation;
   sh:datatype xsd:string;
   sh:select '''
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
 PREFIX express: <https://w3id.org/express#>
 

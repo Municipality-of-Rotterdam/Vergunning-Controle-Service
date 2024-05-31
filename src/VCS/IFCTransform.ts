@@ -5,14 +5,18 @@ import * as fs from "fs";
 import * as path from "path";
 import gltfPipeline from "gltf-pipeline";
 import { downloadFile, executeCommand, unzipFile } from "./helperFunctions.js";
-import { __dirname } from "./VcsClass.js";
+import { __dirname } from "./VCSClass.js";
 
 const { glbToGltf } = gltfPipeline;
 
 export class IFCTransform {
   private ifcFilePath: string | undefined;
-  constructor(ifcFilePath: string) {
+  private gltfName: string;
+
+  constructor(ifcFilePath: string, gltfName: string) {
     this.ifcFilePath = ifcFilePath;
+    this.gltfName = gltfName;
+
     //Check if ifc file exists
     if (!fs.existsSync(ifcFilePath)) {
       throw new Error(`Could not find IFC file, The IFC file path: '${ifcFilePath}' is incorrect.`);
@@ -171,8 +175,8 @@ export class IFCTransform {
     }
     // Run IfcConverter tool to create GLB data from IFC data
     const dataDir = path.join(__dirname, "data");
-    const glbFilePath = path.join(dataDir, "output.glb");
-    const gltfFilePath = path.join(dataDir, "output.gltf");
+    const glbFilePath = path.join(dataDir, this.gltfName + ".glb");
+    const gltfFilePath = path.join(dataDir, this.gltfName + ".gltf");
     if (!fs.existsSync(dataDir)) {
       await fs.promises.mkdir(dataDir);
     }
