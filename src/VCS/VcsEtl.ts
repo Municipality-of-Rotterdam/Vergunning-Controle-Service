@@ -157,12 +157,11 @@ graph:model {
         },
       },
     };
-    let pageNum = 1;
-    let planId;
 
     // First we get all the plannen from the API
+    let planPageNum = 1;
     while (true) {
-      const plannenRequest = await ruimtelijkePlannen.plannen(jsonObj, `?page=${pageNum}`);
+      const plannenRequest = await ruimtelijkePlannen.plannen(jsonObj, `?page=${planPageNum}`);
       const plannen = plannenRequest["_embedded"]["plannen"];
       if (plannen.length == 0) {
         break;
@@ -170,11 +169,11 @@ graph:model {
         plannen.forEach((plan: object) => {
           totalPlannen.add(plan);
         });
-        pageNum++;
+        planPageNum++;
       }
     }
-    pageNum = 1;
 
+    let planId;
     // Out of these plans we want to grab the Hoogvliet Noordoost plan id
     // This information was looked up by investigating https://omgevingswet.overheid.nl/regels-op-de-kaart/viewer/(documenten/gemeente//rechter-paneel:document/NL.IMRO.0599.BP1133HvtNoord-va01/regels)?regelsandere=regels&locatie-stelsel=RD&locatie-x=84207&locatie-y=431716&session=ec9787ea-19c5-4919-bda9-9fb778e38691&geodocId=NL-IMRO-0599-BP1133HvtNoord-va01-2&locatie-getekend-gebied=POLYGON((84118.677%20431760.27,84094.175%20431771.98,84100.696%20431805.561,84135.786%20431792.836,84118.677%20431760.27))
     for (const plan of totalPlannen) {
@@ -184,8 +183,9 @@ graph:model {
     }
 
     // Paginate over all the article elements from the given plan id for Hoogvliet Noordoost
+    let articlePageNum = 1;
     while (true) {
-      const tekstenRequest = await ruimtelijkePlannen.tekstenZoek(planId!, jsonObj, `?page=${pageNum}`);
+      const tekstenRequest = await ruimtelijkePlannen.tekstenZoek(planId!, jsonObj, `?page=${articlePageNum}`);
       const teksten = tekstenRequest["_embedded"]["teksten"];
       if (teksten.length == 0) {
         break;
@@ -193,7 +193,7 @@ graph:model {
         teksten.forEach((tekst: object) => {
           totalTeksten.add(tekst);
         });
-        pageNum++;
+        articlePageNum++;
       }
     }
 
