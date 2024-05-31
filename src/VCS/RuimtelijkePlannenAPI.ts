@@ -157,7 +157,7 @@ export class RuimtelijkePlannenAPI {
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`,
+        `GET request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`,
       );
     }
 
