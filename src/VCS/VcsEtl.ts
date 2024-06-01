@@ -1,4 +1,4 @@
-import { loadRdf, Middleware, MiddlewareList, Source, toTriplyDb } from "@triplyetl/etl/generic";
+import { loadRdf, Middleware, MiddlewareList, Source } from "@triplyetl/etl/generic";
 import App from "@triply/triplydb";
 import * as path from "path";
 import * as fs from "fs";
@@ -78,7 +78,7 @@ export async function vcsEtl(
 
     // upload assets to dataset
     try {
-      const asset = await dataset.getAsset(gltfName);
+      const asset = await dataset.getAsset(gltfName + ".gltf");
       await asset.delete();
     } catch (error) {}
     await dataset.uploadAsset(gltfPath, gltfName + ".gltf");
@@ -105,8 +105,6 @@ export async function vcsEtl(
             }
 
             `),
-      // upload data to Triply DB
-      toTriplyDb(destination.vergunningscontroleservice),
     ];
     resolve(mwList);
   });
