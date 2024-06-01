@@ -1,11 +1,9 @@
 import { Source } from "@triplyetl/etl/generic";
 import { getAccount, getDataset } from "./dtap.js";
 
-const account = getAccount() == "me" ? undefined : getAccount();
-
 export const destination = {
   vergunningscontroleservice: {
-    account: account,
+    account: getAccount(),
     dataset: {
       name: getDataset("vcs"),
       displayName: "Vergunningscontroleservice",
@@ -13,7 +11,7 @@ export const destination = {
     },
   },
   shacl_example: {
-    account: account,
+    account: getAccount(),
     dataset: {
       name: getDataset("shacl-example"),
       displayName: "SHACL Example",
@@ -21,7 +19,7 @@ export const destination = {
     },
   },
   geodata: {
-    account: account,
+    account: getAccount(),
     dataset: { name: getDataset("geodata"), displayName: "Geodata", description: "Gepubliceerd door TriplyETL" },
   },
 };
@@ -29,7 +27,10 @@ export const destination = {
 export const source = {
   shacl_example_buildings: Source.file("static/example_data/shacl/mock_data_building.json"),
   shacl_example_model: Source.file("static/example_data/shacl/model.trig"),
-  model: account
-    ? Source.TriplyDb.asset(account, getDataset("vcs"), { name: "model.trig" })
+};
+
+export const asset = {
+  model: getAccount()
+    ? Source.TriplyDb.asset(getAccount()!, getDataset("vcs"), { name: "model.trig" })
     : Source.TriplyDb.asset(getDataset("vcs"), { name: "model.trig" }),
 };

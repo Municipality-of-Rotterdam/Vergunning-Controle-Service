@@ -1,6 +1,6 @@
 import { Etl, loadRdf, Source, toTriplyDb } from "@triplyetl/etl/generic";
 import { validate } from "@triplyetl/etl/shacl";
-import { source, destination } from "./utils/sources-destinations.js";
+import { destination, asset } from "./utils/sources-destinations.js";
 import { baseIri, graph } from "./utils/declarations.js";
 
 export default async function (): Promise<Etl> {
@@ -16,12 +16,12 @@ export default async function (): Promise<Etl> {
 
   etl.use(
     loadRdf(rdfSource),
-    validate(source.model, {
+    validate(asset.model, {
       graph: graph.concat("report"),
       terminateOn: "Never",
     }),
     toTriplyDb(destination.vergunningscontroleservice),
   );
-  await etl.copySource(source.model, destination.vergunningscontroleservice);
+  await etl.copySource(asset.model, destination.vergunningscontroleservice);
   return etl;
 }
