@@ -35,15 +35,15 @@ export async function vcsEtl(
     opts = idsFilePathOrOpts;
   }
   return new Promise<MiddlewareList>(async (resolve, _reject) => {
-    const gltfOutput = "3dmodel";
-    const vcs = new VCS(ifcFilePath, gltfOutput);
+    const gltfName = "3dmodel";
+    const vcs = new VCS(ifcFilePath, gltfName);
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
     const user = await triply.getAccount(destination.vergunningscontroleservice.account);
     const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
 
     const reportPath = path.join(__dirname, "data", "IDSValidationReport.html");
     const footprintPath = path.join(__dirname, "data", "footprint.txt");
-    const gltfPath = path.join(__dirname, "data", gltfOutput + ".gltf");
+    const gltfPath = path.join(__dirname, "data", gltfName + ".gltf");
     const ifcOwlPath = path.join(__dirname, "data", "ifcOwlData.ttl");
 
     // VCS IDS Validation
@@ -78,10 +78,10 @@ export async function vcsEtl(
 
     // upload assets to dataset
     try {
-      const asset = await dataset.getAsset(gltfPath);
+      const asset = await dataset.getAsset(gltfName);
       await asset.delete();
     } catch (error) {}
-    await dataset.uploadAsset(gltfPath);
+    await dataset.uploadAsset(gltfPath, gltfName + ".gltf");
     // read all data and upload local files as assets
     const polygon: string = await fs.promises.readFile(footprintPath, "utf-8");
 
