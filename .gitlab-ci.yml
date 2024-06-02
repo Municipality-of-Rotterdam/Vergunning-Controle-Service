@@ -54,21 +54,6 @@ main:
   rules:
     - !reference [.etl-template, rules]
 
-vcs:
-  stage: run-etls
-  interruptible: true
-  # WARNING: by setting 'allow_failure' to 'true' scripts that fail
-  # will not stop the ETL from continuing with other stages/scripts.
-  allow_failure: false
-  artifacts:
-    !reference [.etl-template, artifacts]
-  script:
-    - !reference [.etl-template, install]
-    - !reference [.etl-template, run-etl]
-  rules:
-    - !reference [.etl-template, rules]
-  needs:
-    - main
 
 geodataCsv:
   stage: run-etls
