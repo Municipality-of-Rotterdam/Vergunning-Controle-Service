@@ -56,7 +56,7 @@ export default class VCS {
       const requirements = path.join(__dirname, "python", "requirements.txt");
       const dataDir = path.join(__dirname, "data");
 
-      //Check if data directory exists
+      // Check if data directory exists
       if (!fs.existsSync(dataDir)) {
         await fs.promises.mkdir(dataDir);
       }

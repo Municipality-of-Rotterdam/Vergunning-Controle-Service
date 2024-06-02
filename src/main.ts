@@ -1,5 +1,5 @@
-import { Etl, toTriplyDb } from "@triplyetl/etl/generic";
-import { destination } from "./utils/sources-destinations.js";
+import { Etl, loadRdf, toTriplyDb } from "@triplyetl/etl/generic";
+import { destination, source } from "./utils/sources-destinations.js";
 import { baseIri } from "./utils/declarations.js";
 import { ruleIdShaclConstraintDictionary, vcsEtl, vcsGenerateShacl } from "./VCS/VcsEtl.js";
 
@@ -18,7 +18,9 @@ export default async function (): Promise<Etl> {
     // await vcsEtl(ifcFile, idsFile, { baseIRI: "https://www.rotterdam.nl/vcs/" }),
 
     vcsGenerateShacl(ruleIdShaclConstraintDictionary),
+    loadRdf(source.model),
     toTriplyDb(destination.vergunningscontroleservice),
   );
+
   return etl;
 }

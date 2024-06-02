@@ -8,7 +8,6 @@ import { downloadFile, executeCommand, unzipFile } from "./helperFunctions.js";
 import { __dirname } from "./VCSClass.js";
 
 const { glbToGltf } = gltfPipeline;
-const requirements = path.join(__dirname, "python", "requirements.txt");
 
 export class IFCTransform {
   private ifcFilePath: string | undefined;
@@ -33,7 +32,6 @@ export class IFCTransform {
       }
     };
   }
-
   private getOperatingSystem(): string {
     const platform = os.platform();
     const arch = os.arch();
@@ -207,6 +205,7 @@ export class IFCTransform {
     }
 
     const glb = await fs.promises.readFile(glbFilePath);
+
     const results = await glbToGltf(glb);
 
     writeJsonSync(gltfFilePath, results.gltf);
@@ -219,6 +218,7 @@ export class IFCTransform {
     outputFilePath: string = path.join(__dirname, "data", "footprint.txt"),
   ) {
     const pythonScriptPath = path.join(__dirname, "python", "footprint_approx.py");
+    const requirements = path.join(__dirname, "python", "requirements.txt");
     try {
       await executeCommand(`python3 -m pip install -r ${requirements} --quiet`);
       await executeCommand(`python3 ${pythonScriptPath} -ifc_file "${ifcFilePath}" -o "${outputFilePath}"`);
@@ -232,6 +232,7 @@ export class IFCTransform {
     outputFilePath: string = path.join(__dirname, "data", "extracted_coordinates.csv"),
   ) {
     const pythonScriptPath = path.join(__dirname, "python", "Cartesian2Csv.py");
+    const requirements = path.join(__dirname, "python", "requirements.txt");
 
     try {
       await executeCommand(`python3 -m pip install -r ${requirements} --quiet`);

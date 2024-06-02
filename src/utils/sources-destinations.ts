@@ -27,6 +27,7 @@ export const destination = {
 export const source = {
   shacl_example_buildings: Source.file("static/example_data/shacl/mock_data_building.json"),
   shacl_example_model: Source.file("static/example_data/shacl/model.trig"),
+  model: Source.file("data/model.trig"),
 };
 
 export const asset = {
