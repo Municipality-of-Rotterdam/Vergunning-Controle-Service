@@ -29,9 +29,3 @@ export const source = {
   shacl_example_model: Source.file("static/example_data/shacl/model.trig"),
   model: Source.file("data/model.trig"),
 };
-
-export const asset = {
-  model: getAccount()
-    ? Source.TriplyDb.asset(getAccount()!, getDataset("vcs"), { name: "model.trig" })
-    : Source.TriplyDb.asset(getDataset("vcs"), { name: "model.trig" }),
-};

@@ -243,15 +243,6 @@ graph:model {
     // Write SHACL constraint to local file
     const shaclModelFilePath = path.join(__dirname, "data/model.trig");
     await fs.promises.writeFile(shaclModelFilePath, shaclConstraintModel);
-    // ... and as an asset to TriplyDB
-    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN });
-    const user = await triply.getAccount(destination.vergunningscontroleservice.account);
-    const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
-    try {
-      const asset = await dataset.getAsset("model.trig");
-      await asset.delete();
-    } catch (error) {}
-    await dataset.uploadAsset(shaclModelFilePath, "model.trig");
     return next();
   });
 }
