@@ -160,23 +160,28 @@ graph:model {
     };
 
     // We get all the 'bestemmingsplannen' relevant to the given polygon
+    _ctx.app.info(`We zoeken naar bestemmingsplannen horende bij het bestemmingsvlak via de RP API.`);
     let plans = await ruimtelijkePlannen.plannen(jsonObj, `?planType=bestemmingsplan`);
     let planIds: string[] = new Array();
     for (const plan of plans["_embedded"]["plannen"]) {
       // Umbrella plans are probably irrelevant, cf <https://www.jurable.nl/blog/2018/11/07/paraplubestemmingsplan/>
       if (!plan.isParapluplan) {
         planIds.push(plan["id"]);
+        _ctx.app.info(`Gevonden: ${plan["id"]}`);
       }
     }
 
     // Find 'maximum aantal bouwlagen' as indicated in *each* plan's 'maatvoering'. Of course, we expect to only find one
     const target = "maximum aantal bouwlagen";
     const maatvoeringen: any[] = new Array();
+
     for (const id of planIds) {
+      _ctx.app.info(`We zoeken naar de maatvoering "${target}" voor ${id} via de RP API.`);
       let reply = await ruimtelijkePlannen.maatvoeringen(id, jsonObj);
       for (const maatvoering of reply["_embedded"]["maatvoeringen"]) {
         if (maatvoering["naam"] == target) {
           maatvoeringen.push(maatvoering);
+          _ctx.app.info(`Gevonden: ${JSON.stringify(maatvoering["omvang"])}.`);
         }
       }
     }
