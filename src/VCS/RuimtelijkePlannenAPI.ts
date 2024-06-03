@@ -216,20 +216,21 @@ export class RuimtelijkePlannenAPI {
     return data;
   }
 
-  async maatvoeringen(planId: string, parameters?: string) {
+  async maatvoeringen(planId: string, geoJson: object, parameters?: string) {
     if (parameters == undefined) {
       parameters = "?pageSize=100";
     } else {
       parameters += "&pageSize=100";
     }
-    const path = `plannen/${planId}/maatvoeringen`;
+    const path = `plannen/${planId}/maatvoeringen/_zoek`;
     const url = this.url + path + parameters;
     const headers = new Headers();
     headers.append("x-api-key", this.key.toString());
     headers.append("content-Crs", "epsg:28992");
     headers.append("Content-Type", "application/json");
 
-    const response = await getRequest(url, headers);
+    const body = JSON.stringify(geoJson);
+    const response = await postRequest(url, headers, body);
     const data = await response.json();
     if (!response.ok) {
       throw new Error(
