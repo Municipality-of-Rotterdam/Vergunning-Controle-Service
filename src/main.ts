@@ -1,7 +1,7 @@
 import { Etl, loadRdf, toTriplyDb } from "@triplyetl/etl/generic";
 import { destination, source } from "./utils/sources-destinations.js";
 import { baseIri, graph } from "./utils/declarations.js";
-import { ruleIdShaclConstraintDictionary, vcsEtl, vcsGenerateShacl } from "./VCS/VcsEtl.js";
+import { vcsEtl, vcsGenerateShacl } from "./VCS/VcsEtl.js";
 import { validate } from "@triplyetl/etl/shacl";
 
 const ifcFile = "static/Kievitsweg_R23_MVP_IFC4.ifc";
@@ -18,7 +18,7 @@ export default async function (): Promise<Etl> {
     // const idsFile = "static/example_data/IDS Rotterdam BIM.ids";
     // await vcsEtl(ifcFile, idsFile, { baseIRI: "https://www.rotterdam.nl/vcs/" }),
 
-    vcsGenerateShacl(ruleIdShaclConstraintDictionary),
+    vcsGenerateShacl(),
 
     validate(source.model, {
       graph: graph.concat("report"),
