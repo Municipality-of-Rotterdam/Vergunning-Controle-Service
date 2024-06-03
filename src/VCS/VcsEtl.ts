@@ -8,8 +8,7 @@ import { __dirname } from "./VCSClass.js";
 import { update } from "@triplyetl/etl/sparql";
 import { destination } from "../utils/sources-destinations.js";
 import { addMwCallSiteToError } from "@triplyetl/etl/utils";
-import * as xml2js from "xml2js";
-import { parsePolygonString } from "./helperFunctions.js";
+// import { parsePolygonString } from "./helperFunctions.js";
 
 type VcsOptions = {
   baseIRI?: string;
@@ -112,10 +111,9 @@ export async function vcsEtl(
 
 // given a dictionary with keys being the rule identifiers and the values the SHACL constraint elements, we generate a SHACL file
 // TODO This can be improved to use an AST or datafactory objects to generate the SHACL model, instead of string manipulation (current approach)
-export function vcsGenerateShacl(
-  dictionary: { [key: string]: string[] },
+export function vcsGenerateShacl(): Middleware {
+  //dictionary: { [key: string]: string[] },
   //   geometry?: Geometry
-): Middleware {
   return addMwCallSiteToError(async function _vcsGenerateShacl(_ctx, next) {
     // Initialize the output string for SHACL Constraint
     let shaclConstraint = (sparqlConstraintNodeNames: string, sparqlConstraintNodes: string) => `
@@ -136,119 +134,83 @@ graph:model {
    a sh:NodeShape;
    sh:targetClass ifc:IfcBuilding;
    sh:sparql
-    ${sparqlConstraintNodeNames}
+    ${sparqlConstraintNodeNames}.
   ${sparqlConstraintNodes}
   }    
 `;
-    const usedRulesIds = [];
+    //const usedRulesIds = [];
     const api = new API();
     const ruimtelijkePlannen = api.RuimtelijkePlannen.RuimtelijkePlannen();
-    const polygon: string = await fs.promises.readFile("data/footprint.txt", "utf-8");
-    const coordinates = parsePolygonString(polygon);
-    const totalPlannen: Set<any> = new Set();
-    const totalTeksten: Set<any> = new Set();
+    // const polygon: string = await fs.promises.readFile("data/footprint.txt", "utf-8");
+    // const coordinates = parsePolygonString(polygon);
+    const coordinates = [
+      [84116, 431825],
+      [84121, 431825],
+      [84121, 431829],
+      [84116, 431829],
+      [84116, 431825],
+    ]; // Hardcoded test coordinates that are fully contained in a 'bestemmingsvlak'
     const jsonObj = {
       _geo: {
-        intersects: {
+        contains: {
           type: "Polygon",
           coordinates: [coordinates],
         },
       },
     };
 
-    // First we get all the plannen from the API
-    let planPageNum = 1;
-    while (true) {
-      const plannenRequest = await ruimtelijkePlannen.plannen(jsonObj, `?page=${planPageNum}`);
-      const plannen = plannenRequest["_embedded"]["plannen"];
-      if (plannen.length == 0) {
-        break;
-      } else {
-        plannen.forEach((plan: object) => {
-          totalPlannen.add(plan);
-        });
-        planPageNum++;
+    // We get all the 'bestemmingsplannen' relevant to the given polygon
+    _ctx.app.info(`We zoeken naar bestemmingsplannen horende bij het bestemmingsvlak via de RP API.`);
+    let plans = await ruimtelijkePlannen.plannen(jsonObj, `?planType=bestemmingsplan`);
+    let planIds: string[] = new Array();
+    for (const plan of plans["_embedded"]["plannen"]) {
+      // Umbrella plans are probably irrelevant, cf <https://www.jurable.nl/blog/2018/11/07/paraplubestemmingsplan/>
+      if (!plan.isParapluplan) {
+        planIds.push(plan["id"]);
+        _ctx.app.info(`Gevonden: ${plan["id"]}`);
       }
     }
 
-    let planId;
-    // Out of these plans we want to grab the Hoogvliet Noordoost plan id
-    // This information was looked up by investigating https://omgevingswet.overheid.nl/regels-op-de-kaart/viewer/(documenten/gemeente//rechter-paneel:document/NL.IMRO.0599.BP1133HvtNoord-va01/regels)?regelsandere=regels&locatie-stelsel=RD&locatie-x=84207&locatie-y=431716&session=ec9787ea-19c5-4919-bda9-9fb778e38691&geodocId=NL-IMRO-0599-BP1133HvtNoord-va01-2&locatie-getekend-gebied=POLYGON((84118.677%20431760.27,84094.175%20431771.98,84100.696%20431805.561,84135.786%20431792.836,84118.677%20431760.27))
-    for (const plan of totalPlannen) {
-      if (plan["naam"] == "Hoogvliet Noordoost") {
-        planId = plan["id"];
-      }
-    }
+    // Find 'maximum aantal bouwlagen' as indicated in *each* plan's 'maatvoering'. Of course, we expect to only find one
+    const target = "maximum aantal bouwlagen";
+    const maatvoeringen: any[] = new Array();
 
-    // Paginate over all the article elements from the given plan id for Hoogvliet Noordoost
-    let articlePageNum = 1;
-    while (true) {
-      const tekstenRequest = await ruimtelijkePlannen.tekstenZoek(planId!, jsonObj, `?page=${articlePageNum}`);
-      const teksten = tekstenRequest["_embedded"]["teksten"];
-      if (teksten.length == 0) {
-        break;
-      } else {
-        teksten.forEach((tekst: object) => {
-          totalTeksten.add(tekst);
-        });
-        articlePageNum++;
-      }
-    }
-
-    // Loop over the elements, we know the max bouwlagen rule is in article 23.2.2 Bebouwingsnormen from the regels op de kaart website
-    for (const tekst of totalTeksten) {
-      if (tekst["titel"] == "Artikel 23 Wonen") {
-        for (const element of tekst["_links"]["children"]) {
-          const parts = element["href"].split("/");
-          const tekstId = parts[parts.length - 1];
-          if (tekstId == "NL.IMRO.PT.regels._23.2_Bouwregels") {
-            const art23_2 = await ruimtelijkePlannen.enkeleTekst(planId, tekstId);
-            for (const norm of art23_2["_links"]["children"]) {
-              const parts = norm["href"].split("/");
-              const normId = parts[parts.length - 1];
-              if (normId == "NL.IMRO.PT.regels._23.2.2_Bebouwingsnormen") {
-                const regel = await ruimtelijkePlannen.enkeleTekst(planId, normId);
-                const regelTeksten = (await xml2js.parseStringPromise(regel["inhoud"]))["ol"]["li"];
-                for (const regelTekst of regelTeksten) {
-                  const retrievedRegelTekst = regelTekst["_"];
-                  if (
-                    retrievedRegelTekst ==
-                    'de bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven;'
-                  ) {
-                    _ctx.app.info(
-                      "Voor de gegeven geometrie is de maximum aantal bouwlagen regel gevonden! De representatieve SHACL regel is toegevoegd aan het model.",
-                    );
-                    usedRulesIds.push("maxbouwlagen");
-                  }
-                }
-              }
-            }
-          }
+    for (const id of planIds) {
+      _ctx.app.info(`We zoeken naar de maatvoering "${target}" voor ${id} via de RP API.`);
+      let reply = await ruimtelijkePlannen.maatvoeringen(id, jsonObj);
+      for (const maatvoering of reply["_embedded"]["maatvoeringen"]) {
+        if (maatvoering["naam"] == target) {
+          maatvoeringen.push(maatvoering);
+          _ctx.app.info(`Gevonden: ${JSON.stringify(maatvoering["omvang"])}.`);
         }
       }
     }
 
-    // Iterate through each rule id for the geometry
-    let sparqlConstraintNodeNames: string = "";
-    let sparqlConstraintNodes: string = "";
-    for (let index = 0; index < usedRulesIds.length; index++) {
-      const articleID = usedRulesIds[index];
-      if (dictionary[articleID]) {
-        sparqlConstraintNodeNames += dictionary[articleID][0] + `${index + 1 == usedRulesIds.length ? ". \n" : "; \n"}`;
-        sparqlConstraintNodes += dictionary[articleID][1] + "\n";
+    let maxBouwlagen: string = "";
+    if (maatvoeringen.length == 0) {
+      throw new Error("Er is geen enkele maatvoering voor het gegeven bestemmingsvlak.");
+    } else if (maatvoeringen.length > 1) {
+      throw new Error("Er zijn meerdere maatvoeringen voor het gegeven bestemmingsvlak.");
+    } else {
+      for (const omvang of maatvoeringen[0]["omvang"]) {
+        if (maxBouwlagen == "") {
+          maxBouwlagen = omvang["waarde"];
+        } else {
+          throw new Error("Meerdere waardes voor omvang gegeven.");
+        }
       }
     }
 
-    const shaclConstraintModel = shaclConstraint(sparqlConstraintNodeNames, sparqlConstraintNodes);
+    const shaclConstraintModel = shaclConstraint(
+      "shp:BuildingMaxAantalPositieveBouwlagenSparql",
+      maxBouwlaagRule(maxBouwlagen),
+    );
     // Write SHACL constraint to local file
-    const shaclModelFilePath = path.join(__dirname, "data/model.trig");
+    const shaclModelFilePath = path.join(__dirname, "data", "model.trig");
     await fs.promises.writeFile(shaclModelFilePath, shaclConstraintModel);
     return next();
   });
 }
-
-// TODO this value needs to be grapped with WFS query
-const getMaxAantalBouwlagen = () => "2";
 
 const maxBouwlaagRule = (retrievedNumberPositiveMaxBouwlagen: string) => {
   return `
@@ -295,10 +257,4 @@ WHERE {
 }
   '''.
 `;
-};
-
-// Add more dictionary entries for the use case here
-export const ruleIdShaclConstraintDictionary = {
-  maxbouwlagen: ["shp:BuildingMaxAantalPositieveBouwlagenSparql", maxBouwlaagRule(getMaxAantalBouwlagen())],
-  customRuleName: ["NodeName", "NodeRule"],
 };
