@@ -174,6 +174,17 @@ export function vcsGenerateShacl(): Middleware {
     }
     const regel = new MaximumBouwlagen(maxBouwlagen);
 
+    let bestemmingsvlakken: string[] = new Array();
+    for (const id of planIds) {
+      _ctx.app.info(`We zoeken naar het bestemmingsvlak voor ${id} via de RP API.`);
+      const reply = await ruimtelijkePlannen.bestemmingsvlakZoek(id, jsonObj);
+      for (const bestemmingsvlak of reply["_embedded"]["bestemmingsvlakken"]) {
+        bestemmingsvlakken.push(bestemmingsvlak);
+        _ctx.app.info(`Gevonden: ${bestemmingsvlak.naam}`);
+      }
+    }
+    //const regel2 = new Gebiedsaanwijzing(bestemmingsvlakken);
+
     const shaclConstraintModel = Regel.shacl([regel]);
     // Write SHACL constraint to local file
     const shaclModelFilePath = path.join(__dirname, "data", "model.trig");

@@ -59,6 +59,8 @@ import { getRequest, postRequest } from "./helperFunctions.js";
 
 // IMPORTANT! This class and API are a WIP, the implementation is subject to change so please check the links in the doc comment below!
 
+type Params = { [key: string]: string };
+
 /**
  * Ruimtelijke Plannen Opvragen API
  * @description this API contains all data w.r.t. bestemmingsplannen. This API will eventually be replaced by the DSO, when all data has migrated.
@@ -83,20 +85,16 @@ export class RuimtelijkePlannenAPI {
 
   endpoint(path: string, params?: { [key: string]: string }): string {
     if (params) {
-      return (
-        this.url +
-        path +
-        "?" +
-        Object.entries(params)
-          .map(([k, v]) => `${k}=${v}`)
-          .join("&")
-      );
+      const p = Object.entries(params)
+        .map(([k, v]) => `${k}=${v}`)
+        .join("&");
+      return this.url + path + "?" + p;
     } else {
       return this.url + path;
     }
   }
 
-  async post(path: string, body?: any, params?: { [key: string]: string }) {
+  async post(path: string, body?: any, params?: Params) {
     const url = this.endpoint(path, params);
     const response = await postRequest(url, this.headers, JSON.stringify(body));
     const data = await response.json();
@@ -121,8 +119,8 @@ export class RuimtelijkePlannenAPI {
                         }
                       }
      */
-  async plannen(geoJson: object, parameters?: { [key: string]: string }) {
-    return this.post("plannen/_zoek", geoJson, parameters);
+  async plannen(geoJson: object, params?: Params) {
+    return this.post("plannen/_zoek", geoJson, params);
   }
 
   async tekstenZoek(planId: string, geoJson: object) {
@@ -133,8 +131,8 @@ export class RuimtelijkePlannenAPI {
     return this.post(`plannen/${planId}/teksten/${tekstId}`);
   }
 
-  async bestemmingsvlakZoek(planId: string, geoJson: object) {
-    return this.post(`plannen/${planId}/bestemmingsvlakken/_zoek`, geoJson);
+  async bestemmingsvlakZoek(planId: string, geoJson: object, params?: Params) {
+    return this.post(`plannen/${planId}/bestemmingsvlakken/_zoek`, geoJson, params);
   }
 
   async bouwaanduidingenZoek(planId: string, geoJson: object) {
