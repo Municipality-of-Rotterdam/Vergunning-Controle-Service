@@ -133,7 +133,7 @@ export function vcsGenerateShacl(): Middleware {
 
     // We get all the 'bestemmingsplannen' relevant to the given polygon
     _ctx.app.info(`We zoeken naar bestemmingsplannen horende bij het bestemmingsvlak via de RP API.`);
-    let plans = await ruimtelijkePlannen.plannen(jsonObj, `?planType=bestemmingsplan`);
+    let plans = await ruimtelijkePlannen.plannen(jsonObj, { planType: "bestemmingsplan" });
     let planIds: string[] = new Array();
     for (const plan of plans["_embedded"]["plannen"]) {
       // Umbrella plans are probably irrelevant, cf <https://www.jurable.nl/blog/2018/11/07/paraplubestemmingsplan/>
@@ -172,7 +172,7 @@ export function vcsGenerateShacl(): Middleware {
         }
       }
     }
-    const regel = new MaximumBouwlagenRegel(maxBouwlagen);
+    const regel = new MaximumBouwlagen(maxBouwlagen);
 
     const shaclConstraintModel = Regel.shacl([regel]);
     // Write SHACL constraint to local file
@@ -219,12 +219,12 @@ graph:model {
     sh:targetClass ifc:IfcBuilding;
     sh:sparql
       ${regels.map((x) => x.name).join("; ")}.
-  ${regels.map((x) => x.shaclSparqlNode()).join(",\n")}
+  ${regels.map((x) => x.shaclSparqlNode()).join(".\n")}
   }`;
   }
 }
 
-export class MaximumBouwlagenRegel extends Regel {
+export class MaximumBouwlagen extends Regel {
   constructor(private max: number | string) {
     super();
     this.max = max;

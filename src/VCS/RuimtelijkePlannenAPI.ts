@@ -70,9 +70,42 @@ import { getRequest, postRequest } from "./helperFunctions.js";
 export class RuimtelijkePlannenAPI {
   private key: string;
   private url: string;
+  private headers: Headers;
   constructor(apiUrl: string, key: string) {
     this.key = key;
     this.url = apiUrl;
+    this.headers = new Headers();
+    this.headers.append("x-api-key", this.key.toString());
+    this.headers.append("content-Crs", "epsg:28992");
+    this.headers.append("Content-Type", "application/json");
+    this.headers.append("maxRedirects", "20");
+  }
+
+  endpoint(path: string, params?: { [key: string]: string }): string {
+    if (params) {
+      return (
+        this.url +
+        path +
+        "?" +
+        Object.entries(params)
+          .map(([k, v]) => `${k}=${v}`)
+          .join("&")
+      );
+    } else {
+      return this.url + path;
+    }
+  }
+
+  async post(path: string, body?: any, params?: { [key: string]: string }) {
+    const url = this.endpoint(path, params);
+    const response = await postRequest(url, this.headers, JSON.stringify(body));
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(
+        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`,
+      );
+    }
+    return data;
   }
   /**
      *
@@ -88,156 +121,27 @@ export class RuimtelijkePlannenAPI {
                         }
                       }
      */
-  async plannen(geoJson: object, parameters?: string) {
-    if (parameters == undefined) {
-      parameters = "?pageSize=100";
-    } else {
-      parameters += "&pageSize=100";
-    }
-    const path = "plannen/_zoek";
-    const url = this.url + path + parameters;
-    const headers = new Headers();
-    headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "epsg:28992");
-    headers.append("Content-Type", "application/json");
-    headers.append("maxRedirects", "20");
-
-    const body = JSON.stringify(geoJson);
-
-    const response = await postRequest(url!, headers, body);
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`,
-      );
-    }
-
-    return data;
+  async plannen(geoJson: object, parameters?: { [key: string]: string }) {
+    return this.post("plannen/_zoek", geoJson, parameters);
   }
 
-  async tekstenZoek(planId: string, geoJson: object, parameters?: string) {
-    if (parameters == undefined) {
-      parameters = "?pageSize=100";
-    } else {
-      parameters += "&pageSize=100";
-    }
-    const path = `plannen/${planId}/artikelen/_zoek`;
-    const url = this.url + path + parameters;
-    const headers = new Headers();
-    headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "epsg:28992");
-    headers.append("Content-Type", "application/json");
-    headers.append("maxRedirects", "20");
-
-    const body = JSON.stringify(geoJson);
-
-    const response = await postRequest(url!, headers, body);
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`,
-      );
-    }
-
-    return data;
-  }
-  async enkeleTekst(planId: string, tekstId: string, parameters?: string) {
-    if (parameters == undefined) {
-      parameters = "";
-    }
-    const path = `plannen/${planId}/teksten/${tekstId}`;
-    const url = this.url + path + parameters;
-    const headers = new Headers();
-    headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "epsg:28992");
-    headers.append("Content-Type", "application/json");
-    headers.append("maxRedirects", "20");
-
-    const response = await getRequest(url!, headers);
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(
-        `GET request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`,
-      );
-    }
-
-    return data;
+  async tekstenZoek(planId: string, geoJson: object) {
+    return this.post(`plannen/${planId}/artikelen/_zoek`, geoJson);
   }
 
-  async bestemmingsvlakZoek(planId: string, geoJson: object, parameters?: string) {
-    if (parameters == undefined) {
-      parameters = "?pageSize=100";
-    } else {
-      parameters += "&pageSize=100";
-    }
-    const path = `plannen/${planId}/bestemmingsvlakken/_zoek`;
-    const url = this.url + path + parameters;
-    const headers = new Headers();
-    headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "epsg:28992");
-    headers.append("Content-Type", "application/json");
-
-    const body = JSON.stringify(geoJson);
-
-    const response = await postRequest(url, headers, body);
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`,
-      );
-    }
-
-    return data;
+  async enkeleTekst(planId: string, tekstId: string) {
+    return this.post(`plannen/${planId}/teksten/${tekstId}`);
   }
 
-  async bouwaanduidingenZoek(planId: string, geoJson: object, parameters?: string) {
-    if (parameters == undefined) {
-      parameters = "?pageSize=100";
-    } else {
-      parameters += "&pageSize=100";
-    }
-    const path = `plannen/${planId}/bouwaanduidingen/_zoek`;
-    const url = this.url + path + parameters;
-    const headers = new Headers();
-    headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "epsg:28992");
-    headers.append("Content-Type", "application/json");
-
-    const body = JSON.stringify(geoJson);
-
-    const response = await postRequest(url, headers, body);
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`,
-      );
-    }
-
-    return data;
+  async bestemmingsvlakZoek(planId: string, geoJson: object) {
+    return this.post(`plannen/${planId}/bestemmingsvlakken/_zoek`, geoJson);
   }
 
-  async maatvoeringen(planId: string, geoJson: object, parameters?: string) {
-    if (parameters == undefined) {
-      parameters = "?pageSize=100";
-    } else {
-      parameters += "&pageSize=100";
-    }
-    const path = `plannen/${planId}/maatvoeringen/_zoek`;
-    const url = this.url + path + parameters;
-    const headers = new Headers();
-    headers.append("x-api-key", this.key.toString());
-    headers.append("content-Crs", "epsg:28992");
-    headers.append("Content-Type", "application/json");
+  async bouwaanduidingenZoek(planId: string, geoJson: object) {
+    return this.post(`plannen/${planId}/bouwaanduidingen/_zoek`, geoJson);
+  }
 
-    const body = JSON.stringify(geoJson);
-    const response = await postRequest(url, headers, body);
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(
-        `POST request failed: ${response.status} ${response.statusText}\n${Object.values(data)}\nGiven URL: ${url}`,
-      );
-    }
-
-    return data;
+  async maatvoeringen(planId: string, geoJson: object) {
+    return this.post(`plannen/${planId}/maatvoeringen/_zoek`, geoJson);
   }
 }
