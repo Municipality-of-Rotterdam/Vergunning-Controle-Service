@@ -223,35 +223,16 @@ shp:BuildingMaxAantalPositieveBouwlagenSparql
 PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
 PREFIX express: <https://w3id.org/express#>
 
-SELECT ?this ?totalNumberOfFloors
-WHERE {
+SELECT ?this ?totalNumberOfFloors WHERE {
   {
-    SELECT ?this (COUNT(?positiveFloorLabel) + COUNT(?negativeFloorLabel) AS ?totalNumberOfFloors)
-    WHERE {
-      {
-        SELECT ?this ?positiveFloorLabel WHERE {
-          ?this a ifc:IfcBuilding .
-          ?storey a ifc:IfcBuildingStorey;
-                  ifc:name_IfcRoot ?storeyLabel.
-          ?storeyLabel a ifc:IfcLabel;
-                      express:hasString ?positiveFloorLabel.
-          FILTER(REGEX(?positiveFloorLabel, "^(0?[1-9]|[1-9][0-9]) .*")) # Matches positive floors starting from '01'
-          FILTER(?positiveFloorLabel != "00 begane grond") # Excludes '00 begane grond'
-        }
-      }
-      UNION
-      {
-        SELECT ?this ?negativeFloorLabel WHERE {
-          ?this a ifc:IfcBuilding .
-          ?storey a ifc:IfcBuildingStorey;
-                  ifc:name_IfcRoot ?storeyLabel.
-          ?storeyLabel a ifc:IfcLabel;
-                       express:hasString ?negativeFloorLabel.
-          FILTER(REGEX(?negativeFloorLabel, "^-(0?[1-9]|[1-9][0-9]) .*")) # Matches negative floors starting from '-01'
-        }
-      }
-    }
-    GROUP BY ?this
+    SELECT ?this (COUNT(?positiveFloorLabel) AS ?totalNumberOfFloors) WHERE {
+      ?this a ifc:IfcBuilding.
+      ?storey a ifc:IfcBuildingStorey;
+        ifc:name_IfcRoot ?storeyLabel.
+      ?storeyLabel a ifc:IfcLabel;
+        express:hasString ?positiveFloorLabel.
+      FILTER(REGEX(?positiveFloorLabel, "^(0*[1-9][0-9]*) .*")) # Matches positive floors starting from '01'
+    } GROUP BY ?this
   }
   FILTER (?totalNumberOfFloors > ${retrievedNumberPositiveMaxBouwlagen})
 }
