@@ -109,36 +109,8 @@ export async function vcsEtl(
   });
 }
 
-// given a dictionary with keys being the rule identifiers and the values the SHACL constraint elements, we generate a SHACL file
-// TODO This can be improved to use an AST or datafactory objects to generate the SHACL model, instead of string manipulation (current approach)
 export function vcsGenerateShacl(): Middleware {
-  //dictionary: { [key: string]: string[] },
-  //   geometry?: Geometry
   return addMwCallSiteToError(async function _vcsGenerateShacl(_ctx, next) {
-    // Initialize the output string for SHACL Constraint
-    let shaclConstraint = (sparqlConstraintNodeNames: string, sparqlConstraintNodes: string) => `
-
-# External prefix declarations
-prefix dbo:   <http://dbpedia.org/ontology/>
-prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-prefix sh:    <http://www.w3.org/ns/shacl#>
-prefix xsd:   <http://www.w3.org/2001/XMLSchema#>
-
-# Project-specific prefix
-prefix def:   <https://demo.triplydb.com/rotterdam/vcs/model/def/>
-prefix graph: <https://demo.triplydb.com/rotterdam/vcs/graph/>
-prefix ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
-prefix shp:   <https://demo.triplydb.com/rotterdam/vcs/model/shp/>
-graph:model {
-  shp:Building
-   a sh:NodeShape;
-   sh:targetClass ifc:IfcBuilding;
-   sh:sparql
-    ${sparqlConstraintNodeNames}.
-  ${sparqlConstraintNodes}
-  }    
-`;
-    //const usedRulesIds = [];
     const api = new API();
     const ruimtelijkePlannen = api.RuimtelijkePlannen.RuimtelijkePlannen();
     // const polygon: string = await fs.promises.readFile("data/footprint.txt", "utf-8");
@@ -200,11 +172,9 @@ graph:model {
         }
       }
     }
+    const regel = new MaximumBouwlagenRegel(maxBouwlagen);
 
-    const shaclConstraintModel = shaclConstraint(
-      "shp:BuildingMaxAantalPositieveBouwlagenSparql",
-      maxBouwlaagRule(maxBouwlagen),
-    );
+    const shaclConstraintModel = Regel.shacl([regel]);
     // Write SHACL constraint to local file
     const shaclModelFilePath = path.join(__dirname, "data", "model.trig");
     await fs.promises.writeFile(shaclModelFilePath, shaclConstraintModel);
@@ -212,30 +182,74 @@ graph:model {
   });
 }
 
-const maxBouwlaagRule = (retrievedNumberPositiveMaxBouwlagen: string) => {
-  return `
-shp:BuildingMaxAantalPositieveBouwlagenSparql
-  a sh:SPARQLConstraint;
-  sh:message 'Gebouw {?this} heeft in totaal {?totalNumberOfFloors} bouwlagen, dit mag maximaal ${retrievedNumberPositiveMaxBouwlagen} zijn.';
-  sh:severity sh:Violation;
-  sh:datatype xsd:string;
-  sh:select '''
-PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
-PREFIX express: <https://w3id.org/express#>
+// TODO This can be improved to use an AST or datafactory objects to generate the SHACL model, instead of string manipulation (current approach)
+export abstract class Regel {
+  constructor() {}
+  protected abstract name: string;
+  protected abstract message(): string;
+  protected abstract sparql(): string;
 
-SELECT ?this ?totalNumberOfFloors WHERE {
-  {
-    SELECT ?this (COUNT(?positiveFloorLabel) AS ?totalNumberOfFloors) WHERE {
-      ?this a ifc:IfcBuilding.
-      ?storey a ifc:IfcBuildingStorey;
-        ifc:name_IfcRoot ?storeyLabel.
-      ?storeyLabel a ifc:IfcLabel;
-        express:hasString ?positiveFloorLabel.
-      FILTER(REGEX(?positiveFloorLabel, "^(0*[1-9][0-9]*) .*")) # Matches positive floors starting from '01'
-    } GROUP BY ?this
+  shaclSparqlNode(): string {
+    return `${this.name}
+      a sh:SPARQLConstraint;
+      sh:message '${this.message()}';
+      sh:severity sh:Violation;
+      sh:datatype xsd:string;
+      sh:select '''${this.sparql()}'''.
+    `;
   }
-  FILTER (?totalNumberOfFloors > ${retrievedNumberPositiveMaxBouwlagen})
+
+  // Generate SHACL constraints
+  static shacl(regels: Regel[]): string {
+    return `
+# External prefix declarations
+prefix dbo:   <http://dbpedia.org/ontology/>
+prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+prefix sh:    <http://www.w3.org/ns/shacl#>
+prefix xsd:   <http://www.w3.org/2001/XMLSchema#>
+
+# Project-specific prefix
+prefix def:   <https://demo.triplydb.com/rotterdam/vcs/model/def/>
+prefix graph: <https://demo.triplydb.com/rotterdam/vcs/graph/>
+prefix ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
+prefix shp:   <https://demo.triplydb.com/rotterdam/vcs/model/shp/>
+graph:model {
+  shp:Building
+    a sh:NodeShape;
+    sh:targetClass ifc:IfcBuilding;
+    sh:sparql
+      ${regels.map((x) => x.name).join("; ")}.
+  ${regels.map((x) => x.shaclSparqlNode()).join(",\n")}
+  }`;
+  }
 }
-  '''.
-`;
-};
+
+export class MaximumBouwlagenRegel extends Regel {
+  constructor(private max: number | string) {
+    super();
+    this.max = max;
+  }
+  name: string = "shp:MaximumBouwlagen";
+  message(): string {
+    return `Gebouw {?this} heeft in totaal {?totalNumberOfFloors} bouwlagen. Dit mag maximaal ${this.max} zijn.`;
+  }
+  sparql(): string {
+    return `
+    PREFIX ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
+    PREFIX express: <https://w3id.org/express#>
+    
+    SELECT ?this ?totalNumberOfFloors WHERE {
+      {
+        SELECT ?this (COUNT(?positiveFloorLabel) AS ?totalNumberOfFloors) WHERE {
+          ?this a ifc:IfcBuilding.
+          ?storey a ifc:IfcBuildingStorey;
+            ifc:name_IfcRoot ?storeyLabel.
+          ?storeyLabel a ifc:IfcLabel;
+            express:hasString ?positiveFloorLabel.
+          FILTER(REGEX(?positiveFloorLabel, "^(0*[1-9][0-9]*) .*")) # Matches positive floors starting from '01'
+        } GROUP BY ?this
+      }
+      FILTER (?totalNumberOfFloors > ${this.max})
+    }`;
+  }
+}
