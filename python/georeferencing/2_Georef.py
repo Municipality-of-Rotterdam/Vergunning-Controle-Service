@@ -1,52 +1,92 @@
 import csv
 
+import ifcopenshell
+import numpy as np
 
+
+# Convert from millimeters to meters
 def mm_to_m(value):
-    return value / 1000.0  # Convert from mm to m
+    return value / 1000.0
 
-def georeference_coordinates(coordinates, reference):
+# Retrieve map conversion data from the IFC file
+def get_reference_rd_coordinates(ifc_file):
+    map_conversion = ifc_file.by_type('IfcMapConversion')
+    if map_conversion:
+        mc = map_conversion[0]
+
+        delta_x = getattr(mc, 'Eastings', None) or mc[2]
+        delta_y = getattr(mc, 'Northings', None) or mc[3]
+        height = getattr(mc, 'OrthometricHeight', None) or mc[4]
+        x_axis_ordinate = getattr(mc, 'XAxisOrdinate', None) or mc[5]
+        x_axis_abscissa = getattr(mc, 'XAxisAbscissa', None) or mc[6]
+        rotation = -1 * np.arctan(x_axis_abscissa / x_axis_ordinate)
+
+        # Debug prints (comment out in production)
+        print('delta x:', delta_x)
+        print('delta y:', delta_y)
+        print('height:', height)
+        print('rotation (radians):', rotation, '\n')
+
+        return delta_x, delta_y, height, rotation
+    else:
+        raise ValueError('No IfcMapConversion entity found in the IFC file.')
+
+# Georeference coordinates
+def georeference_coordinates(coordinates, delta_x, delta_y, height, rotation):
+    if not coordinates:
+        raise ValueError("No valid coordinates to georeference.")
+
     # Calculate offsets
-    offset_x = reference[0] - coordinates[0][0]
-    offset_y = reference[1] - coordinates[0][1]
-    offset_z = reference[2] - coordinates[0][2]
+    offset_x = delta_x - coordinates[0][0]
+    offset_y = delta_y - coordinates[0][1]
+    offset_z = height - coordinates[0][2]
 
-    # Georeference coordinates
+    # Apply rotation and offsets
     georeferenced_coordinates = []
     for x, y, z in coordinates:
-        georeferenced_coordinates.append((x + offset_x, y + offset_y, z + offset_z))
+        x_rot = x * np.cos(rotation) - y * np.sin(rotation)
+        y_rot = x * np.sin(rotation) + y * np.cos(rotation)
+        georeferenced_coordinates.append((x_rot + offset_x, y_rot + offset_y, z + offset_z))
 
     return georeferenced_coordinates
 
+# Save coordinates to CSV file
 def save_to_csv(coordinates, output_file):
-    # Write coordinates to CSV file
     with open(output_file, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerow(['X_georeferenced', 'Y_georeferenced', 'Z_georeferenced'])
         csv_writer.writerows(coordinates)
-
     print(f"Georeferenced coordinates saved to {output_file}")
 
-def main(input_file, output_file, reference_rd):
-    # Read Cartesian coordinates from CSV file and convert to meters
-    cartesian_coordinates = []
-    with open(input_file, 'r') as csvfile:
-        csv_reader = csv.reader(csvfile)
-        next(csv_reader)  # Skip header
-        for row in csv_reader:
-            x, y, z = map(float, row)
-            x_m = mm_to_m(x)
-            y_m = mm_to_m(y)
-            z_m = mm_to_m(z)
-            cartesian_coordinates.append((x_m, y_m, z_m))
+# Main function
+def main(input_file, output_file, ifc_file_path):
+    try:
+        # Load the IFC file and get reference RD coordinates
+        ifc_file = ifcopenshell.open(ifc_file_path)
+        delta_x, delta_y, height, rotation = get_reference_rd_coordinates(ifc_file)
 
-    # Georeference Cartesian coordinates
-    georeferenced_coordinates = georeference_coordinates(cartesian_coordinates, reference_rd)
+        # Read Cartesian coordinates from CSV file and convert to meters
+        cartesian_coordinates = []
+        with open(input_file, 'r') as csvfile:
+            csv_reader = csv.reader(csvfile)
+            next(csv_reader)  # Skip header
+            for row in csv_reader:
+                x, y, z = map(float, row)
+                x_m = mm_to_m(x)
+                y_m = mm_to_m(y)
+                z_m = mm_to_m(z)
+                cartesian_coordinates.append((x_m, y_m, z_m))
 
-    # Save georeferenced coordinates to CSV file
-    save_to_csv(georeferenced_coordinates, output_file)
+        # Georeference Cartesian coordinates
+        georeferenced_coordinates = georeference_coordinates(cartesian_coordinates, delta_x, delta_y, height, rotation)
+
+        # Save georeferenced coordinates to CSV file
+        save_to_csv(georeferenced_coordinates, output_file)
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     input_file = "./coordinates/coordinates.csv"
     output_file = "./coordinates/coordinates_georeferenced.csv"
-    reference_rd = (84112.801795527557, 431810.28221002209, 0.0)  # Reference RD coordinates for georeferencing
-    main(input_file, output_file, reference_rd)
+    ifc_file_path = "./../../static/Kievitsweg_R23_MVP_IFC4.ifc"  # Path to your IFC file
+    main(input_file, output_file, ifc_file_path)

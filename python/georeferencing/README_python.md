@@ -42,12 +42,3 @@ Als nodig update de path naar `input` file of hernoemen de `output` bestaand.
 2.2.2. Om coordinaten te georefereren run het volgende commando in de terminal:
 
 `pyhton3 2_Georef.py`
-
-# 2.3. Rotatie (draaien) van een gebouw
-
-2.2.1.  Open Rotate.py bestaand.
-Als nodig update de path naar `input` file of hernoemen de `output` bestaand.
-
-2.2.2. Om coordinaten te georefereren run het volgende commando in de terminal:
-
-`pyhton3 3_Rotate.py`
