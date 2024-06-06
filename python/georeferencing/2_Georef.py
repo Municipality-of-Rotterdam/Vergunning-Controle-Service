@@ -58,12 +58,23 @@ def save_to_csv(coordinates, output_file):
         csv_writer.writerows(coordinates)
     print(f"Georeferenced coordinates saved to {output_file}")
 
+# Save transformation parameters to CSV file
+def save_transformation_parameters(parameters, params_file):
+    with open(params_file, 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(['Delta_X', 'Delta_Y', 'Height', 'Rotation'])
+        csv_writer.writerow(parameters)
+    print(f"Transformation parameters saved to {params_file}")
+
 # Main function
-def main(input_file, output_file, ifc_file_path):
+def main(input_file, output_file, params_file, ifc_file_path):
     try:
         # Load the IFC file and get reference RD coordinates
         ifc_file = ifcopenshell.open(ifc_file_path)
         delta_x, delta_y, height, rotation = get_reference_rd_coordinates(ifc_file)
+
+        # Save transformation parameters to CSV file
+        save_transformation_parameters((delta_x, delta_y, height, rotation), params_file)
 
         # Read Cartesian coordinates from CSV file and convert to meters
         cartesian_coordinates = []
@@ -88,5 +99,6 @@ def main(input_file, output_file, ifc_file_path):
 if __name__ == "__main__":
     input_file = "./coordinates/coordinates.csv"
     output_file = "./coordinates/coordinates_georeferenced.csv"
+    params_file = "./coordinates/transformation_parameters.csv"
     ifc_file_path = "./../../static/Kievitsweg_R23_MVP_IFC4.ifc"  # Path to your IFC file
-    main(input_file, output_file, ifc_file_path)
+    main(input_file, output_file, params_file, ifc_file_path)
