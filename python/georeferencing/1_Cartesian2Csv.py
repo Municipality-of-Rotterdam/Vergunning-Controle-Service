@@ -27,6 +27,8 @@ def save_to_csv(coordinates, output_file):
 
     print(f"3D coordinates saved to {output_file}")
 
+# Can be called using python3 1_Cartesian2Csv.py -ifc_file IFC_INPUT_FILE -o OUTPUT_FILE_PATH, e.g.: 
+# python3 1_Cartesian2Csv.py -ifc_file "./../../static/Kievitsweg_R23_MVP_IFC4.ifc" -o "./coordinates/coordinates.csv" 
 def main():
     # Initialize parser
     parser = argparse.ArgumentParser(prog='extract_coordinates', description='Extracts 3D coordinates from an IFC file and saves them to a CSV file')
@@ -41,6 +43,4 @@ def main():
     save_to_csv(coordinates, output_file)
 
 if __name__ == "__main__":
-    ifc_file = "./../../static/Kievitsweg_R23_MVP_IFC4.ifc"
-    output_file = "./coordinates/coordinates.csv"
-    main(ifc_file, output_file)
+    main()
