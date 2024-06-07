@@ -32,7 +32,7 @@ Als nodig update de path naar ifc file of hernoemen de `output` bestaand.
 
 2.1.4. Om coordinaten te extracten run het volgende commando in de terminal:
 
-`python3 1_Cartesian2Csv.py`
+`python3 1_Cartesian2Csv.py -ifc_file "./../../static/Kievitsweg_R23_MVP_IFC4.ifc" -o "./coordinates/coordinates.csv`
 
 # 2.2. Georeferentie van coordinaten
 
