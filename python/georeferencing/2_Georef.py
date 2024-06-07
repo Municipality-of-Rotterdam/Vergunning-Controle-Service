@@ -17,9 +17,7 @@ def get_reference_rd_coordinates(ifc_file):
         delta_x = getattr(mc, 'Eastings', None) or mc[2]
         delta_y = getattr(mc, 'Northings', None) or mc[3]
         height = getattr(mc, 'OrthometricHeight', None) or mc[4]
-        x_axis_ordinate = getattr(mc, 'XAxisOrdinate', None) or mc[5]
-        x_axis_abscissa = getattr(mc, 'XAxisAbscissa', None) or mc[6]
-        rotation = -1 * np.arctan(x_axis_abscissa / x_axis_ordinate)
+        rotation = -1 * np.arctan(mc[6] / mc[5])
 
         # Debug prints (comment out in production)
         print('delta x:', delta_x)
