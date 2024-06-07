@@ -5,7 +5,8 @@ import ifcopenshell.util.shape
 import numpy as np
 from shapely.geometry import MultiPoint, Polygon
 
-# can be called using python footprint -ifc_file IFC_INPUT_FILE -o OUTPUT_FILE_PATH
+# Can be called using python3 footprint_approx -ifc_file IFC_INPUT_FILE -o OUTPUT_FILE_PATH, e.g.: 
+# python3 footprint_approx.py -ifc_file "./../static/Kievitsweg_R23_MVP_IFC4.ifc" -o "./../data/footprint.txt" 
 def main():
     # Initialize parser
     parser = argparse.ArgumentParser(prog='footprint', description='Returns an approximation of the building footprint in WKT')
