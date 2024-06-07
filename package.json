@@ -2,7 +2,7 @@
   "author": "Triply <info@triply.cc>",
   "type": "module",
   "dependencies": {
-    "@triplyetl/etl": "^4.3.0",
+    "@triplyetl/etl": "^4.4.1",
     "adm-zip": "^0.5.12",
     "cross-env": "^7.0.3",
     "execa": "^8.0.1",
