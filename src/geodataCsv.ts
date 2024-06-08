@@ -1,13 +1,12 @@
-// import { logRecord } from "@triplyetl/etl/debug"
 import { Etl, Source, fromCsv, toTriplyDb, when } from "@triplyetl/etl/generic";
-import { addIri, iri, pairs, str, triple } from "@triplyetl/etl/ratt";
+import { addIri, concat, iri, literal, pairs, str, triple } from "@triplyetl/etl/ratt";
 import { a, geo, rdfs } from "@triplyetl/etl/vocab";
-import { baseIri, id } from "./utils/declarations.js";
+import { baseIri, id, graphGeoData as graph } from "./utils/declarations.js";
 import { destination } from "./utils/sources-destinations.js";
 
 export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
-  const etl = new Etl({ baseIri });
+  const etl = new Etl({ baseIri, defaultGraph: graph.concat("default") });
   etl.use(
     fromCsv(
       Source.file([
@@ -27,7 +26,6 @@ export default async function (): Promise<Etl> {
         "./static/example_data/geodata/vigerendeBestem.csv",
       ]),
     ),
-    // logRecord({ stop: true }),
     when(
       "PLANID",
       addIri({
@@ -35,18 +33,26 @@ export default async function (): Promise<Etl> {
         content: "PLANID",
         key: "_geoID",
       }),
-      triple("_geoID", a, geo.Feature),
+
       // triple("_geoID", rdfs.label, "LAAG"),
       addIri({ prefix: id.geometry, content: "PLANID", key: "_geometry" }),
 
       pairs(
         "_geoID",
+        [a, geo.Feature],
         [a, iri(str("http://definities.geostandaarden.nl/def/nen3610#GeoObject"))],
         [geo.hasGeometry, "_geometry"],
       ),
-      triple("_geometry", geo.asWKT, "WKT"),
+
+      concat({
+        content: [str("<http://www.opengis.net/def/crs/EPSG/0/28992>"), "WKT"],
+        separator: " ",
+        key: "CRS-WKT",
+      }),
+      triple("_geometry", geo.asWKT, literal("CRS-WKT", geo.wktLiteral)),
       when("LAAG", triple("_geoID", rdfs.label, "LAAG")),
     ),
+
     toTriplyDb(destination.geodata),
   );
 
