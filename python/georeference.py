@@ -3,8 +3,8 @@ import csv
 import ifcopenshell
 import numpy as np
 
-# Can be called using python3 1_Cartesian2Csv.py -ifc_file IFC_INPUT_FILE -o OUTPUT_FILE_PATH, e.g.: 
-# python3 1_Cartesian2Csv.py -ifc_file "./../../static/Kievitsweg_R23_MVP_IFC4.ifc" -o "./coordinates/coordinates.csv" 
+# Can be called using python3 georeference.py -ifc_file IFC_INPUT_FILE -o OUTPUT_DIRECTORY, e.g.: 
+# python3 georeference.py -ifc_file "./../static/Kievitsweg_R23_MVP_IFC4.ifc" -o "./../data/"
 def main():
   # Initialize parser
   parser = argparse.ArgumentParser(prog='extract_coordinates', description='Extracts 3D coordinates from an IFC file and saves them to a CSV file')
@@ -32,6 +32,9 @@ def main():
   save_to_csv(georeferenced_coordinates, output_dir)
 
 
+def km_to_m(value):
+    return value / 1000  # Convert from km to m
+
 def extract_3d_coordinates(ifc_file):
 
   # Find all IfcCartesianPoint entities in the IFC file
@@ -41,8 +44,11 @@ def extract_3d_coordinates(ifc_file):
   coordinates = []
   for point in cartesian_points:
     if len(point.Coordinates) == 3:
-      coordinates.append(point.Coordinates)
-
+      point_coordinates = []
+      for point_coordinate in point.Coordinates:
+         point_coordinate = km_to_m(point_coordinate)
+         point_coordinates.append(point_coordinate)
+      coordinates.append(point_coordinates)
   return coordinates
 
 def save_to_csv(coordinates, output_dir):
