@@ -39,9 +39,9 @@ print ('first vertex:', verts[0])
 # first do the rotation, then the translation, using the parameters from IfcMapConversion
 verts_georef = []
 for vert in verts:
-    x_georef = (vert[0] * np.cos(rotation) + vert[1] * np.sin(rotation)) + delta_x
-    y_georef = (-1 * vert[0] * np.sin(rotation) + vert[1] * np.cos(rotation)) + delta_y
-    verts_georef.append([round(x_georef,3),round(y_georef,3)])
+  x_georef = (vert[0] * np.cos(rotation) + vert[1] * np.sin(rotation)) + delta_x
+  y_georef = (-1 * vert[0] * np.sin(rotation) + vert[1] * np.cos(rotation)) + delta_y
+  verts_georef.append([round(x_georef,3),round(y_georef,3)])
 
 print ('first vertex, georeferenced:', verts_georef[0])
 
@@ -51,7 +51,7 @@ print ('first vertex, georeferenced:', verts_georef[0])
 print('*** make a WKT polygon directly from the vertices')
 wkt = 'POLYGON(('
 for point in verts_georef:
-    wkt = wkt + str(point[0]) + ' ' + str(point[1]) + ', '
+  wkt = wkt + str(point[0]) + ' ' + str(point[1]) + ', '
 wkt = wkt.rstrip(', ')
 wkt = wkt + '))'
 print('WKT: ', wkt)
