@@ -4,6 +4,7 @@ const prefixBase = Iri("https://demo.triplydb.com/rotterdam/");
 
 export const baseIri = prefixBase.concat("vcs/");
 export const baseIriShaclExample = prefixBase.concat("shacl-example/");
+export const baseIriGeoData = prefixBase.concat("geodata/");
 
 const prefixId = baseIri.concat("id/");
 const prefixIdShaclExample = baseIriShaclExample.concat("id/");
@@ -11,6 +12,7 @@ const prefixDefShaclExample = baseIriShaclExample.concat("model/def/");
 
 export const graph = baseIri.concat("graph/");
 export const graphShaclExample = baseIriShaclExample.concat("graph/");
+export const graphGeoData = baseIriGeoData.concat("graph/");
 
 export const defShaclExample = {
   // classes
