@@ -12,7 +12,7 @@ import {
 
 export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
-  const etl = new Etl({ baseIri, defaultGraph: graph });
+  const etl = new Etl({ baseIri, defaultGraph: graph.concat("default") });
   etl.use(
     fromJson(source.shacl_example_buildings),
     whenForEach("@gebouwen", [
