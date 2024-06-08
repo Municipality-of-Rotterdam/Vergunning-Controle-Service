@@ -40,7 +40,9 @@ export async function vcsEtl(
     const user = await triply.getAccount(destination.vergunningscontroleservice.account);
     const dataset = await user.getDataset(destination.vergunningscontroleservice.dataset.name);
 
-    const reportPath = path.join(__dirname, "data", "IDSValidationReport.html");
+    const reportName = "IDSValidationReport";
+    const reportPathHtml = path.join(__dirname, "data", reportName + ".html");
+    const reportPathBcf = path.join(__dirname, "data", reportName + ".bcf");
     const footprintPath = path.join(__dirname, "data", "footprint.txt");
     const gltfPath = path.join(__dirname, "data", gltfName + ".gltf");
     const ifcOwlPath = path.join(__dirname, "data", "ifcOwlData.ttl");
@@ -50,21 +52,27 @@ export async function vcsEtl(
       try {
         await vcs.IFC.validateWithIds(idsFilePath);
       } catch (error) {
-        console.error("Error during validation! Uploading IDS Validation Report");
-        try {
-          const asset = await dataset.getAsset(reportPath);
-          await asset.delete();
-        } catch (error) {}
-        if (fs.existsSync(reportPath)) {
-          await dataset.uploadAsset(reportPath);
-        }
+        console.error("Error during validation!");
       }
+      console.info("Uploading IDS Validation Reports");
 
+      // html
       try {
-        const asset = await dataset.getAsset(reportPath);
+        const asset = await dataset.getAsset(reportName + ".html");
         await asset.delete();
       } catch (error) {}
-      await dataset.uploadAsset(reportPath);
+      if (fs.existsSync(reportPathHtml)) {
+        await dataset.uploadAsset(reportPathHtml, reportName + ".html");
+      }
+
+      // bfc
+      try {
+        const asset = await dataset.getAsset(reportName + ".bcf");
+        await asset.delete();
+      } catch (error) {}
+      if (fs.existsSync(reportPathBcf)) {
+        await dataset.uploadAsset(reportPathBcf, reportName + ".bcf");
+      }
     }
 
     // VCS Transform IFC to RDF

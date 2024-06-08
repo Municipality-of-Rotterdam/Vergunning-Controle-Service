@@ -10,13 +10,14 @@ export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
   const etl = new Etl({ baseIri, defaultGraph: baseIri.concat("default") });
 
+  const idsFile = "static/example_data/IDS Rotterdam BIM.ids";
+
   etl.use(
     // without ids check
-    await vcsEtl(ifcFile, { baseIRI: "https://www.rotterdam.nl/vcs/" }),
+    // await vcsEtl(ifcFile, { baseIRI: "https://www.rotterdam.nl/vcs/" }),
 
     // with ids check
-    // const idsFile = "static/example_data/IDS Rotterdam BIM.ids";
-    // await vcsEtl(ifcFile, idsFile, { baseIRI: "https://www.rotterdam.nl/vcs/" }),
+    await vcsEtl(ifcFile, idsFile, { baseIRI: "https://www.rotterdam.nl/vcs/" }),
 
     vcsGenerateShacl(),
 
