@@ -213,7 +213,6 @@ export abstract class Regel {
       a sh:SPARQLConstraint;
       sh:message '${this.message()}';
       sh:severity sh:Violation;
-      sh:datatype xsd:string;
       sh:select '''${this.sparql()}'''.
     `;
   }
@@ -233,7 +232,7 @@ prefix graph: <https://demo.triplydb.com/rotterdam/vcs/graph/>
 prefix ifc: <http://standards.buildingsmart.org/IFC/DEV/IFC4/ADD1/OWL#>
 prefix shp:   <https://demo.triplydb.com/rotterdam/vcs/model/shp/>
 graph:model {
-  shp:Building
+  shp:Gebouw
     a sh:NodeShape;
     sh:targetClass ifc:IfcBuilding;
     sh:sparql
