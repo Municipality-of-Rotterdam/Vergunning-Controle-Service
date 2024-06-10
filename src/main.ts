@@ -10,7 +10,7 @@ export default async function (): Promise<Etl> {
   // Create an extract-transform-load (ETL) process.
   const etl = new Etl({ baseIri, defaultGraph: baseIri.concat("default") });
 
-  const idsFile = "static/example_data/IDS Rotterdam BIM.ids";
+  const idsFile = "static/ids/IDS Rotterdam BIM.ids";
 
   etl.use(
     // without ids check
