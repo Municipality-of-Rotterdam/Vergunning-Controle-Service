@@ -61,18 +61,18 @@ export async function vcsEtl(
         const asset = await dataset.getAsset(reportName + ".html");
         await asset.delete();
       } catch (error) {}
-      if (fs.existsSync(reportPathHtml)) {
-        await dataset.uploadAsset(reportPathHtml, reportName + ".html");
-      }
+      // if (fs.existsSync(reportPathHtml)) {
+      await dataset.uploadAsset(reportPathHtml, reportName + ".html");
+      // }
 
       // bfc
       try {
         const asset = await dataset.getAsset(reportName + ".bcf");
         await asset.delete();
       } catch (error) {}
-      if (fs.existsSync(reportPathBcf)) {
-        await dataset.uploadAsset(reportPathBcf, reportName + ".bcf");
-      }
+      // if (fs.existsSync(reportPathBcf)) {
+      await dataset.uploadAsset(reportPathBcf, reportName + ".bcf");
+      // }
     }
 
     // VCS Transform IFC to RDF
