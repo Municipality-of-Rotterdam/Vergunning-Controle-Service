@@ -27,12 +27,13 @@ export const controles = async (context: StepContext) => {
 }
 
 export const getCheckGroups = async () => {
-  const groupFolders = (await readdir('./src/controles')).sort()
+  const groupFolders = (await readdir('./src/controles', { withFileTypes: true }))
+    .filter((f) => f.isDirectory())
+    .map((f) => f.name)
+    .sort()
   const groups: BaseGroep<{}>[] = []
 
   for (const groupFolder of groupFolders) {
-    if (groupFolder.endsWith('.md')) continue
-
     const groupFiles = (await readdir(`./src/controles/${groupFolder}`)).sort()
     const instances = await Promise.all(
       groupFiles
