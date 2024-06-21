@@ -76,6 +76,7 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
    * This SPARQL must only return when there is a validation error.
    * This query is used inside the SHACL validator to generate the validation report.
    */
+  // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/2-Wonen-bebouwingsnormen-hoogte>
   sparql({ max }: SparqlInputs): string {
     return `
       prefix xsd: <http://www.w3.org/2001/XMLSchema#>
