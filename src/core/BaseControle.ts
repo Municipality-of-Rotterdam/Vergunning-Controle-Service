@@ -28,7 +28,7 @@ export abstract class BaseControle<T> {
    */
   public dataSelectie: NamedNode[] = []
   abstract voorbereiding(context: StepContext): Promise<T>
-  abstract sparql(inputs: T): string
+  abstract sparql(inputs: T): string // TODO should this not be pulled from TriplyDB?
   abstract validatieMelding(inputs: T): string
 
   public processedSparql: string = ''
@@ -46,7 +46,7 @@ export abstract class BaseControle<T> {
       this.log(sparqlInputs)
     }
 
-    this.processedSparql = await this.sparql(sparqlInputs)
+    this.processedSparql = this.sparql(sparqlInputs)
     this.processedMessage = this.validatieMelding(sparqlInputs)
   }
 }
