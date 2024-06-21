@@ -8,7 +8,7 @@ import { StepContext } from './executeSteps.js'
 
 const log = createLogger('checks', import.meta)
 
-export abstract class BaseControle<T> {
+export abstract class BaseControle<T, G extends {}> {
   readonly id: number
 
   public abstract naam: string
@@ -17,9 +17,9 @@ export abstract class BaseControle<T> {
     this.id = parseInt(filename.split('.')[0])
   }
 
-  public groep?: BaseGroep<{}>
+  public groep?: BaseGroep<G>
 
-  setGroup(group: BaseGroep<{}>) {
+  setGroup(group: BaseGroep<G>) {
     this.groep = group
   }
 

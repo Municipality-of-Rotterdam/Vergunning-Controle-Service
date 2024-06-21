@@ -1,4 +1,5 @@
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
+//import { GroepRuimtelijkePlannenData } from '@root/src/controles/1. Ruimtelijke plannen/Ruimtelijke plannen.ts'
 import { BaseControle } from '@core/BaseControle.js'
 import { NamedNode } from '@rdfjs/types'
 import { StepContext } from '@root/core/executeSteps.js'
@@ -11,7 +12,10 @@ type SparqlInputs = {
 /**
  * A check for the Rotterdam vergunningscontrole service.
  */
-export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<SparqlInputs> {
+export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<
+  SparqlInputs,
+  GroepRuimtelijkePlannenData
+> {
   /**
    * The name shown in the report
    */
@@ -32,20 +36,12 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
    * You can log after each return value from the API.
    */
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
-    const coordinates = context.voetprintCoordinates
-
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const geoShape = { _geo: { contains: { type: 'Polygon', coordinates: [coordinates] } } }
-
-    const plans = (await ruimtelijkePlannen.plannen(geoShape, { planType: 'bestemmingsplan' }))['_embedded']['plannen']
-    const planIds: string[] = plans.filter((plan: any) => !plan.isParapluplan).map((plan: any) => plan.id)
-
-    this.log(`De volgende bestemmingsplan(nen) gevonden: \n${planIds.map((id) => `\t${id}`).join('\n')}`)
 
     const maatvoeringen: any[] = (
       await Promise.all(
-        planIds.flatMap(async (planId) => {
-          const response = await ruimtelijkePlannen.maatvoeringen(planId, geoShape)
+        this.groep?.data?.planIds.flatMap(async (planId) => {
+          const response = await ruimtelijkePlannen.maatvoeringen(planId, this.groep?.data?.geoShape)
           return response['_embedded']['maatvoeringen'].filter(
             (maatvoering: any) => maatvoering['naam'] == 'maximum aantal bouwlagen',
           )

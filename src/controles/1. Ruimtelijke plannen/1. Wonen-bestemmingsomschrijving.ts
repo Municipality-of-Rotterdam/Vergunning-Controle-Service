@@ -1,4 +1,5 @@
 import { BaseControle } from '@core/BaseControle.js'
+//import { GroepRuimtelijkePlannenData } from '@root/src/controles/1. Ruimtelijke plannen/Ruimtelijke plannen.ts'
 import { NamedNode } from '@rdfjs/types'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
@@ -7,23 +8,19 @@ type SparqlInputs = {
   gebruiksfunctie: string
 }
 
-export default class Controle2WonenBestemmingsomschrijving extends BaseControle<SparqlInputs> {
+export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
+  SparqlInputs,
+  GroepRuimtelijkePlannenData
+> {
   public naam = 'Bestemmingsomschrijving'
   dataSelectie: NamedNode<string>[] = []
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
-    const coordinates = context.voetprintCoordinates
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const geoShape = { _geo: { contains: { type: 'Polygon', coordinates: [coordinates] } } }
-    const plans = (await ruimtelijkePlannen.plannen(geoShape, { planType: 'bestemmingsplan' }))['_embedded']['plannen']
-    const planIds: string[] = plans.filter((plan: any) => !plan.isParapluplan).map((plan: any) => plan.id)
-
-    this.log(`De volgende bestemmingsplan(nen) gevonden: \n${planIds.map((id) => `\t${id}`).join('\n')}`)
-
     const bestemmingsvlakken: any[] = (
       await Promise.all(
-        planIds.flatMap(async (planId) => {
-          const response = await ruimtelijkePlannen.bestemmingsvlakZoek(planId, geoShape)
+        this.groep?.data?.planIds.flatMap(async (planId) => {
+          const response = await ruimtelijkePlannen.bestemmingsvlakZoek(planId, this.groep?.data?.geoShape)
           return response['_embedded']['bestemmingsvlakken']
         }),
       )
@@ -40,9 +37,9 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
 
     const gebruiksfunctie: string = bestemmingsvlakken[0]['naam']
 
-    this.log(`Bestemmingsvlak is van type ${gebruiksfunctie}`)
+    this.log(`Bestemmingsvlak ${gebruiksfunctie}`)
 
-    return { gebruiksfunctie }
+    return { gebruiksfunctie: 'wonden' }
   }
 
   // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/1-Wonen-bestemmingsomschrijving>
