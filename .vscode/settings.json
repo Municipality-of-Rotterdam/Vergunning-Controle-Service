@@ -1,0 +1,28 @@
+{
+  "cSpell.words": [
+    "decache",
+    "georeference",
+    "gltf",
+    "grapoi",
+    "Kathrin",
+    "rdfjs",
+    "rdfs",
+    "Reads",
+    "Regel",
+    "regels",
+    "shacl",
+    "sparql",
+    "voetprint",
+    "Voetprint"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "never"
+  },
+  "editor.formatOnSave": true,
+  "files.autoSave": "off",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.tabSize": 2,
+  "importSorter.generalConfiguration.sortOnBeforeSave": true,
+  "cSpell.language": "en,nl,nl-NL"
+}
