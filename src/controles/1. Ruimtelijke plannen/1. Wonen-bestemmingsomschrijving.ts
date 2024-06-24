@@ -74,12 +74,12 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
         ?IfcPropertySingleValue ifc:nominalValue_IfcPropertySingleValue/express:hasString ?functie ;
                                 ifc:name_IfcProperty/express:hasString "Gebruiksfunctie" .
 
-        filter(?functie != ${gebruiksfunctie})
+        filter(?functie != "${gebruiksfunctie}")
       }
     `
   }
 
   validatieMelding({ gebruiksfunctie }: SparqlInputs): string {
-    return `Ruimte {?this} heeft de gebruiksfunctie {?functie}. Dit moet ${gebruiksfunctie} zijn.`
+    return `Ruimte {?space} heeft de gebruiksfunctie "{?functie}". Dit moet "${gebruiksfunctie}" zijn.`
   }
 }
