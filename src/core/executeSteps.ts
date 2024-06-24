@@ -18,7 +18,7 @@ export type StepContext = {
   baseIRI: string
 
   // maakLinkedData
-  focusedDataset: TriplyStore
+  gebouwDataset: TriplyStore
   gebouwSubject: Quad_Subject
 
   // verrijk

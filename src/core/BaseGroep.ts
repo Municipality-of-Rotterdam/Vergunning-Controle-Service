@@ -13,7 +13,6 @@ export abstract class BaseGroep<T extends {}> {
   public abstract naam: string
 
   public data?: T
-  public dataSelectie: NamedNode[] = []
 
   setChecks = (controles: BaseControle<unknown>[]) => {
     this.controles = controles

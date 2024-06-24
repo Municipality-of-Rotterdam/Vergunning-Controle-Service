@@ -39,5 +39,5 @@ You also need `RP_API_TOKEN`. You can find it in the GitLab CI environment setti
 
 Het doel van deze software is het uitvoeren van controles op de IFC van gebouwen.
 
-- Controle groep, een groep van controles. Een controle groep bestaat uit: `dataSelectie`, `voorbereiding`, `controles`.
-- Controle, een controle voor een specifieke regel. Een controle bestaat uit: `dataSelectie`, `voorbereiding`, `sparql`.
+- Controle groep, een groep van controles. Een controle groep bestaat uit: `voorbereiding`, `controles`.
+- Controle, een controle voor een specifieke regel. Een controle bestaat uit: `voorbereiding`, `sparql`.

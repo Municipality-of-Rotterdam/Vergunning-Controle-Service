@@ -9,7 +9,6 @@ type SparqlInputs = {
 
 export default class Controle2WonenBestemmingsomschrijving extends BaseControle<SparqlInputs> {
   public naam = 'Bestemmingsomschrijving'
-  dataSelectie: NamedNode<string>[] = []
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const coordinates = context.voetprintCoordinates
