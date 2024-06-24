@@ -1,35 +1,20 @@
-import { Etl, loadRdf, toTriplyDb } from "@triplyetl/etl/generic";
-import { destination, source } from "./utils/sources-destinations.js";
-import { baseIri, graph } from "./utils/declarations.js";
-import { vcsEtl, vcsGenerateShacl } from "./VCS/VcsEtl.js";
-import { validate } from "@triplyetl/etl/shacl";
+import { controles } from '@core/controles.js'
+import { executeSteps } from '@core/executeSteps.js'
+import { init } from '@core/init/init.js'
+import { maakLinkedData } from '@core/init/maakLinkedData.js'
+import { upload } from '@core/upload.js'
+import { valideer } from '@core/valideer.js'
+import { verrijk } from '@core/verrijkingen.js'
+import { rapportage } from '@root/rapportage/rapportage.js'
 
-const ifcFile = "static/Kievitsweg_R23_MVP_IFC4.ifc";
+// TODO IDS nog uitvoeren voordat alles draait.
 
-export default async function (): Promise<Etl> {
-  // Create an extract-transform-load (ETL) process.
-  const etl = new Etl({ baseIri, defaultGraph: baseIri.concat("default") });
-
-  const idsFile = "static/ids/IDS Rotterdam BIM.ids";
-
-  etl.use(
-    // without ids check
-    // await vcsEtl(ifcFile, { baseIRI: "https://www.rotterdam.nl/vcs/" }),
-
-    // with ids check
-    await vcsEtl(ifcFile, idsFile, { baseIRI: "https://www.rotterdam.nl/vcs/" }),
-
-    vcsGenerateShacl(),
-
-    validate(source.model, {
-      graph: graph.concat("report"),
-      terminateOn: "Never",
-    }),
-
-    loadRdf(source.model),
-
-    toTriplyDb(destination.vergunningscontroleservice),
-  );
-
-  return etl;
-}
+await executeSteps([
+  ['Initialisatie', init],
+  ['Linked Data', maakLinkedData],
+  ['Verrijkingen', verrijk],
+  ['Opslaan naar TriplyDB database', upload],
+  ['Controles voorbereiden', controles],
+  ['Controles uitvoeren', valideer],
+  ['Rapportage', rapportage],
+])

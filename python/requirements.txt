@@ -1,7 +1,0 @@
-ifcopenshell
-ifctester
-bcf-client
-pystache
-numpy
-shapely
-argparse

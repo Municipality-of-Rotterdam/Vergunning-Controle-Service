@@ -3,7 +3,7 @@
 # After generating the image you can test it locally with `docker run -it vcs-rotterdam-image:latest /bin/bash` and exit the environment with `exit`
 
 # Use an official Ubuntu as a parent image
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 # Set the environment variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -41,8 +41,8 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python
 # Verify Python installation
 RUN python3 --version
 
-# Install Java (OpenJDK 11)
-RUN apt-get install -y openjdk-11-jdk
+# Install Java (OpenJDK 17)
+RUN apt-get install -y openjdk-17-jdk
 
 # Verify Java installation
 RUN java --version

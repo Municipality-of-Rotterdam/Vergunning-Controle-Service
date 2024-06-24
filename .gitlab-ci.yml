@@ -2,13 +2,12 @@ include:
   - project: 'shared/ci-utils'
     file: 'triply-etl.yml'
 
-default: 
-  tags: 
+default:
+  tags:
     - etl
 
 workflow:
   name: $PIPELINE_NAME
-
 
 stages:
   - release
@@ -21,7 +20,7 @@ image: ${CI_REGISTRY_IMAGE}:24.05.23
 
 # - Uses the docker image, so we have the docker credentials
 # - Logs-in to the registry of that project (CI_REGISTRY) using the credentials of the person who triggered the CI (CI_REGISTRY_USER).
-# - It publishes using the project name of your project (CI_REGISTRY_NAME) is something like 
+# - It publishes using the project name of your project (CI_REGISTRY_NAME) is something like
 # - Releases / pushes the image
 release-docker:
   image: docker:20.10.18-cli
@@ -31,25 +30,13 @@ release-docker:
     - docker build -f docker/Dockerfile -t ${CI_REGISTRY_IMAGE}:24.05.23 .
     - docker push ${CI_REGISTRY_IMAGE}:24.05.23
 
-### Stage 0: Only install, lint and build, gets triggered on push and merge-requests:
-preflight:
-  stage: preflight
-  script:
-    - !reference [.etl-template, install]
-  rules:
-    - !reference [.etl-template, rules-preflight]
-
-### Stage 1: run ETL "main"
 main:
   stage: run-etls
   interruptible: true
   # WARNING: by setting 'allow_failure' to 'true' scripts that fail
   # will not stop the ETL from continuing with other stages/scripts.
   allow_failure: false
-  artifacts:
-    !reference [.etl-template, artifacts]
   script:
-    - !reference [.etl-template, install]
-    - !reference [.etl-template, run-etl]
-  rules:
-    - !reference [.etl-template, rules]
+    - npm install
+    - npm run build
+    - node --max-old-space-size=16000 lib/main.js --filename=Kievitsweg_R23_MVP_IFC4.ifc --clean
