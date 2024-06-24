@@ -17,9 +17,6 @@ export default async function JouwVerrijking({
 
   log(`Starten van tag creatie`, 'JouwVerrijking')
 
-  // focusedDataset bevat de IFC data maar enkel en alleen de classes die aangegeven zijn in de groepen en controles door middel van de dataSelectie eigenschap.
-  // Als je linked data maakt moet je die toevoegen aan de verrijkingenDataset
-
   const tag = 'Mijn extra tag'
 
   const quad = factory.quad(

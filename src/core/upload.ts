@@ -19,7 +19,7 @@ const fileUploadBlackList = [
 
 export const upload = async ({
   outputsDir,
-  focusedDataset,
+  gebouwDataset,
   datasetName,
   args,
   baseIRI,
@@ -27,7 +27,7 @@ export const upload = async ({
   verrijkingenDataset,
 }: Pick<
   StepContext,
-  'outputsDir' | 'focusedDataset' | 'args' | 'datasetName' | 'account' | 'baseIRI' | 'verrijkingenDataset'
+  'outputsDir' | 'gebouwDataset' | 'args' | 'datasetName' | 'account' | 'baseIRI' | 'verrijkingenDataset'
 >) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
@@ -85,7 +85,7 @@ export const upload = async ({
   if (shouldUpload) {
     log(`Dataset uploaden naar TriplyDB`)
 
-    await dataset.importFromStore(focusedDataset as any, {
+    await dataset.importFromStore(gebouwDataset as any, {
       defaultGraphName: `https://www.rotterdam.nl/vcs/${datasetName}/gebouw`,
       overwriteAll: true,
     })

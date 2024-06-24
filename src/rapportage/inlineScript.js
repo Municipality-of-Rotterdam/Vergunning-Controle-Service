@@ -14,7 +14,7 @@ var RD = new L.Proj.CRS(
 
 const data = JSON.parse(document.querySelector('#data').innerHTML)
 
-const center = RD.projection.unproject({ x: data.camera.Delta_X, y: data.camera.Delta_Y })
+const center = RD.projection.unproject({ x: data.geoData.Delta_X, y: data.geoData.Delta_Y })
 
 const viewer = new Cesium.Viewer('cesiumContainer', {
   infoBox: false,
@@ -25,8 +25,8 @@ const viewer = new Cesium.Viewer('cesiumContainer', {
 
 viewer.entities.removeAll()
 
-const position = Cesium.Cartesian3.fromDegrees(center.lng, center.lat, data.camera.Height)
-const heading = data.camera.Rotation + 0.75 * Math.PI
+const position = Cesium.Cartesian3.fromDegrees(center.lng, center.lat, data.geoData.Height)
+const heading = data.geoData.Rotation + 0.75 * Math.PI
 const pitch = 0
 const roll = 0
 const hpr = new Cesium.HeadingPitchRoll(heading, pitch, roll)

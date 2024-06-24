@@ -22,15 +22,6 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<
   public naam = 'Bebouwingsnormen: Hoogte'
 
   /**
-   * Here you have to select the RDF classes which you want to use the SPARQL query so that they can included into the smaller dataset
-   * that is used instead of the huge dataset that has many things that we are not interested in.
-   *
-   * TODO use dataSelectie also as a check to see that the minimum data is in the data store.
-   * Stop the VCS if there is no instances of any of these classes.
-   */
-  dataSelectie: NamedNode<string>[] = []
-
-  /**
    * In the prepare phase you can call APIs and gather outputs.
    * These outputs must be returned in an object. This object must have the type SparqlInputs.
    * You can log after each return value from the API.

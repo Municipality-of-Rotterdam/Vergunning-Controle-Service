@@ -13,7 +13,6 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
   GroepRuimtelijkePlannenData
 > {
   public naam = 'Bestemmingsomschrijving'
-  dataSelectie: NamedNode<string>[] = []
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
@@ -72,12 +71,12 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
         ?IfcPropertySingleValue ifc:nominalValue_IfcPropertySingleValue/express:hasString ?functie ;
                                 ifc:name_IfcProperty/express:hasString "Gebruiksfunctie" .
 
-        filter(?functie != ${gebruiksfunctie})
+        filter(lcase(str(?functie)) != "${gebruiksfunctie.toLowerCase()}")
       }
     `
   }
 
   validatieMelding({ gebruiksfunctie }: SparqlInputs): string {
-    return `Ruimte {?this} heeft de gebruiksfunctie {?functie}. Dit moet ${gebruiksfunctie} zijn.`
+    return `Ruimte {?space} heeft de gebruiksfunctie "{?functie}". Dit moet "${gebruiksfunctie}" zijn.`
   }
 }

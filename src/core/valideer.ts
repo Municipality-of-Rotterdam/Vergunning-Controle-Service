@@ -53,9 +53,12 @@ export const valideer = async ({
           Accepts: 'application/sparql-results+json, application/n-triples',
           Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
         },
-      }).then((response) => response.json())
-
-      const failedResult = response[0] ?? false
+      })
+      if (!response.ok) {
+        throw new Error(response.statusText)
+      }
+      const responseJson = await response.json()
+      const failedResult = responseJson[0] ?? false
 
       let processedMessage: string
 

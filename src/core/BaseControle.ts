@@ -23,10 +23,6 @@ export abstract class BaseControle<T, G extends {}> {
     this.groep = group
   }
 
-  /**
-   * Hier moet een array van RDF classes die nodig zijn voor de SPARQL query
-   */
-  public dataSelectie: NamedNode[] = []
   abstract voorbereiding(context: StepContext): Promise<T>
   abstract sparql(inputs: T): string // TODO should this not be pulled from TriplyDB?
   abstract validatieMelding(inputs: T): string
