@@ -85,10 +85,11 @@ export const upload = async ({
   if (shouldUpload) {
     log(`Dataset uploaden naar TriplyDB`)
 
+    /* TODO We have already done this --- other upload steps should probably also be moved to their respective creation steps
     await dataset.importFromStore(gebouwDataset as any, {
       defaultGraphName: `https://www.rotterdam.nl/vcs/${datasetName}/gebouw`,
       overwriteAll: true,
-    })
+    })*/
 
     await dataset.importFromStore(verrijkingenDataset as any, {
       defaultGraphName: `https://www.rotterdam.nl/vcs/${datasetName}/verrijkingen`,
