@@ -17,7 +17,7 @@ export default async function Gltf({
   outputsDir,
   inputIfc,
   args,
-}: Pick<StepContext, 'outputsDir' | 'inputIfc' | 'focusedDataset' | 'verrijkingenDataset' | 'args'>) {
+}: Pick<StepContext, 'outputsDir' | 'inputIfc' | 'args'>) {
   const operatingSystem = getOperatingSystem()
   const ifConvertPath = `./src/tools/ifc-convert/${operatingSystem}/IfcConvert`
   const glbOutput = `${outputsDir}/gebouw.glb`
