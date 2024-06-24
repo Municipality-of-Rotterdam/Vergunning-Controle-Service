@@ -74,7 +74,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
         ?IfcPropertySingleValue ifc:nominalValue_IfcPropertySingleValue/express:hasString ?functie ;
                                 ifc:name_IfcProperty/express:hasString "Gebruiksfunctie" .
 
-        filter(?functie != "${gebruiksfunctie}")
+        filter(lcase(str(?functie)) != "${gebruiksfunctie.toLowerCase()}")
       }
     `
   }
