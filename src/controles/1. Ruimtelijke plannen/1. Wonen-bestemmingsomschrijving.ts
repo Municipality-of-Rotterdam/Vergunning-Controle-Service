@@ -9,7 +9,6 @@ type SparqlInputs = {
 
 export default class Controle2WonenBestemmingsomschrijving extends BaseControle<SparqlInputs> {
   public naam = 'Bestemmingsomschrijving'
-  dataSelectie: NamedNode<string>[] = []
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const coordinates = context.voetprintCoordinates
@@ -75,12 +74,12 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
         ?IfcPropertySingleValue ifc:nominalValue_IfcPropertySingleValue/express:hasString ?functie ;
                                 ifc:name_IfcProperty/express:hasString "Gebruiksfunctie" .
 
-        filter(?functie != ${gebruiksfunctie})
+        filter(lcase(str(?functie)) != "${gebruiksfunctie.toLowerCase()}")
       }
     `
   }
 
   validatieMelding({ gebruiksfunctie }: SparqlInputs): string {
-    return `Ruimte {?this} heeft de gebruiksfunctie {?functie}. Dit moet ${gebruiksfunctie} zijn.`
+    return `Ruimte {?space} heeft de gebruiksfunctie "{?functie}". Dit moet "${gebruiksfunctie}" zijn.`
   }
 }
