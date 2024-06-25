@@ -3,6 +3,7 @@ import fs from 'fs/promises'
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
 import App from '@triply/triplydb'
+import * as n3 from 'n3'
 
 const log = createLogger('upload', import.meta, 'Upload')
 
@@ -81,7 +82,7 @@ export const upload = async ({
 
     if (graphExists) shouldUpload = false
   }
-
+  shouldUpload = false // TODO figure out what is going wrong later
   if (shouldUpload) {
     log(`Dataset uploaden naar TriplyDB`)
 
