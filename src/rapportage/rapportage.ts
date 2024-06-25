@@ -41,7 +41,7 @@ export const rapportage = async ({
   const props = {
     gebouw: pointer.out(rpt('building')).value.toString(),
     geoData: geoData,
-    gltfUrl: `data:${urlBase64Encoded}`,
+    gltfUrl: gltfAsset.getInfo().url,
     polygon: {
       type: 'Feature',
       geometry: {
