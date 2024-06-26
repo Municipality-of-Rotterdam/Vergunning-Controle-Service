@@ -26,34 +26,40 @@ References:
 
 def main(file,ifc_classes):
 
-    #print('file:', file)
-    #print('classes:', ifc_classes)
-
     ifc_file = ifcopenshell.open(file)
     settings = ifcopenshell.geom.settings() # see https://docs.ifcopenshell.org/ifcopenshell/geometry_settings.html
+    global map_conversion
+    map_conversion = ifc_file.by_type('IfcMapConversion')
 
     geometries = []
     for ifc_class in ifc_classes:
         ifc_objects = ifc_file.by_type(ifc_class)
         for ifc_object in ifc_objects:
-            print('ifc object:',ifc_object.Name)
-            #print('ifc object id:',ifc_object.id)
-            #print('ifc object name:',ifc_object.attribute_name)
+            #print('ifc object:',ifc_object.Name)
             try:
                 shape = ifcopenshell.geom.create_shape(settings, ifc_object)
             except:
-                print('  > skipping IFC object with name',ifc_object.Name)
+                print('skipping IFC object with name',ifc_object.Name)
                 break
-            #print('shape:',shape)
-            #print('shape geometry',shape.geometry)
-            #print('shape geometry id',shape.geometry.id)
             footprint = get_footprint(shape.geometry)
             geometries.append(footprint)
 
     print('collected all geometries')
     unioned_geometry = shapely.ops.unary_union(geometries)
-    footprint_exterior = unioned_geometry.exterior
-    footprint_georef = georeference(footprint_exterior)
+    plot(unioned_geometry,'unioned geometry')
+    print('unioned_geometry type:',unioned_geometry.geom_type)
+    if unioned_geometry.geom_type == 'Polygon':
+        outer_shape = unioned_geometry.exterior
+    else: # it's a multipolygon
+        outer_polys = []
+        for poly in unioned_geometry:
+            outer_polys.append(poly.exterior)
+        outer_shape = shapely.ops.unary_union(outer_polys)
+       
+    plot(outer_shape,'outer shape')
+    print('outer shape type:',outer_shape.geom_type)
+
+    footprint_georef = georeference(outer_shape)
     plot(footprint_georef,'footprint georeferenced')
 
     print('footprint WKT (CRS epsg:28992):',footprint_georef)
@@ -64,14 +70,13 @@ def main(file,ifc_classes):
 def georeference(geometry):
     # Georefence the X and Y coordinates, drop the Z coordinate and round to 3 decimals (milimetres)
     # first do the rotation, then the translation, using the parameters from IfcMapConversion
-    map_conversion = ifc_file.by_type('IfcMapConversion')
     delta_x = map_conversion[0][2] # should be RD (metres)
     delta_y = map_conversion[0][3] # shoudl be RD (metres)
     #height = map_conversion[0][4] # needed for 3D geometries; should in metres relative to NAP
     rotation = -1 * np.arctan(map_conversion[0][6]/map_conversion[0][5])
     print('rotation (radians):', rotation, '\n')
     
-    #debug: substract half pi to the rotation. This gets the footprint in the right position. Why?
+    #substract half pi to the rotation. This gets the footprint in the right position. Why?
     rotation = rotation - (np.pi / 2)
 
     verts_georef = []
@@ -138,14 +143,18 @@ def get_footprint(geometry) -> shapely.Geometry:
     unioned_geometry = shapely.ops.unary_union(polygons)
     #print ('unioned geometry:',unioned_geometry)
 
+    """ no need to get the outer boundary here
     #print('unioned_geometry type',unioned_geometry.geom_type)
     if unioned_geometry.geom_type == 'Polygon':
         outer_shape = unioned_geometry.exterior
     else:
-        outer_shape = shapely.convex_hull(unioned_geometry)
+        plot(unioned_geometry,'unioned_geometry no polygon')
+        
+        plot(outer_shape,'outer shape multipolygon')
 
     print('outer shape type:',outer_shape.geom_type)
-    return outer_shape
+    """
+    return unioned_geometry
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='footprint', description='Returns the building footprint in WKT')
