@@ -1,3 +1,5 @@
+import argparse
+import os
 import ifcopenshell
 import ifcopenshell.geom
 import ifcopenshell.util.shape
@@ -7,35 +9,73 @@ import matplotlib.pyplot as pp
 import geopandas as gpd
 from typing import Optional, Literal
 
-# Frans 2024-04-29: This is a proof-of-concept for extracting a 2D footprint of a building from an IFC file
-# For ifcopenshell geometry processing, see https://docs.ifcopenshell.org/ifcopenshell-python/geometry_processing.html
-#
-# done:
-# - georeference vertices
-# - make a polygon by convex hull of vertices
-#
-# failures:
-# - Make a concave hull from edges:
-#
-# to do:
-# - Optimise code and make it pyhonic
-# - Allow multiple instances of ifc classes
-# - Run with commandline arguments, e.g. footprint.py my.ifc IfcRoof IfcSlab
+"""Based on an IFC file and a collection of IFC elements, calculate the following:
+1) A 2D footprint of the building, consisting of the union of exterior boundaries of the provided IFC elements.
+   The footprint can be a polygon or a multipolygon (the latter in case the IFC model describes spatially separate buildings)
+2) The perimeter of the footprint in metres
+3) The area of the footprint in square metres
 
-tol = 1e-6
-AXIS_LITERAL = Literal["X", "Y", "Z"]
-VECTOR_3D = tuple[float, float, float]
+Assumptions:
+1) The IFC file contains an IfcMapConversion element, with values bases on RD (espg:28992) and NAP
 
-def georeference(polygon):
-       #print('function - polygon coords:',polygon.exterior.coords[:])
+References:
+1) For ifcopenshell geometry processing, see https://docs.ifcopenshell.org/ifcopenshell-python/geometry_processing.html
+"""
+
+# example args /home/frans/Projects/VCS Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc IfcRoof IfcSlab
+
+def main(file,ifc_classes):
+
+    #print('file:', file)
+    #print('classes:', ifc_classes)
+
+    ifc_file = ifcopenshell.open(file)
+    settings = ifcopenshell.geom.settings() # see https://docs.ifcopenshell.org/ifcopenshell/geometry_settings.html
+
+    geometries = []
+    for ifc_class in ifc_classes:
+        ifc_objects = ifc_file.by_type(ifc_class)
+        for ifc_object in ifc_objects:
+            print('ifc object:',ifc_object.Name)
+            #print('ifc object id:',ifc_object.id)
+            #print('ifc object name:',ifc_object.attribute_name)
+            try:
+                shape = ifcopenshell.geom.create_shape(settings, ifc_object)
+            except:
+                print('  > skipping IFC object with name',ifc_object.Name)
+                break
+            #print('shape:',shape)
+            #print('shape geometry',shape.geometry)
+            #print('shape geometry id',shape.geometry.id)
+            footprint = get_footprint(shape.geometry)
+            geometries.append(footprint)
+
+    print('collected all geometries')
+    unioned_geometry = shapely.ops.unary_union(geometries)
+    footprint_exterior = unioned_geometry.exterior
+    footprint_georef = georeference(footprint_exterior)
+    plot(footprint_georef,'footprint georeferenced')
+
+    print('footprint WKT (CRS epsg:28992):',footprint_georef)
+    print('footprint perimeter (metres):', round(footprint_georef.length,3))
+    print('footprint area (square metres):', round(footprint_georef.area,3))
+
+
+def georeference(geometry):
+    # Georefence the X and Y coordinates, drop the Z coordinate and round to 3 decimals (milimetres)
+    # first do the rotation, then the translation, using the parameters from IfcMapConversion
     map_conversion = ifc_file.by_type('IfcMapConversion')
-    delta_x = map_conversion[0][2]
-    delta_y = map_conversion[0][3]
-    height = map_conversion[0][4]
+    delta_x = map_conversion[0][2] # should be RD (metres)
+    delta_y = map_conversion[0][3] # shoudl be RD (metres)
+    #height = map_conversion[0][4] # needed for 3D geometries; should in metres relative to NAP
     rotation = -1 * np.arctan(map_conversion[0][6]/map_conversion[0][5])
+    print('rotation (radians):', rotation, '\n')
+    
+    #debug: substract half pi to the rotation. This gets the footprint in the right position. Why?
+    rotation = rotation - (np.pi / 2)
+
     verts_georef = []
-    verts = polygon.exterior.coords[:]
-    print('verts:',verts)
+    verts = geometry.exterior.coords[:]
     print('vert0:',verts[0])
     for vert in verts :
         x_georef = (vert[0] * np.cos(rotation) + vert[1] * np.sin(rotation)) + delta_x
@@ -43,38 +83,16 @@ def georeference(polygon):
         verts_georef.append([round(x_georef,3),round(y_georef,3)])
     return shapely.Polygon(verts_georef)
 
+def plot(geometry, title): #plot a geometry (useful for development and debugging)
+    geom = gpd.GeoSeries([geometry])
+    geom.plot()
+    pp.title(title)
+    pp.show()
 
-def get_footprint( # copied from ifcopenshell.util.shape.get_footprint_area)
-    geometry,
-    axis: AXIS_LITERAL = "Z",
-    direction: Optional[VECTOR_3D] = None,
-) -> float:
-    """Calculates the total footprint (i.e. projected) surface area visible from along an axis
+# adapted from ifcopenshell.util.shape.get_footprint_area)
+def get_footprint(geometry) -> shapely.Geometry:
 
-    This is typically useful for calculating footprint areas. For example, you
-    might want to calculate the top-down footprint area of a slab, ignoring
-    slopes in the slab.
-
-    Surfaces do not need to be exactly perpendicular in the direction of the
-    specified axis. A surface is counted so long as it is visible from that
-    axis.
-
-    Note that this calculates the 2D projected area, not the actual surface
-    area. If you want the actual area, use ``get_side_area``.
-
-    :param geometry: Geometry output calculated by IfcOpenShell
-    :type geometry: geometry
-    :param axis: Either X, Y, or Z. Defaults to Z.
-    :type axis: str,optional
-    :param direction: An XYZ iterable (e.g. (0., 0., 1.)). If a direction
-        vector is specified, this overrides the axis argument.
-    :type axis: iterable[float],optional
-    :return: The surface area.
-    :rtype: float
-    """
-    if direction is None:
-        direction = {"X": (1.0, 0.0, 0.0), "Y": (0.0, 1.0, 0.0), "Z": (0.0, 0.0, 1.0)}[axis]
-
+    direction = (0.0, 0.0, 1.0)
     verts = geometry.verts
     faces = geometry.faces
     vertices = np.array([[verts[i], verts[i + 1], verts[i + 2]] for i in range(0, len(verts), 3)])
@@ -104,13 +122,7 @@ def get_footprint( # copied from ifcopenshell.util.shape.get_footprint_area)
 
     # Create an orthonormal basis using the direction
     d = np.array(direction) / np.linalg.norm(direction)
-
-    # Find a vector not parallel to d
-    a = np.array(d)
-    if not np.isclose(a[2], 1.0, atol=0.01):  # If d is not along the Z-axis
-        a[2] += 0.01  # Small perturbation to make it not parallel
-    else:
-        a = np.array([1, 0, 0])
+    a = np.array([1, 0, 0])
 
     # First basis vector
     b = np.cross(d, a)
@@ -123,81 +135,61 @@ def get_footprint( # copied from ifcopenshell.util.shape.get_footprint_area)
     vertices_2d = np.array([[np.dot(v, b), np.dot(v, c)] for v in vertices])
 
     polygons = [shapely.Polygon(vertices_2d[face]) for face in filtered_faces]
-    unioned_polygon = shapely.ops.unary_union(polygons)
+    unioned_geometry = shapely.ops.unary_union(polygons)
+    #print ('unioned geometry:',unioned_geometry)
 
-    return unioned_polygon
+    #print('unioned_geometry type',unioned_geometry.geom_type)
+    if unioned_geometry.geom_type == 'Polygon':
+        outer_shape = unioned_geometry.exterior
+    else:
+        outer_shape = shapely.convex_hull(unioned_geometry)
+
+    print('outer shape type:',outer_shape.geom_type)
+    return outer_shape
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog='footprint', description='Returns the building footprint in WKT')
+    parser.add_argument('ifc_file', help='Path to the input IFC file')
+    parser.add_argument('ifc_classes', help='Comma separated list of IFC classes to use to determine the footprint')
+    args = parser.parse_args()
+
+    ifc_file = args.ifc_file
+    if not os.path.exists(ifc_file):
+        print ('file not found:', ifc_file)
+        exit(1)
+
+    ifc_classes = args.ifc_classes.split(',')
+    if len(ifc_classes) == 0:
+        print ('no IFC classes specified')
+        exit(2)
+
+    main(ifc_file,ifc_classes)
 
 
-# Open an IFC file
-ifc_file = ifcopenshell.open('/home/frans/Projects/VCS Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc')
-print('\nIFC version: ',ifc_file.schema)
+exit (0)
 
+# The following code calculates an approximation of the footprint by calculatin the convex all of all vertices
 # Get parameters for georeferencing
-print('\n*** parameters for georeferencing')
 map_conversion = ifc_file.by_type('IfcMapConversion')
 delta_x = map_conversion[0][2]
 delta_y = map_conversion[0][3]
-height = map_conversion[0][4]
 rotation = -1 * np.arctan(map_conversion[0][6]/map_conversion[0][5])
-print('delta x: ',delta_x)
-print('delta y: ',delta_y)
-print('height: ',height)
-print('rotation (radians):', rotation, '\n')
-
-settings = ifcopenshell.geom.settings() # see https://docs.ifcopenshell.org/ifcopenshell/geometry_settings.html
-
-print('\n*** get the geometry of the roof')
-roof = ifc_file.by_type('IfcRoof')[0]
-roof_shape = ifcopenshell.geom.create_shape(settings, roof)
 verts = ifcopenshell.util.shape.get_vertices(roof_shape.geometry)
-print ('number of vertices:', len(verts))
-
-# get the edges. All edges connect only two vertices.
-edges = ifcopenshell.util.shape.get_edges(roof_shape.geometry)
-print ('number of edges:', len(edges))
-print ('first edge:', edges[0])
-
-#print('edges:', edges)
-
-perim = ifcopenshell.util.shape.get_footprint_perimeter(roof_shape.geometry)
-print('perim:',perim)
-
-fpa = ifcopenshell.util.shape.get_footprint_area(roof_shape.geometry)
-print('footprint area:', fpa)
-
-full_footprint = get_footprint(roof_shape.geometry)
-footprint_exterior = shapely.Polygon(full_footprint.exterior)
-
-ring_coords = full_footprint.exterior.coords
-print('ring_coords:',ring_coords)
-
-footprint_georef = georeference(footprint_exterior)
-
-print('footprint:',footprint_georef)
-
-
-# myPoly = gpd.GeoSeries([footprint])
-# myPoly.plot()
-# pp.show()
-
-
-exit(0)
-
-# Georefence the X and Y coordinates, drop the Z coordinate
-# first do the rotation, then the translation, using the parameters from IfcMapConversion
 verts_georef = []
 for vert in verts:
     x_georef = (vert[0] * np.cos(rotation) + vert[1] * np.sin(rotation)) + delta_x
     y_georef = (-1 * vert[0] * np.sin(rotation) + vert[1] * np.cos(rotation)) + delta_y
     verts_georef.append([round(x_georef,3),round(y_georef,3)])
-
-print ('first vertex, georeferenced:', verts_georef[0])
-print ('second vertex, georeferenced:', verts_georef[1])
-
-print('\n*** make a WKT polygon using a convex hull operation on vertices')
 mpt = shapely.multipoints(verts_georef)
 convex_hull = shapely.convex_hull(mpt)
 print('convex hull WKT: ', convex_hull)
+plot(convex_hull, 'convex hull')
+
+
+exit(0)
+
+
+
 
 #t ry to make polygons from edges
 # first create separate linearrings, then merge line segments with shapely.ops.linemerge(lines)
