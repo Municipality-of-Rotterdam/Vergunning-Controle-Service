@@ -94,6 +94,9 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{}>
   }
 
   bericht({ bouwaanduiding }: SparqlInputs): string {
-    return `Dak {?roof} heeft het daktype "{?rooftype}". Dit moet "${bouwaanduiding}'" zijn.`
+    return `Daken moeten het daktype "${bouwaanduiding.value}" hebben.`
+  }
+  berichtGefaald(invoer: SparqlInputs): string {
+    return `Dak {?roof} heeft het daktype "{?rooftype}". ${this.bericht(invoer)}`
   }
 }
