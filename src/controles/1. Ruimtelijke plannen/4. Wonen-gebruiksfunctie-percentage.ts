@@ -115,10 +115,7 @@ limit 1
   `
   }
 
-  berichtGefaald({ gebruiksfunctie }: SparqlInputs): string {
-    return `Kantoor beslaat {?result}%.`
-  }
-  berichtGeslaagd({ gebruiksfunctie }: SparqlInputs): string {
+  bericht({ gebruiksfunctie }: SparqlInputs): string {
     return `Kantoor beslaat {?result}%.`
   }
 }

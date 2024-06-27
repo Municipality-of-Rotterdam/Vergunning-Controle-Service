@@ -26,9 +26,12 @@ export abstract class BaseControle<T> {
   abstract voorbereiding(context: StepContext): Promise<T>
   abstract sparql(inputs: T): string // TODO should this not be pulled from TriplyDB?
 
-  abstract berichtGefaald(inputs: T): string
+  abstract bericht(inputs: T): string
+  berichtGefaald(inputs: T): string {
+    return this.bericht(inputs)
+  }
   berichtGeslaagd(inputs: T): string {
-    return 'Geslaagd!'
+    return this.bericht(inputs)
   }
 
   public sparqlInputs: T | undefined = undefined

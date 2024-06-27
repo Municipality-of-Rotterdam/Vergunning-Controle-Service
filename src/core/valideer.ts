@@ -61,7 +61,7 @@ export const valideer = async ({
       }
       const responseJson = await response.json()
       const result = responseJson[0] ?? null
-      const success: boolean = result ? result.success : false
+      const success: boolean = result ? result.success ?? false : false
       let message = success
         ? controle.berichtGeslaagd(controle.sparqlInputs)
         : controle.berichtGefaald(controle.sparqlInputs)
@@ -81,7 +81,7 @@ export const valideer = async ({
       reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
         controle.addOut(rdf('type'), rpt('Controle'))
         controle.addOut(rdfs('label'), factory.literal(name))
-        controle.addOut(rpt('passed'), factory.literal((!!!success).toString(), xsd('boolean')))
+        controle.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
         controle.addOut(rpt('message'), factory.literal(message))
       })
     }

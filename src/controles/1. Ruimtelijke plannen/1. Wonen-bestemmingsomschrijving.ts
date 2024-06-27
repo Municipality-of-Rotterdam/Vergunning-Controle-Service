@@ -79,7 +79,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
     `
   }
 
-  berichtGefaald({ gebruiksfunctie }: SparqlInputs): string {
+  bericht({ gebruiksfunctie }: SparqlInputs): string {
     return `Ruimte {?space} heeft de gebruiksfunctie "{?functie}". Dit moet "${gebruiksfunctie}" zijn.`
   }
 }
