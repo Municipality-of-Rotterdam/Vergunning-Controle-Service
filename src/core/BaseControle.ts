@@ -25,10 +25,21 @@ export abstract class BaseControle<T, G extends {}> {
 
   abstract voorbereiding(context: StepContext): Promise<T>
   abstract sparql(inputs: T): string // TODO should this not be pulled from TriplyDB?
-  abstract validatieMelding(inputs: T): string
 
-  public processedSparql: string = ''
-  public processedMessage: string = ''
+  abstract bericht(inputs: T): string
+  berichtGefaald(inputs: T): string {
+    return this.bericht(inputs)
+  }
+  berichtGeslaagd(inputs: T): string {
+    return this.bericht(inputs)
+  }
+
+  isToepasbaar(inputs: T): boolean {
+    return true
+  }
+
+  public sparqlInputs: T | undefined = undefined
+  public applicable: boolean | undefined = undefined
 
   log(message: any) {
     log(message, `Controle: "${this.id}. ${this.naam}"`)
@@ -36,13 +47,9 @@ export abstract class BaseControle<T, G extends {}> {
 
   async runPrepare(context: StepContext) {
     headerLogBig(`Controle: "${this.naam}": Voorbereiding`)
-
-    const sparqlInputs = await this.voorbereiding(context)
-    if (sparqlInputs) {
-      this.log(sparqlInputs)
+    this.sparqlInputs = await this.voorbereiding(context)
+    if (this.sparqlInputs) {
+      this.log(this.sparqlInputs)
     }
-
-    this.processedSparql = this.sparql(sparqlInputs)
-    this.processedMessage = this.validatieMelding(sparqlInputs)
   }
 }

@@ -3,6 +3,7 @@ import fs from 'fs/promises'
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
 import App from '@triply/triplydb'
+import * as n3 from 'n3'
 
 const log = createLogger('upload', import.meta, 'Upload')
 
@@ -81,14 +82,15 @@ export const upload = async ({
 
     if (graphExists) shouldUpload = false
   }
-
+  shouldUpload = false // TODO figure out what is going wrong later
   if (shouldUpload) {
     log(`Dataset uploaden naar TriplyDB`)
 
+    /* TODO We have already done this --- other upload steps should probably also be moved to their respective creation steps
     await dataset.importFromStore(gebouwDataset as any, {
       defaultGraphName: `https://www.rotterdam.nl/vcs/${datasetName}/gebouw`,
       overwriteAll: true,
-    })
+    })*/
 
     await dataset.importFromStore(verrijkingenDataset as any, {
       defaultGraphName: `https://www.rotterdam.nl/vcs/${datasetName}/verrijkingen`,
