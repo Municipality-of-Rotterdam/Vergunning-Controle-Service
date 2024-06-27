@@ -91,7 +91,7 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
    * The message to the end user in the validation report.
    * You must use the same variables as in the sparql method.
    */
-  validatieMelding({ max }: SparqlInputs): string {
+  berichtGefaald({ max }: SparqlInputs): string {
     return `Gebouw {?this} heeft in totaal {?aantalVerdiepingen} bouwlagen. Dit mag maximaal ${max} zijn.`
   }
 }

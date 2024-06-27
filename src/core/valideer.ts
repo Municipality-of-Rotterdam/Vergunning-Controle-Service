@@ -40,7 +40,9 @@ export const valideer = async ({
 
     headerLogBig(`Groep: "${checkGroup.naam}": Uitvoering`, 'yellowBright')
 
-    for (const { naam: name, processedSparql: query, processedMessage: message } of checkGroup.controles) {
+    for (const controle of checkGroup.controles) {
+      const name = controle.naam
+      const query = controle.sparql(controle.sparqlInputs)
       headerLogBig(`Controle: "${name}": Uitvoering`)
 
       log(`Bevragen van de SPARQL service`, name)
@@ -58,28 +60,29 @@ export const valideer = async ({
         throw new Error(response.statusText)
       }
       const responseJson = await response.json()
-      const failedResult = responseJson[0] ?? false
+      const result = responseJson[0] ?? null
+      const success: boolean = result ? result.success : false
+      let message = success
+        ? controle.berichtGeslaagd(controle.sparqlInputs)
+        : controle.berichtGefaald(controle.sparqlInputs)
 
-      let processedMessage: string
-
-      if (failedResult) {
-        processedMessage = message
-        for (const [key, value] of Object.entries(failedResult)) {
-          processedMessage = processedMessage.replaceAll(`{?${key}}`, value as string)
+      if (result) {
+        for (const [key, value] of Object.entries(result)) {
+          message = message.replaceAll(`{?${key}}`, value as string)
         }
-        log(chalk.redBright(processedMessage), name)
+      }
+
+      if (success) {
+        log(chalk.greenBright(`✅ ${message}`), name)
       } else {
-        processedMessage = `Geslaagd!`
-        log(chalk.greenBright(processedMessage), name)
+        log(chalk.redBright(`❌ ${message}`), name)
       }
 
       reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
         controle.addOut(rdf('type'), rpt('Controle'))
         controle.addOut(rdfs('label'), factory.literal(name))
-        controle.addOut(rpt('passed'), factory.literal((!!!failedResult).toString(), xsd('boolean')))
-        if (failedResult) {
-          controle.addOut(rpt('message'), factory.literal(processedMessage))
-        }
+        controle.addOut(rpt('passed'), factory.literal((!!!success).toString(), xsd('boolean')))
+        controle.addOut(rpt('message'), factory.literal(message))
       })
     }
   }

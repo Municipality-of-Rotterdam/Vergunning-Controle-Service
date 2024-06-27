@@ -7,8 +7,8 @@ type SparqlInputs = {
   gebruiksfunctie: string
 }
 
-export default class Controle2WonenBestemmingsomschrijving extends BaseControle<SparqlInputs> {
-  public naam = 'Bestemmingsomschrijving'
+export default class Controle2WonenGebruiksfunctiePercentage extends BaseControle<SparqlInputs> {
+  public naam = 'Gebruiksfunctie percentage wonen'
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const coordinates = context.voetprintCoordinates
@@ -50,7 +50,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
 prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 prefix express: <https://w3id.org/express#>
 
-select ((?totalK/?totalW) as ?result) where {
+select ?result ?success where {
   {
     #to find a gebruiksdoel
     {
@@ -75,7 +75,7 @@ select ((?totalK/?totalW) as ?result) where {
              ifc:hasProperties_IfcPropertySet ?single.
         ?single ifc:nominalValue_IfcPropertySingleValue/express:hasString ?func.
         # filter(?func!="01")
-        filter(regex(str(?func), "${gebruiksfunctie}", 'i'))
+        filter(regex(str(?func), "kantoor", 'i'))
       }
       limit 1
     }
@@ -108,12 +108,17 @@ select ((?totalK/?totalW) as ?result) where {
       }
     }
   }
+  bind((?totalK/?totalW) as ?result)
+  bind(IF(?result < 30, true, false) AS ?success)
 }
 limit 1
-    `
+  `
   }
 
-  validatieMelding({ gebruiksfunctie }: SparqlInputs): string {
-    return `Gebruiksfunctie "${gebruiksfunctie}" beslaat {?result}%.`
+  berichtGefaald({ gebruiksfunctie }: SparqlInputs): string {
+    return `Kantoor beslaat {?result}%.`
+  }
+  berichtGeslaagd({ gebruiksfunctie }: SparqlInputs): string {
+    return `Kantoor beslaat {?result}%.`
   }
 }

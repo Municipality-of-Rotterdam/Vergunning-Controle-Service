@@ -93,7 +93,7 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{}>
     return query
   }
 
-  validatieMelding({ bouwaanduiding }: SparqlInputs): string {
+  berichtGefaald({ bouwaanduiding }: SparqlInputs): string {
     return `Dak {?roof} heeft het daktype "{?rooftype}". Dit moet "${bouwaanduiding}'" zijn.`
   }
 }
