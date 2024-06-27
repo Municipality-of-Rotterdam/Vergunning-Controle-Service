@@ -34,7 +34,12 @@ export abstract class BaseControle<T> {
     return this.bericht(inputs)
   }
 
+  isToepasbaar(inputs: T): boolean {
+    return true
+  }
+
   public sparqlInputs: T | undefined = undefined
+  public applicable: boolean | undefined = undefined
 
   log(message: any) {
     log(message, `Controle: "${this.id}. ${this.naam}"`)
@@ -42,7 +47,6 @@ export abstract class BaseControle<T> {
 
   async runPrepare(context: StepContext) {
     headerLogBig(`Controle: "${this.naam}": Voorbereiding`)
-
     this.sparqlInputs = await this.voorbereiding(context)
     if (this.sparqlInputs) {
       this.log(this.sparqlInputs)

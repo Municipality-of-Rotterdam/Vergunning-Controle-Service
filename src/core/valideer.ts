@@ -45,45 +45,54 @@ export const valideer = async ({
       const query = controle.sparql(controle.sparqlInputs)
       headerLogBig(`Controle: "${name}": Uitvoering`)
 
-      log(`Bevragen van de SPARQL service`, name)
+      if (controle.isToepasbaar(controle.sparqlInputs)) {
+        log(`Bevragen van de SPARQL service`, name)
 
-      const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
-        body: JSON.stringify({ query }),
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          Accepts: 'application/sparql-results+json, application/n-triples',
-          Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
-        },
-      })
-      if (!response.ok) {
-        throw new Error(response.statusText)
-      }
-      const responseJson = await response.json()
-      const result = responseJson[0] ?? null
-      const success: boolean = result ? result.success ?? false : false
-      let message = success
-        ? controle.berichtGeslaagd(controle.sparqlInputs)
-        : controle.berichtGefaald(controle.sparqlInputs)
-
-      if (result) {
-        for (const [key, value] of Object.entries(result)) {
-          message = message.replaceAll(`{?${key}}`, value as string)
+        const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
+          body: JSON.stringify({ query }),
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            Accepts: 'application/sparql-results+json, application/n-triples',
+            Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
+          },
+        })
+        if (!response.ok) {
+          throw new Error(response.statusText)
         }
-      }
+        const responseJson = await response.json()
+        const result = responseJson[0] ?? null
+        const success: boolean = result ? result.success ?? false : true
+        let message = success
+          ? controle.berichtGeslaagd(controle.sparqlInputs)
+          : controle.berichtGefaald(controle.sparqlInputs)
 
-      if (success) {
-        log(chalk.greenBright(`✅ ${message}`), name)
+        if (result) {
+          for (const [key, value] of Object.entries(result)) {
+            message = message.replaceAll(`{?${key}}`, value as string)
+          }
+        }
+
+        if (success) {
+          log(chalk.greenBright(`✅ ${message}`), name)
+        } else {
+          log(chalk.redBright(`❌ ${message}`), name)
+        }
+
+        reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
+          controle.addOut(rdf('type'), rpt('Controle'))
+          controle.addOut(rdfs('label'), factory.literal(name))
+          controle.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
+          controle.addOut(rpt('message'), factory.literal(message))
+        })
       } else {
-        log(chalk.redBright(`❌ ${message}`), name)
+        reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
+          controle.addOut(rdf('type'), rpt('Controle'))
+          controle.addOut(rdfs('label'), factory.literal(name))
+          controle.addOut(rpt('passed'), factory.literal('true', xsd('boolean')))
+          controle.addOut(rpt('message'), factory.literal('Niet van toepassing'))
+        })
       }
-
-      reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
-        controle.addOut(rdf('type'), rpt('Controle'))
-        controle.addOut(rdfs('label'), factory.literal(name))
-        controle.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
-        controle.addOut(rpt('message'), factory.literal(message))
-      })
     }
   }
 

@@ -7,8 +7,15 @@ type SparqlInputs = {
   gebruiksfunctie: string
 }
 
-export default class Controle2WonenGebruiksfunctiePercentage extends BaseControle<SparqlInputs> {
-  public naam = 'Gebruiksfunctie percentage wonen'
+/** Given: Een IFC-model positioneert na georeferentie geheel binnen een IMRO bestemmingsvlak “Wonen”
+of IMOW gebiedsaanwijzing/IMOW locatie noemer: Wonen.
+And: Het ingediend IFC-model heeft een ifcSpace Gebruiksfunctie Name Woonfunctie, ifcSpace
+Objecttype BVO en optioneel een IfcSpace Objecttype Nevengebruiksfunctie Name: Bedrijfsfunctie
+But: de IfcSpace bedrijfsfunctie niet meer is dan 30% van de space BVO.
+Then: Het gebruik van het gebouw is in overeenstemming met de specifieke gebruiksregels. */
+
+export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlInputs> {
+  public naam = 'Wonen: Bedrijfsfunctie'
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const coordinates = context.voetprintCoordinates
@@ -44,8 +51,12 @@ export default class Controle2WonenGebruiksfunctiePercentage extends BaseControl
     return { gebruiksfunctie }
   }
 
+  isToepasbaar({ gebruiksfunctie }: SparqlInputs): boolean {
+    return gebruiksfunctie == 'wonen'
+  }
+
   // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/2>
-  sparql({ gebruiksfunctie }: SparqlInputs): string {
+  sparql(): string {
     return `
 prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 prefix express: <https://w3id.org/express#>
@@ -115,7 +126,7 @@ limit 1
   `
   }
 
-  bericht({ gebruiksfunctie }: SparqlInputs): string {
-    return `Kantoor beslaat {?result}%.`
+  bericht(): string {
+    return `Bedrijfsfunctie is {?result}%.`
   }
 }
