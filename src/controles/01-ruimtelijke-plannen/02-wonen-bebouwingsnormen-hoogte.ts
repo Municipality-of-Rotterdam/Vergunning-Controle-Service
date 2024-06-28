@@ -1,38 +1,24 @@
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
-//import { GroepRuimtelijkePlannenData } from '@root/src/controles/1. Ruimtelijke plannen/Ruimtelijke plannen.ts'
+import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
 import { BaseControle } from '@core/BaseControle.js'
 import { NamedNode } from '@rdfjs/types'
 import { StepContext } from '@root/core/executeSteps.js'
 
-// Change this type to what you want to give to the sparql and message methods.
 type SparqlInputs = {
   max: number
 }
 
-/**
- * A check for the Rotterdam vergunningscontrole service.
- */
-export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<
-  SparqlInputs,
-  GroepRuimtelijkePlannenData
-> {
-  /**
-   * The name shown in the report
-   */
+export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<SparqlInputs, GroepsData> {
   public naam = 'Bebouwingsnormen: Hoogte'
 
-  /**
-   * In the prepare phase you can call APIs and gather outputs.
-   * These outputs must be returned in an object. This object must have the type SparqlInputs.
-   * You can log after each return value from the API.
-   */
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
 
+    const data = this.groepData()
     const maatvoeringen: any[] = (
       await Promise.all(
-        this.groep?.data?.planIds.flatMap(async (planId) => {
-          const response = await ruimtelijkePlannen.maatvoeringen(planId, this.groep?.data?.geoShape)
+        data.planIds.flatMap(async (planId) => {
+          const response = await ruimtelijkePlannen.maatvoeringen(planId, data.geoShape)
           return response['_embedded']['maatvoeringen'].filter(
             (maatvoering: any) => maatvoering['naam'] == 'maximum aantal bouwlagen',
           )
@@ -59,10 +45,6 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<
     return { max }
   }
 
-  /**
-   * This SPARQL must only return when there is a validation error.
-   * This query is used inside the SHACL validator to generate the validation report.
-   */
   // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/2-Wonen-bebouwingsnormen-hoogte>
   sparql({ max }: SparqlInputs): string {
     return `
@@ -83,10 +65,6 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<
     `
   }
 
-  /**
-   * The message to the end user in the validation report.
-   * You must use the same variables as in the sparql method.
-   */
   bericht({ max }: SparqlInputs): string {
     return `Gebouw {?this} heeft in totaal {?aantalVerdiepingen} bouwlagen. Dit mag maximaal ${max} zijn.`
   }

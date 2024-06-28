@@ -2,15 +2,15 @@ import { BaseGroep } from '@core/BaseGroep.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
 
-export type GroepRuimtelijkePlannenData = { planIds: string[]; geoShape: any }
+export type GroepsData = { planIds: string[]; geoShape: any }
 
-export default class GroepRuimtelijkePlannen extends BaseGroep<GroepRuimtelijkePlannenData> {
+export default class GroepRuimtelijkePlannen extends BaseGroep<GroepsData> {
   public naam = 'Ruimtelijke plannen'
 
   /**
    * Dit is optioneel
    */
-  async voorbereiding(context: StepContext): Promise<GroepRuimtelijkePlannenData> {
+  async voorbereiding(context: StepContext): Promise<GroepsData> {
     const coordinates = context.voetprintCoordinates
 
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')

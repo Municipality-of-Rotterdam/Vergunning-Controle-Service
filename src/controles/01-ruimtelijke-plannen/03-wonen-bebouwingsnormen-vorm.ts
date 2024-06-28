@@ -1,6 +1,7 @@
 import { BaseControle } from '@core/BaseControle.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
+import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
 import { ifc } from '@helpers/namespaces.js'
 import NamedNode from '@rdfjs/data-model/lib/NamedNode.js'
 
@@ -18,16 +19,12 @@ function bouwaanduidingNode(name: string): NamedNode {
   }
 }
 
-export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{}> {
+export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{}, GroepsData> {
   public naam = 'Bebouwingsnormen: Vorm'
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
-    const coordinates = context.voetprintCoordinates
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const geoShape = { _geo: { contains: { type: 'Polygon', coordinates: [coordinates] } } }
-    const plans = (await ruimtelijkePlannen.plannen(geoShape, { planType: 'bestemmingsplan' }))['_embedded']['plannen']
-    const planIds: string[] = plans.filter((plan: any) => !plan.isParapluplan).map((plan: any) => plan.id)
-
-    this.log(`De volgende bestemmingsplan(nen) gevonden: \n${planIds.map((id) => `\t${id}`).join('\n')}`)
+    const data = this.groepData()
+    const planIds: string[] = data.planIds
 
     // TODO another test footprint
     const geoShape2 = {

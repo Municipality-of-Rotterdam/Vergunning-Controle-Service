@@ -1,5 +1,5 @@
 import { BaseControle } from '@core/BaseControle.js'
-//import { GroepRuimtelijkePlannenData } from '@root/src/controles/1. Ruimtelijke plannen/Ruimtelijke plannen.ts'
+import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
 import { NamedNode } from '@rdfjs/types'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
@@ -8,18 +8,16 @@ type SparqlInputs = {
   gebruiksfunctie: string
 }
 
-export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
-  SparqlInputs,
-  GroepRuimtelijkePlannenData
-> {
+export default class Controle2WonenBestemmingsomschrijving extends BaseControle<SparqlInputs, GroepsData> {
   public naam = 'Bestemmingsomschrijving'
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
+    const data = this.groepData()
     const bestemmingsvlakken: any[] = (
       await Promise.all(
-        this.groep?.data?.planIds.flatMap(async (planId) => {
-          const response = await ruimtelijkePlannen.bestemmingsvlakZoek(planId, this.groep?.data?.geoShape)
+        data.planIds.flatMap(async (planId) => {
+          const response = await ruimtelijkePlannen.bestemmingsvlakZoek(planId, data.geoShape)
           return response['_embedded']['bestemmingsvlakken']
         }),
       )

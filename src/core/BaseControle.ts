@@ -10,7 +10,9 @@ const log = createLogger('checks', import.meta)
 
 export abstract class BaseControle<T, G extends {}> {
   readonly id: number
-
+  /**
+   * The name shown in the report
+   */
   public abstract naam: string
 
   constructor(filename: string) {
@@ -23,6 +25,16 @@ export abstract class BaseControle<T, G extends {}> {
     this.groep = group
   }
 
+  groepData(): G {
+    const data = this.groep?.data
+    if (!data) throw new Error('Group has no associated data')
+    return data
+  }
+  /**
+   * In the prepare phase you can call APIs and gather outputs.
+   * These outputs must be returned in an object. This object must have the type SparqlInputs.
+   * You can log after each return value from the API.
+   */
   abstract voorbereiding(context: StepContext): Promise<T>
   abstract sparql(inputs: T): string // TODO should this not be pulled from TriplyDB?
 
