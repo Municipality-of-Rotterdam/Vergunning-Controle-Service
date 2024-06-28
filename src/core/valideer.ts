@@ -86,6 +86,7 @@ export const valideer = async ({
           controle.addOut(rpt('message'), factory.literal(message))
         })
       } else {
+        log(`Niet van toepassing`, name)
         reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
           controle.addOut(rdf('type'), rpt('Controle'))
           controle.addOut(rdfs('label'), factory.literal(name))

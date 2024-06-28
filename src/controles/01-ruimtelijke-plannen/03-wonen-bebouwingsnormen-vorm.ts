@@ -54,7 +54,7 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{},
     const bouwaanduidingName: string = bouwaanduidingen[0]['naam']
     const bouwaanduiding = bouwaanduidingNode(bouwaanduidingName)
 
-    this.log(`Bestemmingsvlak is van type ${bouwaanduiding} s`)
+    this.log(`Bestemmingsvlak is van type ${bouwaanduiding.value} s`)
 
     return { bouwaanduiding }
   }

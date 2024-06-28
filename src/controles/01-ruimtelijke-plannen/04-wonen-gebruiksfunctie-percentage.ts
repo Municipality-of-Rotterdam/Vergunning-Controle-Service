@@ -41,7 +41,7 @@ export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlIn
   }
 
   isToepasbaar({ gebruiksfunctie }: SparqlInputs): boolean {
-    return gebruiksfunctie == 'wonen'
+    return gebruiksfunctie.toLowerCase() == 'wonen'
   }
 
   // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/2>

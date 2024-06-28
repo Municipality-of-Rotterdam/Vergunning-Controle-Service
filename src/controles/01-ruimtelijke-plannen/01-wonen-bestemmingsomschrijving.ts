@@ -15,10 +15,9 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
     const data = this.groepData()
     const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
-    const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken']
-      .flat()
-      .filter((items: any) => items)
-      .filter((f: any) => f.type == 'enkelbestemming')
+    const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
+      (f: any) => f.type == 'enkelbestemming',
+    )
 
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
 
@@ -30,7 +29,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
 
     this.log(`Bestemmingsvlak ${gebruiksfunctie}`)
 
-    return { gebruiksfunctie: 'wonden' }
+    return { gebruiksfunctie }
   }
 
   // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/1-Wonen-bestemmingsomschrijving>
