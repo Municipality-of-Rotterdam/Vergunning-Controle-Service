@@ -44,11 +44,12 @@ export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlIn
     return gebruiksfunctie.toLowerCase() == 'wonen'
   }
 
-  // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/2>
+  // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/3>
   sparql(): string {
     return `
-prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 prefix express: <https://w3id.org/express#>
+prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
+prefix xsd: <http://www.w3.org/2001/XMLSchema#>
 
 select ?result ?success where {
   {
@@ -108,10 +109,9 @@ select ?result ?success where {
       }
     }
   }
-  bind((?totalK/?totalW) as ?result)
+  bind((xsd:decimal(concat(substr(str(?totalK / ?totalW), 1, strlen(strbefore(str(?totalK / ?totalW), ".")) + 3)))) as ?result)
   bind(IF(?result < 30, true, false) AS ?success)
 }
-limit 1
   `
   }
 
