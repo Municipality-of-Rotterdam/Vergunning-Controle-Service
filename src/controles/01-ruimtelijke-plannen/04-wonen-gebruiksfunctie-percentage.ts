@@ -21,19 +21,11 @@ export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlIn
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
     const data = this.groepData()
-    const planIds: string[] = data.planIds
 
-    const bestemmingsvlakken: any[] = (
-      await Promise.all(
-        planIds.flatMap(async (planId) => {
-          const response = await ruimtelijkePlannen.bestemmingsvlakZoek(planId, data.geoShape)
-          return response['_embedded']['bestemmingsvlakken']
-        }),
-      )
+    const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
+    const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
+      (f: any) => f.type == 'enkelbestemming',
     )
-      .flat()
-      .filter((items) => items)
-      .filter((f) => f.type == 'enkelbestemming')
 
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
 

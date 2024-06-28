@@ -15,18 +15,10 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
 
     const data = this.groepData()
-    const maatvoeringen: any[] = (
-      await Promise.all(
-        data.planIds.flatMap(async (planId) => {
-          const response = await ruimtelijkePlannen.maatvoeringen(planId, data.geoShape)
-          return response['_embedded']['maatvoeringen'].filter(
-            (maatvoering: any) => maatvoering['naam'] == 'maximum aantal bouwlagen',
-          )
-        }),
-      )
+    const response = await ruimtelijkePlannen.maatvoeringen(data.bestemmingsplan.id, data.geoShape)
+    const maatvoeringen: any[] = response['_embedded']['maatvoeringen'].filter(
+      (maatvoering: any) => maatvoering['naam'] == 'maximum aantal bouwlagen',
     )
-      .flat()
-      .filter((items) => items)
 
     this.log(`${maatvoeringen.length} "maximum aantal bouwlagen" maatvoeringen gevonden`)
 

@@ -24,7 +24,6 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{},
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
     const data = this.groepData()
-    const planIds: string[] = data.planIds
 
     // TODO another test footprint
     const geoShape2 = {
@@ -43,16 +42,8 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{},
         },
       },
     }
-    const bouwaanduidingen: any[] = (
-      await Promise.all(
-        planIds.flatMap(async (planId) => {
-          const response = await ruimtelijkePlannen.bouwaanduidingenZoek(planId, geoShape2)
-          return response['_embedded']['bouwaanduidingen']
-        }),
-      )
-    )
-      .flat()
-      .filter((items) => items)
+    const response = await ruimtelijkePlannen.bouwaanduidingenZoek(data.bestemmingsplan.id, geoShape2)
+    const bouwaanduidingen: any[] = response['_embedded']['bouwaanduidingen']
 
     this.log(`${bouwaanduidingen.length} bouwaanduidingen gevonden`)
 

@@ -14,17 +14,11 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
     const data = this.groepData()
-    const bestemmingsvlakken: any[] = (
-      await Promise.all(
-        data.planIds.flatMap(async (planId) => {
-          const response = await ruimtelijkePlannen.bestemmingsvlakZoek(planId, data.geoShape)
-          return response['_embedded']['bestemmingsvlakken']
-        }),
-      )
-    )
+    const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
+    const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken']
       .flat()
-      .filter((items) => items)
-      .filter((f) => f.type == 'enkelbestemming')
+      .filter((items: any) => items)
+      .filter((f: any) => f.type == 'enkelbestemming')
 
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
 
