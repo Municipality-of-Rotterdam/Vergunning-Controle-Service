@@ -36,7 +36,7 @@ export const rapportage = async ({
   const buffer = Buffer.from(await blob.arrayBuffer())
   const urlBase64Encoded = buffer.toString('base64url')
 
-  log('Genereren van het validatie rapport', 'Validatie rapport')
+  log('Genereren van het vcs rapport', 'VCS rapport')
 
   const props = {
     gebouw: pointer.out(rpt('building')).value.toString(),
@@ -59,15 +59,15 @@ export const rapportage = async ({
   }
 
   const html = renderToStaticMarkup(RapportageTemplate(props))
-  await writeFile(`${outputsDir}/validatie-rapport.html`, html)
-  const fileId = `validatie-rapport.html`
+  await writeFile(`${outputsDir}/vcs-rapport.html`, html)
+  const fileId = `vcs-rapport.html`
 
   try {
     const existingAsset = await dataset.getAsset(fileId)
     await existingAsset.delete()
   } catch {}
 
-  log('Upload validatie rapport', 'Validatie rapport')
-  await dataset.uploadAsset(`${outputsDir}/validatie-rapport.html`, fileId)
-  log('Klaar met upload van het validatie rapport', 'Validatie rapport')
+  log('Upload vcs rapport', 'VCS rapport')
+  await dataset.uploadAsset(`${outputsDir}/vcs-rapport.html`, fileId)
+  log('Klaar met upload van het vcs rapport', 'VCS rapport')
 }
