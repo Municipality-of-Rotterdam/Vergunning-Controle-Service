@@ -40,7 +40,7 @@ You can run the application with the following commands:
 ```sh
 npm i
 npm run build
-npm lib/main.js --filename=Kievitsweg_R23_MVP_IFC4.ifc --clean
+node lib/main.js --filename=Kievitsweg_R23_MVP_IFC4.ifc --clean
 ```
 
 It might be necessary to increase the memory:
