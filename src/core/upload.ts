@@ -7,17 +7,6 @@ import * as n3 from 'n3'
 
 const log = createLogger('upload', import.meta, 'Upload')
 
-const fileUploadBlackList = [
-  'building.glb',
-  'data_ifcOWL.ttl',
-  'data.ttl',
-  'data.trig',
-  'gebouw.ttl',
-  'footprint.txt',
-  'model.ttl',
-  'shacl-report.ttl',
-]
-
 export const upload = async ({
   outputsDir,
   gebouwDataset,
@@ -37,7 +26,9 @@ export const upload = async ({
   const files = await fs.readdir(outputsDir)
 
   for (const file of files) {
-    if (fileUploadBlackList.includes(file)) continue
+    // We do not want to upload linked data as assets. Also the footprint.txt is added as linked data
+    const extensions = ['.trig', '.ttl', '.txt']
+    if (extensions.some((ext) => file.endsWith(ext))) continue
 
     const fileId = file
 
