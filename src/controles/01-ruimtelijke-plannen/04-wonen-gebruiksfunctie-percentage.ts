@@ -1,5 +1,4 @@
 import { BaseControle } from '@core/BaseControle.js'
-import { NamedNode } from '@rdfjs/types'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
 import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'

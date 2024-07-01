@@ -3,7 +3,7 @@ import grapoi from 'grapoi'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rdf, rdfs, rpt, xsd } from '@helpers/namespaces.js'
+import { rdf, rdfs, xsd, rpt } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import App from '@triply/triplydb'
 import { Store as TriplyStore } from '@triplydb/data-factory'
@@ -100,7 +100,7 @@ export const valideer = async ({
   log('Uploaden van het validatie rapport naar TriplyDB', 'Upload')
 
   await dataset.importFromStore(report as any, {
-    defaultGraphName: `${baseIRI}${datasetName}/validatie-rapport`,
+    defaultGraphName: `${baseIRI}${datasetName}/graph/validatie-rapport`,
     overwriteAll: true,
   })
 

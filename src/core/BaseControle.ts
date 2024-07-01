@@ -1,7 +1,5 @@
 import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
-import { NamedNode } from '@rdfjs/types'
-import { Store as TriplyStore } from '@triplydb/data-factory'
 
 import { BaseGroep } from './BaseGroep.js'
 import { StepContext } from './executeSteps.js'
