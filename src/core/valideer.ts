@@ -109,7 +109,7 @@ export const valideer = async ({
 
   log('Uploaden van het provenance log naar TriplyDB', 'Upload')
   await dataset.importFromStore(provenance as any, {
-    defaultGraphName: `${baseIRI}${datasetName}/provenance-log`,
+    defaultGraphName: `${baseIRI}${datasetName}/graph/provenance-log`,
     overwriteAll: true,
   })
 
