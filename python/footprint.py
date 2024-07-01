@@ -23,10 +23,10 @@ References:
 1) For ifcopenshell geometry processing, see https://docs.ifcopenshell.org/ifcopenshell-python/geometry_processing.html
 
 Example:
-footprint.py '/home/frans/Projects/VCS Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc' IfcRoof,IfcSlab
+footprint.py '/home/frans/Projects/VCS Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc' https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcRoof,IfcSlab
 """
 
-def main(file,ifc_classes):
+def main(file,building_iri,ifc_classes):
     global ifc_file
     ifc_file = ifcopenshell.open(file)
     settings = ifcopenshell.geom.settings() # see https://docs.ifcopenshell.org/ifcopenshell/geometry_settings.html
@@ -38,7 +38,7 @@ def main(file,ifc_classes):
             try:
                 shape = ifcopenshell.geom.create_shape(settings, ifc_object)
             except:
-                print('skipping IFC object with name',ifc_object.Name)
+                print('# Skipping IFC object with name',ifc_object.Name)
             object_footprint = get_footprint(shape.geometry)
             geometries.append(object_footprint)
 
@@ -56,18 +56,42 @@ def main(file,ifc_classes):
     # georeference the coordinates
     if outer_shape.geom_type == 'LinearRing':
         footprint = georeference(outer_shape)
+        footprint_geomtype = 'Polygon'
     elif outer_shape.geom_type == 'MultiLineString':
         polys = []
         for linestring in list(outer_shape.geoms):
             polys.append(georeference(linestring))
         footprint = shapely.MultiPolygon(polys)
+        footprint_geomtype = 'MultiPolygon'
     else:
         print('unexpected geometry type')
         exit(3)
-              
-    print('\nfootprint WKT (CRS epsg:28992):',footprint)
-    print('footprint perimeter (metres):', round(footprint.length,3))
-    print('footprint area (square metres):', round(footprint.area,3))
+
+    #plot(footprint,'footprint')
+
+    ttl = '''
+prefix geo: <http://www.opengis.net/ont/geosparql#>
+prefix sf: <http://www.opengis.net/ont/sf#>
+prefix skos: <http://www.w3.org/2004/02/skos/core#>
+prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+
+<$BuildingIRI>
+  geo:hasGeometry [
+    geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> $FootprintGeom"^^geo:wktLiteral ; 
+    a sf:$FootprintType ;
+    geo:hasMetricPerimeterLength "$Perimeter"^^xsd:double ;
+    geo:hasMetricArea "$Area"^^xsd:double ;
+    skos:prefLabel "2D footprint of the building"@en, "2D-voetafdruk van het gebouw"@nl
+  ].'''
+    ttl = ttl.replace('$BuildingIRI',building_iri)
+    ttl = ttl.replace('$FootprintGeom',str(footprint))
+    ttl = ttl.replace('$FootprintType',footprint_geomtype)
+    ttl = ttl.replace('$Area',str(round(footprint.area,3)))
+    ttl = ttl.replace('$Perimeter',str(round(footprint.length,3)))
+    print (ttl)
+    #print('\nfootprint WKT (CRS epsg:28992):',footprint)
+    #print('footprint perimeter (metres):', round(footprint.length,3))
+    #print('footprint area (square metres):', round(footprint.area,3))
 
 
 def georeference(lstr) -> shapely.Polygon:
@@ -153,8 +177,9 @@ def get_footprint(geometry) -> shapely.Geometry: # adapted from ifcopenshell.uti
     return unioned_geometry
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='footprint', description='Returns the building footprint in WKT')
+    parser = argparse.ArgumentParser(prog='footprint', description='Returns the building footprint as Turtle (TriG) RDF code')
     parser.add_argument('ifc_file', help='Path to the input IFC file')
+    parser.add_argument('building_iri', help='IRI of the building in the data graph')
     parser.add_argument('ifc_classes', help='Comma separated list of IFC classes to use to determine the footprint')
     args = parser.parse_args()
 
@@ -163,11 +188,13 @@ if __name__ == '__main__':
         print ('file not found:', ifc_file)
         exit(1)
 
+    building_iri = args.building_iri
+
     ifc_classes = args.ifc_classes.split(',')
     if len(ifc_classes) == 0:
         print ('no IFC classes specified')
         exit(2)
 
-    main(ifc_file,ifc_classes)
+    main(ifc_file,building_iri,ifc_classes)
 
 exit(0)
