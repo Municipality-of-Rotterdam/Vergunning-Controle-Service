@@ -34,9 +34,8 @@ export const maakLinkedData = async ({
 
       try {
         await executeCommand(
-          `java -jar "./src/tools/IFCtoLBD_CLI.jar" "${inputIfc}" --hasBuildingElements --hasBuildingElementProperties --ifcOWL -u="${baseIRI}" -t="${storeCache}"`,
-          // TODO Check met Kathrin welke variant we moeten gebruiken.
-          // `java -jar "./src/tools/IFCtoLBD_CLI.jar" "${inputIfc}" -be --hasGeolocation --hasGeometry --hasUnits --hasBuildingElementProperties --ifcOWL -l100 -u=${baseIRI}  -t="${resolvedOutputTurtle}"`
+          // Interesting future options (see https://github.com/jyrkioraskari/IFCtoLBD): --hasGeolocation --hasGeometry --hasUnits
+          `java -Xms2g -Xmx8g -jar "./src/tools/IFCtoLBD_CLI.jar" "${inputIfc}" --hasBuildingElements --hasBuildingElementProperties --hasSeparateBuildingElementsModel --hasSeparatePropertiesModel --ifcOWL -u="${baseIRI}" -t="${storeCache}"`,
         )
       } catch (error) {
         log((error as Error).message)
@@ -46,10 +45,18 @@ export const maakLinkedData = async ({
     }
 
     log('Uploaden van Linked Data naar TriplyDB')
-    await dataset.importFromFiles([storeCache, `${outputsDir}gebouw_ifcOWL.ttl`], {
-      defaultGraphName: `${baseIRI}${datasetName}/graph/gebouw`,
-      overwriteAll: true,
-    })
+    await dataset.importFromFiles(
+      [
+        storeCache,
+        `${outputsDir}gebouw_ifcOWL.ttl`,
+        `${outputsDir}gebouw_building_elements.ttl`,
+        `${outputsDir}gebouw_element_properties.ttl`,
+      ],
+      {
+        defaultGraphName: `${baseIRI}${datasetName}/graph/gebouw`,
+        overwriteAll: true,
+      },
+    )
   }
 
   // Determine the subject of the building
