@@ -14,14 +14,7 @@ import Provenance from './Provenance.js'
  */
 export const controles = async (context: StepContext) => {
   const { ruleIds } = context
-  const provenance = new Provenance()
-
-  const provenancePointer: GrapoiPointer = grapoi({ dataset: provenance, factory, term: factory.blankNode() })
-
-  provenancePointer.addOut(rdf('type'), rpt('ValidateRapport'))
-  //provenance.addQuad(xsd('type'), rdf('type'), rdf('Controle'))
-
-  context.provenance = provenance
+  context.provenance = new Provenance(`${context.baseIRI}${context.datasetName}`)
   const checkGroups = await getCheckGroups()
 
   for (const group of checkGroups) {
@@ -35,7 +28,7 @@ export const controles = async (context: StepContext) => {
     }
   }
 
-  return { checkGroups, provenance }
+  return { checkGroups, provenance: context.provenance }
 }
 
 export const getCheckGroups = async () => {

@@ -45,13 +45,14 @@ export const valideer = async ({
     headerLogBig(`Groep: "${checkGroup.naam}": Uitvoering`, 'yellowBright')
 
     for (const controle of checkGroup.controles) {
-      const name = controle.naam
-      const query = controle.sparql(controle.sparqlInputs)
-      headerLogBig(`Controle: "${name}": Uitvoering`)
+      const naam = controle.naam
+
+      const activity = provenance.activity({ label: `Uitvoering ${controle.naam}`, partOf: controle.activity })
+
+      headerLogBig(`Controle: "${controle.naam}": Uitvoering`)
 
       if (controle.isToepasbaar(controle.sparqlInputs)) {
-        log(`Bevragen van de SPARQL service`, name)
-
+        const query = controle.sparql(controle.sparqlInputs)
         const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
           body: JSON.stringify({ query }),
           method: 'POST',
@@ -76,24 +77,25 @@ export const valideer = async ({
             message = message.replaceAll(`{?${key}}`, value as string)
           }
         }
+        provenance.done(activity)
 
         if (success) {
-          log(chalk.greenBright(`✅ ${message}`), name)
+          log(chalk.greenBright(`✅ ${message}`), controle.naam)
         } else {
-          log(chalk.redBright(`❌ ${message}`), name)
+          log(chalk.redBright(`❌ ${message}`), controle.naam)
         }
 
         reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
           controle.addOut(rdf('type'), rpt('Controle'))
-          controle.addOut(rdfs('label'), factory.literal(name))
+          controle.addOut(rdfs('label'), factory.literal(naam))
           controle.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
           controle.addOut(rpt('message'), factory.literal(message))
         })
       } else {
-        log(`Niet van toepassing`, name)
+        log(`Niet van toepassing`, controle.naam)
         reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
           controle.addOut(rdf('type'), rpt('Controle'))
-          controle.addOut(rdfs('label'), factory.literal(name))
+          controle.addOut(rdfs('label'), factory.literal(naam))
           controle.addOut(rpt('passed'), factory.literal('true', xsd('boolean')))
           controle.addOut(rpt('message'), factory.literal('Niet van toepassing'))
         })

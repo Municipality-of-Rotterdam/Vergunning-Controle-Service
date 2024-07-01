@@ -5,30 +5,38 @@ import factory from '@rdfjs/data-model'
 import { dct, prov, skos, xsd, rdf, rdfs } from '@helpers/namespaces.js'
 import type { GrapoiPointer } from '@helpers/grapoi.js'
 
-export type Activity = {
+export type ActivityInfo = {
   label: string
   description: string
   seeAlso: string
   source: string
-  startTime: Date
-  endTime: Date
+  partOf: Activity
 }
 
+export type Activity = GrapoiPointer
+
 export default class Provenance extends TriplyStore {
-  public pointer: GrapoiPointer
-  constructor() {
+  baseIRI: string
+  constructor(baseIRI: string) {
     super()
-    this.pointer = grapoi({ dataset: this, factory, term: factory.blankNode() })
+    this.baseIRI = baseIRI
   }
 
-  activity(a: Partial<Activity>, pointer?: GrapoiPointer): GrapoiPointer {
-    const p = pointer ?? grapoi({ dataset: this, factory, term: factory.blankNode() })
+  activity(a: Partial<ActivityInfo>): Activity {
+    const now = new Date()
+    const label = a.label ? `${this.baseIRI}/${a.label.replace(/\W/g, '')}` : null
+    const p = grapoi({ dataset: this, factory, term: label ? factory.namedNode(label) : factory.blankNode })
     p.addOut(rdf('type'), prov('Activity'))
+    if (a.partOf) a.partOf.addOut(dct('hasPart'), p)
     if (a.label) p.addOut(skos('prefLabel'), factory.literal(a.label, 'nl'))
     if (a.description) p.addOut(dct('description'), factory.literal(a.description, 'en'))
     if (a.seeAlso) p.addOut(rdfs('seeAlso'), factory.literal(a.seeAlso, xsd('anyURI')))
-    if (a.startTime) p.addOut(prov('startedAtTime'), factory.literal(a.startTime.toISOString(), xsd('dateTime')))
-    if (a.endTime) p.addOut(prov('endedAtTime'), factory.literal(a.endTime.toISOString(), xsd('dateTime')))
+    p.addOut(prov('startedAtTime'), factory.literal(now.toISOString(), xsd('dateTime')))
     return p
+  }
+
+  done(activity: Activity) {
+    const now = new Date()
+    activity.addOut(prov('endedAtTime'), factory.literal(now.toISOString(), xsd('dateTime')))
   }
 }

@@ -1,6 +1,7 @@
 import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
 import { NamedNode } from '@rdfjs/types'
+import { Activity } from './Provenance.js'
 
 import { BaseControle } from './BaseControle.js'
 import { StepContext } from './executeSteps.js'
@@ -11,7 +12,7 @@ export abstract class BaseGroep<T extends {}> {
   public controles: BaseControle<unknown, T>[] = []
 
   public abstract naam: string
-
+  public activity?: Activity
   public data?: T
 
   setChecks = (controles: BaseControle<unknown, T>[]) => {
@@ -28,7 +29,10 @@ export abstract class BaseGroep<T extends {}> {
 
   async runPrepare(context: StepContext) {
     headerLogBig(`Groep: "${this.naam}": Voorbereiding`, 'yellowBright')
+    this.activity = context.provenance.activity({ label: this.naam })
+    const voorbereiding = context.provenance.activity({ label: `Voorbereiding ${this.naam}`, partOf: this.activity })
     this.data = await this.voorbereiding(context)
+    context.provenance.done(voorbereiding)
 
     if (Object.keys(this.data).length) {
       this.log(this.data)

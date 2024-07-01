@@ -14,8 +14,6 @@ export default class GroepRuimtelijkePlannen extends BaseGroep<GroepsData> {
 
     let plans = (await ruimtelijkePlannen.plannen(geoShape, { planType: 'bestemmingsplan' }))['_embedded']['plannen']
 
-    const start = new Date()
-
     this.log(`Bestemmingsplannen horende bij de voetafdruk: ${plans.map((plan: any) => `${plan.id}`).join('; ')}`)
 
     plans = plans.filter((plan: any) => plan.regelStatus == 'geldend' && !plan.isParapluplan)
@@ -33,15 +31,6 @@ export default class GroepRuimtelijkePlannen extends BaseGroep<GroepsData> {
     const bestemmingsplan = plans[plans.length - 1]
 
     this.log(`Geselecteerd: ${bestemmingsplan.id}`)
-
-    const end = new Date()
-
-    context.provenance.activity({
-      label: 'ControleBestemmingsOmschrijving',
-      description: 'Controle bestemmingsomschrijving',
-      startTime: start,
-      endTime: end,
-    })
 
     return { bestemmingsplan, geoShape }
   }

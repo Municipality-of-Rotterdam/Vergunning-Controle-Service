@@ -2,7 +2,7 @@ import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
 import { NamedNode } from '@rdfjs/types'
 
-import Provenance from './Provenance.js'
+import { Activity } from './Provenance.js'
 import { BaseGroep } from './BaseGroep.js'
 import { StepContext } from './executeSteps.js'
 
@@ -18,6 +18,8 @@ export abstract class BaseControle<T, G extends {}> {
   constructor(filename: string) {
     this.id = parseInt(filename.split('.')[0])
   }
+
+  public activity?: Activity
 
   public groep?: BaseGroep<G>
 
@@ -50,7 +52,7 @@ export abstract class BaseControle<T, G extends {}> {
     return true
   }
 
-  public sparqlInputs: T | undefined = undefined
+  public sparqlInputs?: T
 
   log(message: any) {
     log(message, `Controle: "${this.id}. ${this.naam}"`)
@@ -58,7 +60,11 @@ export abstract class BaseControle<T, G extends {}> {
 
   async runPrepare(context: StepContext) {
     headerLogBig(`Controle: "${this.naam}": Voorbereiding`)
+
+    this.activity = context.provenance.activity({ label: this.naam, partOf: this.groep?.activity })
+    const voorbereiding = context.provenance.activity({ label: `Voorbereiding ${this.naam}`, partOf: this.activity })
     this.sparqlInputs = await this.voorbereiding(context)
+    context.provenance.done(voorbereiding)
     if (this.sparqlInputs) {
       this.log(this.sparqlInputs)
     }
