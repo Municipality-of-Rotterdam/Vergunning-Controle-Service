@@ -20,7 +20,11 @@ export const valideer = async ({
   account,
   baseIRI,
   ruleIds,
-}: Pick<StepContext, 'inputIfc' | 'checkGroups' | 'datasetName' | 'account' | 'baseIRI' | 'ruleIds'>) => {
+  provenance,
+}: Pick<
+  StepContext,
+  'inputIfc' | 'checkGroups' | 'datasetName' | 'account' | 'baseIRI' | 'ruleIds' | 'provenance'
+>) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
   const dataset = await user.getDataset(datasetName)
@@ -96,6 +100,12 @@ export const valideer = async ({
       }
     }
   }
+
+  log('Uploaden van het provenance log naar TriplyDB', 'Upload')
+  await dataset.importFromStore(provenance as any, {
+    defaultGraphName: `${baseIRI}${datasetName}/provenance-log`,
+    overwriteAll: true,
+  })
 
   log('Uploaden van het validatie rapport naar TriplyDB', 'Upload')
 

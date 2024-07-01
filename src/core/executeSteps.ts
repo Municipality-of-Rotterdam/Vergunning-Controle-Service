@@ -3,6 +3,7 @@ import { GrapoiPointer } from '@helpers/grapoi.js'
 import { headerLog } from '@helpers/headerLog.js'
 import { Quad_Subject } from '@rdfjs/types'
 import { Store as TriplyStore } from '@triplydb/data-factory'
+import Provenance from './Provenance.js'
 
 import { Verrijkingen } from './verrijkingen.js'
 
@@ -27,6 +28,7 @@ export type StepContext = {
 
   // controles
   checkGroups: BaseGroep<{}>[]
+  provenance: Provenance
 
   // Valideer
   report: TriplyStore

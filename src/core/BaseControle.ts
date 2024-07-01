@@ -1,8 +1,8 @@
 import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
 import { NamedNode } from '@rdfjs/types'
-import { Store as TriplyStore } from '@triplydb/data-factory'
 
+import Provenance from './Provenance.js'
 import { BaseGroep } from './BaseGroep.js'
 import { StepContext } from './executeSteps.js'
 
@@ -51,7 +51,6 @@ export abstract class BaseControle<T, G extends {}> {
   }
 
   public sparqlInputs: T | undefined = undefined
-  public applicable: boolean | undefined = undefined
 
   log(message: any) {
     log(message, `Controle: "${this.id}. ${this.naam}"`)

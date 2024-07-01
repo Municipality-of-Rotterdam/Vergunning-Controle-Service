@@ -9,3 +9,6 @@ export const shp = namespace('https://demo.triplydb.com/rotterdam/vcs/model/shp/
 export const xsd = namespace('http://www.w3.org/2001/XMLSchema#')
 export const rpt = namespace('https://www.rotterdam.nl/vcs/report#')
 export const rdfs = namespace('http://www.w3.org/2000/01/rdf-schema#')
+export const prov = namespace('http://www.w3.org/ns/prov#')
+export const skos = namespace('http://www.w3.org/2004/02/skos/core#')
+export const dct = namespace('http://purl.org/dc/terms/')
