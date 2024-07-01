@@ -64,7 +64,7 @@ export const maakLinkedData = async ({
   const sparqlUrl = `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
   const response = await fetch(sparqlUrl, {
     body: JSON.stringify({
-      query: `SELECT ?s WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?subject a <${ifc('IfcBuilding').value}> } }`,
+      query: `SELECT ?subject WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?subject a <${ifc('IfcBuilding').value}> } }`,
     }),
     method: 'POST',
     headers: {
@@ -73,7 +73,9 @@ export const maakLinkedData = async ({
       Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
     },
   }).then((response) => response.json())
-  if (response.length != 1) throw new Error('Kon niet het subject vinden van het gebouw')
+  const gebouwSubject = response.length == 1 ? response[0]['subject'] : null
+  if (!gebouwSubject)
+    throw new Error(`Kon het subject van het gebouw niet vinden; response was ${JSON.stringify(response)}`)
 
-  return { dataset, gebouwSubject: response[0]['subject'] as Quad_Subject }
+  return { dataset, gebouwSubject: gebouwSubject as Quad_Subject }
 }

@@ -72,7 +72,6 @@ export const upload = async ({
 
     if (graphExists) shouldUpload = false
   }
-  shouldUpload = false // TODO figure out what is going wrong later
   if (shouldUpload) {
     log(`Dataset uploaden naar TriplyDB`)
 
@@ -89,6 +88,6 @@ export const upload = async ({
 
     log(`Klaar met uploaden naar TriplyDB`)
   } else {
-    log(`Dataset upload overgeslagen`)
+    //log(`Dataset upload overgeslagen`)
   }
 }
