@@ -15,6 +15,8 @@ import { environments, Etl } from '@triplyetl/etl/generic'
 
 const log = createLogger('init', import.meta)
 
+export const baseIRI = 'https://demo.triplydb.com/rotterdam/'
+
 export const init = async () => {
   dotenv.config()
 
@@ -42,8 +44,6 @@ export const init = async () => {
   const graphPrefix = datasetInfo.prefixes.find((item) => item.prefixLabel === 'graph')!
   log(account, 'Account')
   log(graphPrefix.iri.replace('/graphs/', ''), 'Dataset')
-
-  const baseIRI = `https://www.rotterdam.nl/vcs/`
 
   await ensurePython()
   await ensureJava()

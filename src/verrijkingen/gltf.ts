@@ -1,5 +1,5 @@
 import { existsSync } from 'fs'
-import fs, { readFile, unlink, writeFile } from 'fs/promises'
+import { readFile, unlink, writeFile } from 'fs/promises'
 import gltfPipeline from 'gltf-pipeline'
 
 import { createExecutor } from '@helpers/executeCommand.js'

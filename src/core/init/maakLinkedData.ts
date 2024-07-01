@@ -1,14 +1,10 @@
 import { existsSync } from 'fs'
-import grapoi from 'grapoi'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createExecutor } from '@helpers/executeCommand.js'
 import { createLogger } from '@helpers/logger.js'
-import { ifc, rdf } from '@helpers/namespaces.js'
-import { parseToStore } from '@helpers/parseToStore.js'
-import factory from '@rdfjs/data-model'
+import { ifc } from '@helpers/namespaces.js'
 import { Quad_Subject } from '@rdfjs/types'
-import { Store as TriplyStore } from '@triplydb/data-factory'
 import App from '@triply/triplydb'
 
 // import { addLinkedDataToStore } from './addLinkedDataToStore.js'
@@ -25,7 +21,7 @@ export const maakLinkedData = async ({
   datasetName,
   args,
 }: Pick<StepContext, 'outputsDir' | 'inputIfc' | 'baseIRI' | 'account' | 'datasetName' | 'args'>) => {
-  const storeCache = `${outputsDir}/gebouw.ttl`
+  const storeCache = `${outputsDir}gebouw.ttl`
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
   const dataset = await user.getDataset(datasetName)
@@ -50,8 +46,8 @@ export const maakLinkedData = async ({
     }
 
     log('Uploaden van Linked Data naar TriplyDB')
-    await dataset.importFromFiles([storeCache, `${outputsDir}/gebouw_ifcOWL.ttl`], {
-      defaultGraphName: `https://www.rotterdam.nl/vcs/${datasetName}/gebouw`,
+    await dataset.importFromFiles([storeCache, `${outputsDir}gebouw_ifcOWL.ttl`], {
+      defaultGraphName: `${baseIRI}${datasetName}/graph/gebouw`,
       overwriteAll: true,
     })
   }
@@ -61,7 +57,7 @@ export const maakLinkedData = async ({
   const sparqlUrl = `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
   const response = await fetch(sparqlUrl, {
     body: JSON.stringify({
-      query: `SELECT ?s WHERE { GRAPH <${baseIRI}${datasetName}/gebouw> { ?subject a <${ifc('IfcBuilding').value}> } }`,
+      query: `SELECT ?s WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?subject a <${ifc('IfcBuilding').value}> } }`,
     }),
     method: 'POST',
     headers: {

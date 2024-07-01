@@ -8,7 +8,7 @@ export type Log = {
 }
 
 const logs = new Set()
-const formatMemoryUsage = (data: number) => `${Math.round((data / 1024 / 1024) * 100) / 100} MB`
+// const formatMemoryUsage = (data: number) => `${Math.round((data / 1024 / 1024) * 100) / 100} MB`
 
 export const createLogger = (component: string, meta: ImportMeta, rootSubComponent?: string) => {
   return (message: any, subComponent?: string) => {
