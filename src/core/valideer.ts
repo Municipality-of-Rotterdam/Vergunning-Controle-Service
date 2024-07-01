@@ -116,7 +116,7 @@ export const valideer = async ({
   log('Uploaden van het validatie rapport naar TriplyDB', 'Upload')
 
   await dataset.importFromStore(report as any, {
-    defaultGraphName: `${baseIRI}${datasetName}/validatie-rapport`,
+    defaultGraphName: `${baseIRI}${datasetName}/graph/validatie-rapport`,
     overwriteAll: true,
   })
 

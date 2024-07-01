@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises'
 
 import { createExecutor } from '@helpers/executeCommand.js'
 import { createLogger } from '@helpers/logger.js'
-import { shp, xsd } from '@helpers/namespaces.js'
+import { geo, xsd } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import { StepContext } from '@root/core/executeSteps.js'
 
@@ -34,7 +34,7 @@ export default async function GeoReference({
 
   for (const [index, header] of headers.entries()) {
     geoData[header as keyof GeoData] = parseFloat(row[index])
-    const quad = factory.quad(gebouwSubject, shp(header), factory.literal(row[index], xsd('double')))
+    const quad = factory.quad(gebouwSubject, geo(header), factory.literal(row[index], xsd('double')))
     verrijkingenDataset.add(quad as any)
   }
 

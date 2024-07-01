@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rdfs, rpt } from '@helpers/namespaces.js'
+import { rpt, rdfs } from '@helpers/namespaces.js'
 import App from '@triply/triplydb'
 
 import RapportageTemplate from './RapportageTemplate.js'
@@ -17,7 +17,6 @@ export const rapportage = async ({
   account,
   voetprintCoordinates,
   geoData,
-  provenance,
 }: Pick<
   StepContext,
   'validationPointer' | 'outputsDir' | 'datasetName' | 'account' | 'voetprintCoordinates' | 'geoData'

@@ -3,7 +3,6 @@ import fs from 'fs/promises'
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
 import App from '@triply/triplydb'
-import * as n3 from 'n3'
 
 const log = createLogger('upload', import.meta, 'Upload')
 
@@ -59,7 +58,7 @@ export const upload = async ({
   if (!args.clean) {
     const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
       body: JSON.stringify({
-        query: `ASK WHERE { GRAPH <${baseIRI}${datasetName}/gebouw> { ?s ?p ?o } }`,
+        query: `ASK WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?s ?p ?o } }`,
       }),
       method: 'POST',
       headers: {
@@ -73,23 +72,22 @@ export const upload = async ({
 
     if (graphExists) shouldUpload = false
   }
-  shouldUpload = false // TODO figure out what is going wrong later
   if (shouldUpload) {
     log(`Dataset uploaden naar TriplyDB`)
 
     /* TODO We have already done this --- other upload steps should probably also be moved to their respective creation steps
     await dataset.importFromStore(gebouwDataset as any, {
-      defaultGraphName: `https://www.rotterdam.nl/vcs/${datasetName}/gebouw`,
+      defaultGraphName: `${baseIRI}${datasetName}/graph/gebouw`,
       overwriteAll: true,
     })*/
 
     await dataset.importFromStore(verrijkingenDataset as any, {
-      defaultGraphName: `https://www.rotterdam.nl/vcs/${datasetName}/verrijkingen`,
+      defaultGraphName: `${baseIRI}${datasetName}/graph/verrijkingen`,
       overwriteAll: true,
     })
 
     log(`Klaar met uploaden naar TriplyDB`)
   } else {
-    log(`Dataset upload overgeslagen`)
+    //log(`Dataset upload overgeslagen`)
   }
 }

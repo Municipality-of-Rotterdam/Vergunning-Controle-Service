@@ -1,6 +1,5 @@
 import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
-import { NamedNode } from '@rdfjs/types'
 import { Activity } from './Provenance.js'
 
 import { BaseControle } from './BaseControle.js'

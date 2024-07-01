@@ -1,14 +1,10 @@
 import { existsSync } from 'fs'
-import grapoi from 'grapoi'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createExecutor } from '@helpers/executeCommand.js'
 import { createLogger } from '@helpers/logger.js'
-import { ifc, rdf } from '@helpers/namespaces.js'
-import { parseToStore } from '@helpers/parseToStore.js'
-import factory from '@rdfjs/data-model'
+import { ifc } from '@helpers/namespaces.js'
 import { Quad_Subject } from '@rdfjs/types'
-import { Store as TriplyStore } from '@triplydb/data-factory'
 import App from '@triply/triplydb'
 
 // import { addLinkedDataToStore } from './addLinkedDataToStore.js'
@@ -25,7 +21,7 @@ export const maakLinkedData = async ({
   datasetName,
   args,
 }: Pick<StepContext, 'outputsDir' | 'inputIfc' | 'baseIRI' | 'account' | 'datasetName' | 'args'>) => {
-  const storeCache = `${outputsDir}/gebouw.ttl`
+  const storeCache = `${outputsDir}gebouw.ttl`
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
   const dataset = await user.getDataset(datasetName)
@@ -38,9 +34,8 @@ export const maakLinkedData = async ({
 
       try {
         await executeCommand(
-          `java -jar "./src/tools/IFCtoLBD_CLI.jar" "${inputIfc}" --hasBuildingElements --hasBuildingElementProperties --ifcOWL -u="${baseIRI}" -t="${storeCache}"`,
-          // TODO Check met Kathrin welke variant we moeten gebruiken.
-          // `java -jar "./src/tools/IFCtoLBD_CLI.jar" "${inputIfc}" -be --hasGeolocation --hasGeometry --hasUnits --hasBuildingElementProperties --ifcOWL -l100 -u=${baseIRI}  -t="${resolvedOutputTurtle}"`
+          // Interesting future options (see https://github.com/jyrkioraskari/IFCtoLBD): --hasGeolocation --hasGeometry --hasUnits
+          `java -Xms2g -Xmx8g -jar "./src/tools/IFCtoLBD_CLI.jar" "${inputIfc}" --hasBuildingElements --hasBuildingElementProperties --hasSeparateBuildingElementsModel --hasSeparatePropertiesModel --ifcOWL -u="${baseIRI}" -t="${storeCache}"`,
         )
       } catch (error) {
         log((error as Error).message)
@@ -50,10 +45,18 @@ export const maakLinkedData = async ({
     }
 
     log('Uploaden van Linked Data naar TriplyDB')
-    await dataset.importFromFiles([storeCache, `${outputsDir}/gebouw_ifcOWL.ttl`], {
-      defaultGraphName: `https://www.rotterdam.nl/vcs/${datasetName}/gebouw`,
-      overwriteAll: true,
-    })
+    await dataset.importFromFiles(
+      [
+        storeCache,
+        `${outputsDir}gebouw_ifcOWL.ttl`,
+        `${outputsDir}gebouw_building_elements.ttl`,
+        `${outputsDir}gebouw_element_properties.ttl`,
+      ],
+      {
+        defaultGraphName: `${baseIRI}${datasetName}/graph/gebouw`,
+        overwriteAll: true,
+      },
+    )
   }
 
   // Determine the subject of the building
@@ -61,7 +64,7 @@ export const maakLinkedData = async ({
   const sparqlUrl = `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
   const response = await fetch(sparqlUrl, {
     body: JSON.stringify({
-      query: `SELECT ?s WHERE { GRAPH <${baseIRI}${datasetName}/gebouw> { ?subject a <${ifc('IfcBuilding').value}> } }`,
+      query: `SELECT ?subject WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?subject a <${ifc('IfcBuilding').value}> } }`,
     }),
     method: 'POST',
     headers: {
@@ -70,7 +73,9 @@ export const maakLinkedData = async ({
       Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
     },
   }).then((response) => response.json())
-  if (response.length != 1) throw new Error('Kon niet het subject vinden van het gebouw')
+  const gebouwSubject = response.length == 1 ? response[0]['subject'] : null
+  if (!gebouwSubject)
+    throw new Error(`Kon het subject van het gebouw niet vinden; response was ${JSON.stringify(response)}`)
 
-  return { dataset, gebouwSubject: response[0]['subject'] as Quad_Subject }
+  return { dataset, gebouwSubject: gebouwSubject as Quad_Subject }
 }
