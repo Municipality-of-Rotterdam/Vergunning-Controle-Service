@@ -11,13 +11,17 @@ import RapportageTemplate from './RapportageTemplate.js'
 const log = createLogger('rapportage', import.meta)
 
 export const rapportage = async ({
-  pointer,
+  validationPointer,
   outputsDir,
   datasetName,
   account,
   voetprintCoordinates,
   geoData,
-}: Pick<StepContext, 'pointer' | 'outputsDir' | 'datasetName' | 'account' | 'voetprintCoordinates' | 'geoData'>) => {
+  provenance,
+}: Pick<
+  StepContext,
+  'validationPointer' | 'outputsDir' | 'datasetName' | 'account' | 'voetprintCoordinates' | 'geoData'
+>) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
   const dataset = await user.getDataset(datasetName)
@@ -39,7 +43,7 @@ export const rapportage = async ({
   log('Genereren van het vcs rapport', 'VCS rapport')
 
   const props = {
-    gebouw: pointer.out(rpt('building')).value.toString(),
+    gebouw: validationPointer.out(rpt('building')).value.toString(),
     geoData: geoData,
     gltfUrl: gltfAsset.getInfo().url,
     polygon: {
@@ -49,7 +53,7 @@ export const rapportage = async ({
         coordinates: [voetprintCoordinates],
       },
     },
-    controles: pointer.out(rpt('controle')).map((controle) => {
+    controles: validationPointer.out(rpt('controle')).map((controle) => {
       return {
         label: controle.out(rdfs('label')).value,
         validated: controle.out(rpt('passed')).value === 'true',

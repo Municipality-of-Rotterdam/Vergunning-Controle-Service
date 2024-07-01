@@ -3,7 +3,7 @@ import grapoi from 'grapoi'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rdf, rdfs, rpt, xsd } from '@helpers/namespaces.js'
+import { rdf, rdfs, rpt, xsd, prov } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import App from '@triply/triplydb'
 import { Store as TriplyStore } from '@triplydb/data-factory'
@@ -85,22 +85,26 @@ export const valideer = async ({
           log(chalk.redBright(`❌ ${message}`), controle.naam)
         }
 
-        reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
-          controle.addOut(rdf('type'), rpt('Controle'))
-          controle.addOut(rdfs('label'), factory.literal(naam))
-          controle.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
-          controle.addOut(rpt('message'), factory.literal(message))
+        reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
+          c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
+          c.addOut(rdf('type'), rpt('Controle'))
+          c.addOut(rdfs('label'), factory.literal(naam))
+          c.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
+          c.addOut(rpt('message'), factory.literal(message))
         })
       } else {
         log(`Niet van toepassing`, controle.naam)
-        reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
-          controle.addOut(rdf('type'), rpt('Controle'))
-          controle.addOut(rdfs('label'), factory.literal(naam))
-          controle.addOut(rpt('passed'), factory.literal('true', xsd('boolean')))
-          controle.addOut(rpt('message'), factory.literal('Niet van toepassing'))
+        reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
+          c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
+          c.addOut(rdf('type'), rpt('Controle'))
+          c.addOut(rdfs('label'), factory.literal(naam))
+          c.addOut(rpt('passed'), factory.literal('true', xsd('boolean')))
+          c.addOut(rpt('message'), factory.literal('Niet van toepassing'))
         })
       }
     }
+
+    if (checkGroup.activity) provenance.done(checkGroup.activity)
   }
 
   log('Uploaden van het provenance log naar TriplyDB', 'Upload')
@@ -118,5 +122,5 @@ export const valideer = async ({
 
   log('Klaar met het uploaden van het validatie rapport naar TriplyDB', 'Upload')
 
-  return { report, pointer: reportPointer }
+  return { validation: report, validationPointer: reportPointer }
 }

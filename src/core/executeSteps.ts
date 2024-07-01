@@ -31,8 +31,8 @@ export type StepContext = {
   provenance: Provenance
 
   // Valideer
-  report: TriplyStore
-  pointer: GrapoiPointer
+  validation: TriplyStore
+  validationPointer: GrapoiPointer
 } & Verrijkingen
 
 type Step = [string, (context: StepContext) => Promise<Partial<StepContext> | void>]
