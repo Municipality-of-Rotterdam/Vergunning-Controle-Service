@@ -16,7 +16,10 @@ export default class GroepRuimtelijkePlannen extends BaseGroep<GroepsData> {
 
     this.log(`Bestemmingsplannen horende bij de voetafdruk: ${plans.map((plan: any) => `${plan.id}`).join('; ')}`)
 
-    plans = plans.filter((plan: any) => plan.regelStatus == 'geldend' && !plan.isParapluplan)
+    plans = plans.filter(
+      (plan: any) =>
+        !plan.isParapluplan && !(plan.dossier?.status in ['in voorbereiding', 'vastgesteld', 'niet in werking']),
+    )
 
     this.log(`Relevante plannen zijn: ${plans.map((plan: any) => `${plan['id']}`).join('; ')}`)
 
