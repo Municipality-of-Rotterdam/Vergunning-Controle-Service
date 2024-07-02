@@ -12,6 +12,8 @@ import { createLogger } from '@helpers/logger.js'
 import { getAccount } from '@helpers/getAccount.js'
 import App from '@triply/triplydb'
 import Dataset from '@triply/triplydb/Dataset.js'
+import { writeFile } from 'fs/promises'
+import Asset from '@triply/triplydb/Asset.js'
 
 const log = createLogger('init', import.meta)
 
@@ -31,14 +33,19 @@ export const init = async () => {
   const user = await triply.getAccount(account)
 
   let dataset: Dataset
-
   try {
     dataset = await user.getDataset(datasetName)
   } catch (error) {
     dataset = await user.addDataset(datasetName)
   }
-
   if (!dataset) throw new Error(`Kon de dataset ${datasetName} niet aanmaken in TriplyDB`)
+
+  let vcsdataset: Dataset
+  try {
+    vcsdataset = await user.getDataset('vcs')
+  } catch (error) {
+    throw new Error(`Kon de dataset 'vcs' niet vinden in TriplyDB`)
+  }
 
   const datasetInfo = await dataset.getInfo()
   const graphPrefix = datasetInfo.prefixes.find((item) => item.prefixLabel === 'graph')!
@@ -59,9 +66,6 @@ export const init = async () => {
 
   log(args, 'Script argumenten')
 
-  const inputIfc = import.meta.resolve(`../../../input/${args.filename}`).replace('file://', '')
-  const identifier = crypto.createHash('md5').update(inputIfc).digest('hex')
-
   const outputsDir = import.meta
     .resolve(`../../../outputs/${datasetName}/`)
     .replace('file://', '')
@@ -76,6 +80,37 @@ export const init = async () => {
     await mkdir(outputsDir)
     log(outputsDir, 'Resultaten folder aangemaakt')
   }
+
+  const ifcDir = import.meta
+    .resolve(`../../../input/ifc/${datasetName}/`)
+    .replace('file://', '')
+    .replace('/index.js', '')
+  log(ifcDir, 'Input IFC folder')
+
+  if (clean) {
+    await rimraf(ifcDir)
+    log(ifcDir, 'Input IFC folder opgeschoond')
+  }
+  if (!existsSync(ifcDir)) {
+    await mkdir(ifcDir)
+    log(ifcDir, 'Input IFC folder aangemaakt')
+  }
+
+  const ifcOutput = `${ifcDir}/${args.filename}`
+
+  console.log(args.filename)
+  let asset: Asset
+  try {
+    asset = await vcsdataset.getAsset(args.filename)
+  } catch (error) {
+    throw new Error(`Kon het IFC asset niet vinden in TriplyDB`)
+  }
+
+  // write asset to input ifc directory
+  await writeFile(ifcOutput, asset.toStream(), 'utf8')
+
+  const inputIfc = import.meta.resolve(`../../../input/ifc/${args.filename}`).replace('file://', '')
+  const identifier = crypto.createHash('md5').update(inputIfc).digest('hex')
 
   return {
     baseIRI,
