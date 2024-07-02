@@ -43,7 +43,7 @@ export const createExecutor =
         })
       }
 
-      if (errors) {
+      if (errors.length > 0) {
         reject(new Error(errors.join('\n')))
       }
 
