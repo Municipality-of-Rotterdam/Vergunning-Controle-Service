@@ -25,7 +25,7 @@ export const init = async () => {
 
   const args = argsParser(process.argv)
 
-  const datasetName = args.filename.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
+  const datasetName = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const account = getAccount()
   const user = await triply.getAccount(account)
@@ -55,12 +55,15 @@ export const init = async () => {
     ? (args.controles?.toString() ?? '').split(',').map((number: string) => parseInt(number))
     : []
 
-  if (!args.filename) throw new Error('No filename was provided')
+  if (!args.ifc) throw new Error('No IFC filename was provided')
+  if (!args.ids) throw new Error('No IDS filename was provided')
 
   log(args, 'Script argumenten')
 
-  const inputIfc = import.meta.resolve(`../../../input/${args.filename}`).replace('file://', '')
-  const identifier = crypto.createHash('md5').update(inputIfc).digest('hex')
+  const inputIds = import.meta.resolve(`../../../input/${args.ids}`).replace('file://', '')
+  const idsIdentifier = crypto.createHash('md5').update(inputIds).digest('hex')
+  const inputIfc = import.meta.resolve(`../../../input/${args.ifc}`).replace('file://', '')
+  const ifcIdentifier = crypto.createHash('md5').update(inputIfc).digest('hex')
 
   const outputsDir = import.meta
     .resolve(`../../../outputs/${datasetName}/`)
@@ -84,7 +87,9 @@ export const init = async () => {
     ruleIds,
     outputsDir,
     inputIfc,
+    ifcIdentifier,
+    inputIds,
+    idsIdentifier,
     args,
-    identifier,
   }
 }

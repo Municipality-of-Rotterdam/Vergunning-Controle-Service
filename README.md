@@ -33,7 +33,7 @@ You can run the application with the following commands:
 ```sh
 npm i
 npm run build
-node lib/main.js --filename=Kievitsweg_R23_MVP_IFC4.ifc --clean
+node lib/main.js --ifc=Kievitsweg_R23_MVP_IFC4.ifc --ids="IDS Rotterdam BIM.ids" --clean
 ```
 
 It might be necessary to work within a virtual environment. To do so, use these commands:
