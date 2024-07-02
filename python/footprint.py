@@ -15,9 +15,13 @@ Based on an IFC file and a collection of IFC elements, calculate the following:
 2) The perimeter of the footprint in metres.
 3) The area of the footprint in square metres.
 
+Output:
+RDF code in Turtle format for the footprint, the perimeter, the area and the IfcMapConversion parameters
+
 Assumptions:
 1) The IFC file contains an IfcMapConversion element, with easting and northing values based on RD (espg:28992)
 and height based on NAP.
+2) lenght, area and volume in the IFC model are based on metre (not millimetre)
 
 References:
 1) For ifcopenshell geometry processing, see https://docs.ifcopenshell.org/ifcopenshell-python/geometry_processing.html
@@ -26,10 +30,18 @@ Example:
 footprint.py '/home/frans/Projects/VCS Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc' https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcRoof,IfcSlab
 """
 
-def main(file,building_iri,ifc_classes):
+def main(file, building_iri, ifc_classes):
     global ifc_file
     ifc_file = ifcopenshell.open(file)
     settings = ifcopenshell.geom.settings() # see https://docs.ifcopenshell.org/ifcopenshell/geometry_settings.html
+
+    # get the data needed for georeferencing
+    map_conversion = ifc_file.by_type('IfcMapConversion')
+    mc_delta_x = map_conversion[0][2] # should be RD (metres)
+    mc_delta_y = map_conversion[0][3] # should be RD (metres)
+    mc_elevation = map_conversion[0][4] # needed for 3D geometries; should in metres relative to NAP
+    mc_rotation = -1 * np.arctan(map_conversion[0][6]/map_conversion[0][5])
+    origin_wkt = 'POINT Z(' + str(mc_delta_x) + ' ' + str(mc_delta_y) + ' ' + str(mc_elevation) + ')'
     
     geometries = []
     for ifc_class in ifc_classes:
@@ -55,12 +67,12 @@ def main(file,building_iri,ifc_classes):
 
     # georeference the coordinates
     if outer_shape.geom_type == 'LinearRing':
-        footprint = georeference(outer_shape)
+        footprint = georeference(outer_shape, mc_delta_x, mc_delta_y, mc_rotation)
         footprint_geomtype = 'Polygon'
     elif outer_shape.geom_type == 'MultiLineString':
         polys = []
         for linestring in list(outer_shape.geoms):
-            polys.append(georeference(linestring))
+            polys.append(georeference(linestring, mc_delta_x, mc_delta_y, mc_rotation))
         footprint = shapely.MultiPolygon(polys)
         footprint_geomtype = 'MultiPolygon'
     else:
@@ -74,39 +86,58 @@ prefix geo: <http://www.opengis.net/ont/geosparql#>
 prefix sf: <http://www.opengis.net/ont/sf#>
 prefix skos: <http://www.w3.org/2004/02/skos/core#>
 prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+prefix qudt: <http://qudt.org/schema/qudt/>
+prefix unit: <http://qudt.org/vocab/unit/> 
+prefix ex: <http://www.example.org/>
 
-<$BuildingIRI>
-  geo:hasGeometry [
-    geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> $FootprintGeom"^^geo:wktLiteral ; 
+<$BuildingIRI> geo:hasGeometry <$BuildingIRI/CRS_origin>.
+<$BuildingIRI> geo:hasGeometry <$BuildingIRI/footprint>.
+<$BuildingIRI> ex:hasRotation <$BuildingIRI/CRS_rotation>.
+
+<$BuildingIRI/CRS_origin>
+    a sf:Point ;
+    geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/7415> $OriginGeom"^^geo:wktLiteral ;
+    geo:coordinateDimension "3"^^xsd:integer ;
+    skos:prefLabel "CRS origin from IfcMapConversion"@en, "oorsprong CRS uit IfcMapConversion"@nl
+.
+
+<$BuildingIRI/CRS_rotation>
+    a qudt:Quantity ;
+    qudt:hasUnit unit:RAD ;
+    qudt:numericValue "$Rotation"^^xsd:decimal ;
+    skos:prefLabel "rotation angle for georeferencing geometry, from IfcMapConversion"@en,
+               "rotatiehoek voor georeferentie, uit IfcMapConversion"@nl
+.
+
+<$BuildingIRI/footprint>
     a sf:$FootprintType ;
+    geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> $FootprintGeom"^^geo:wktLiteral ;
+    geo:coordinateDimension "2"^^xsd:integer ;
     geo:hasMetricPerimeterLength "$Perimeter"^^xsd:double ;
     geo:hasMetricArea "$Area"^^xsd:double ;
     skos:prefLabel "2D footprint of the building"@en, "2D-voetafdruk van het gebouw"@nl
-  ].'''
+.'''
     ttl = ttl.replace('$BuildingIRI',building_iri)
     ttl = ttl.replace('$FootprintGeom',str(footprint))
     ttl = ttl.replace('$FootprintType',footprint_geomtype)
     ttl = ttl.replace('$Area',str(round(footprint.area,3)))
     ttl = ttl.replace('$Perimeter',str(round(footprint.length,3)))
+    ttl = ttl.replace('$OriginGeom',origin_wkt)
+    ttl = ttl.replace('$Rotation',str(mc_rotation))
+
     print (ttl)
     #print('\nfootprint WKT (CRS epsg:28992):',footprint)
     #print('footprint perimeter (metres):', round(footprint.length,3))
     #print('footprint area (square metres):', round(footprint.area,3))
 
 
-def georeference(lstr) -> shapely.Polygon:
+def georeference(lstr, mc_delta_x, mc_delta_y, mc_rotation) -> shapely.Polygon:
     """"
     Georefence the X and Y coordinates, drop the Z coordinate and round to 3 decimals (milimetres).
     First do the rotation, then the translation, using the parameters from IfcMapConversion.
 
     Input is expected to be a LinearRing or LineString
     """
-    map_conversion = ifc_file.by_type('IfcMapConversion')
-    mc_delta_x = map_conversion[0][2] # should be RD (metres)
-    mc_delta_y = map_conversion[0][3] # should be RD (metres)
-    #mc_height = map_conversion[0][4] # needed for 3D geometries; should in metres relative to NAP
-    mc_rotation = -1 * np.arctan(map_conversion[0][6]/map_conversion[0][5])
-    
     # Substract half pi (90 degrees) from the rotation. This gets the footprint in the right position.
     # Somehow this extra rotation is needed because of geometry processing in get_footprint().
     # To do: find out if the extra rotation is required independent of the input IFC file.
@@ -195,6 +226,6 @@ if __name__ == '__main__':
         print ('no IFC classes specified')
         exit(2)
 
-    main(ifc_file,building_iri,ifc_classes)
+    main(ifc_file, building_iri, ifc_classes)
 
 exit(0)
