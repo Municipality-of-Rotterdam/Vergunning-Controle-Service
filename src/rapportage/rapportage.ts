@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rdfs, rpt } from '@helpers/namespaces.js'
+import { rpt, rdfs } from '@helpers/namespaces.js'
 import App from '@triply/triplydb'
 
 import RapportageTemplate from './RapportageTemplate.js'
@@ -25,8 +25,18 @@ export const rapportage = async ({
   if (!dataset) throw new Error(`Kon de dataset ${datasetName} niet vinden in TriplyDB`)
 
   const gltfAsset = await dataset.getAsset('gebouw.gltf')
+  const model = await fetch(gltfAsset.getInfo().url, {
+    headers: {
+      'content-type': 'application/json',
+      Accepts: 'application/sparql-results+json, application/n-triples',
+      Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
+    },
+  })
+  const blob = await model.blob()
+  const buffer = Buffer.from(await blob.arrayBuffer())
+  const urlBase64Encoded = buffer.toString('base64url')
 
-  log('Genereren van het validatie rapport', 'Validatie rapport')
+  log('Genereren van het vcs rapport', 'VCS rapport')
 
   const props = {
     gebouw: pointer.out(rpt('building')).value.toString(),
@@ -49,15 +59,15 @@ export const rapportage = async ({
   }
 
   const html = renderToStaticMarkup(RapportageTemplate(props))
-  writeFile(`${outputsDir}/validatie-rapport.html`, html)
-  const fileId = `validatie-rapport.html`
+  await writeFile(`${outputsDir}/vcs-rapport.html`, html)
+  const fileId = `vcs-rapport.html`
 
   try {
     const existingAsset = await dataset.getAsset(fileId)
     await existingAsset.delete()
   } catch {}
 
-  log('Upload validatie rapport', 'Validatie rapport')
-  await dataset.uploadAsset(`${outputsDir}/validatie-rapport.html`, fileId)
-  log('Klaar met upload van het validatie rapport', 'Validatie rapport')
+  log('Upload vcs rapport', 'VCS rapport')
+  await dataset.uploadAsset(`${outputsDir}/vcs-rapport.html`, fileId)
+  log('Klaar met upload van het vcs rapport', 'VCS rapport')
 }

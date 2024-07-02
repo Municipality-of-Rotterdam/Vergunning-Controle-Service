@@ -74,13 +74,11 @@ export default function ({ gebouw, controles, polygon, geoData, gltfUrl }: Rappo
           </thead>
           <tbody>
             {controles.map((controle) => (
-              <div key={controle.label}>
+              <tr key={controle.label}>
                 <td>{controle.label}</td>
                 <td>{controle.validated ? <strong>✅</strong> : <strong>❌</strong>}</td>
-                <td className={!controle.validated ? 'bg-danger-subtle' : ''}>
-                  {!controle.validated ? controle.message : 'Gevalideerd!'}
-                </td>
-              </div>
+                <td className={!controle.validated ? 'bg-danger-subtle' : ''}>{controle.message}</td>
+              </tr>
             ))}
           </tbody>
         </table>

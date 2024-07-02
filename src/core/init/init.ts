@@ -9,11 +9,13 @@ import { ensureJava } from '@core/init/ensureJava.js'
 import { ensurePython } from '@core/init/ensurePython.js'
 import { installPythonDependencies } from '@core/init/installPythonDependencies.js'
 import { createLogger } from '@helpers/logger.js'
+import { getAccount } from '@helpers/getAccount.js'
 import App from '@triply/triplydb'
 import Dataset from '@triply/triplydb/Dataset.js'
-import { environments, Etl } from '@triplyetl/etl/generic'
 
 const log = createLogger('init', import.meta)
+
+export const baseIRI = 'https://demo.triplydb.com/rotterdam/'
 
 export const init = async () => {
   dotenv.config()
@@ -25,7 +27,7 @@ export const init = async () => {
 
   const datasetName = args.filename.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
-  const account = Etl.environment === environments.Development ? undefined : 'rotterdam'
+  const account = getAccount()
   const user = await triply.getAccount(account)
 
   let dataset: Dataset
@@ -42,8 +44,6 @@ export const init = async () => {
   const graphPrefix = datasetInfo.prefixes.find((item) => item.prefixLabel === 'graph')!
   log(account, 'Account')
   log(graphPrefix.iri.replace('/graphs/', ''), 'Dataset')
-
-  const baseIRI = `https://www.rotterdam.nl/vcs/`
 
   await ensurePython()
   await ensureJava()

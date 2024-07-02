@@ -1,38 +1,55 @@
 import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
-import { NamedNode } from '@rdfjs/types'
-import { Store as TriplyStore } from '@triplydb/data-factory'
 
 import { BaseGroep } from './BaseGroep.js'
 import { StepContext } from './executeSteps.js'
 
 const log = createLogger('checks', import.meta)
 
-export abstract class BaseControle<T> {
+export abstract class BaseControle<T, G extends {}> {
   readonly id: number
-
+  /**
+   * The name shown in the report
+   */
   public abstract naam: string
 
   constructor(filename: string) {
     this.id = parseInt(filename.split('.')[0])
   }
 
-  public groep?: BaseGroep<{}>
+  public groep?: BaseGroep<G>
 
-  setGroup(group: BaseGroep<{}>) {
+  setGroup(group: BaseGroep<G>) {
     this.groep = group
   }
 
+  groepData(): G {
+    const data = this.groep?.data
+    if (!data) throw new Error('Group has no associated data')
+    return data
+  }
   /**
-   * Hier moet een array van RDF classes die nodig zijn voor de SPARQL query
+   * In the prepare phase you can call APIs and gather outputs.
+   * These outputs must be returned in an object. This object must have the type SparqlInputs.
+   * You can log after each return value from the API.
    */
-  public dataSelectie: NamedNode[] = []
   abstract voorbereiding(context: StepContext): Promise<T>
   abstract sparql(inputs: T): string // TODO should this not be pulled from TriplyDB?
-  abstract validatieMelding(inputs: T): string
 
-  public processedSparql: string = ''
-  public processedMessage: string = ''
+  abstract bericht(inputs: T): string
+  berichtGefaald(inputs: T): string {
+    return this.bericht(inputs)
+  }
+  berichtGeslaagd(inputs: T): string {
+    return this.bericht(inputs)
+  }
+
+  isToepasbaar(inputs: T): boolean {
+    return true
+  }
+
+  public sparqlInputs: T | undefined = undefined
+  public applicable: boolean | undefined = undefined
 
   log(message: any) {
     log(message, `Controle: "${this.id}. ${this.naam}"`)
@@ -40,13 +57,9 @@ export abstract class BaseControle<T> {
 
   async runPrepare(context: StepContext) {
     headerLogBig(`Controle: "${this.naam}": Voorbereiding`)
-
-    const sparqlInputs = await this.voorbereiding(context)
-    if (sparqlInputs) {
-      this.log(sparqlInputs)
+    this.sparqlInputs = await this.voorbereiding(context)
+    if (this.sparqlInputs) {
+      this.log(this.sparqlInputs)
     }
-
-    this.processedSparql = this.sparql(sparqlInputs)
-    this.processedMessage = this.validatieMelding(sparqlInputs)
   }
 }

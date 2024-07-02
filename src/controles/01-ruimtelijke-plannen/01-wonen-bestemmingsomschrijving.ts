@@ -1,5 +1,5 @@
 import { BaseControle } from '@core/BaseControle.js'
-import { NamedNode } from '@rdfjs/types'
+import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
 
@@ -7,30 +7,16 @@ type SparqlInputs = {
   gebruiksfunctie: string
 }
 
-export default class Controle2WonenBestemmingsomschrijving extends BaseControle<SparqlInputs> {
+export default class Controle2WonenBestemmingsomschrijving extends BaseControle<SparqlInputs, GroepsData> {
   public naam = 'Bestemmingsomschrijving'
-  dataSelectie: NamedNode<string>[] = []
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
-    const coordinates = context.voetprintCoordinates
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const geoShape = { _geo: { contains: { type: 'Polygon', coordinates: [coordinates] } } }
-    const plans = (await ruimtelijkePlannen.plannen(geoShape, { planType: 'bestemmingsplan' }))['_embedded']['plannen']
-    const planIds: string[] = plans.filter((plan: any) => !plan.isParapluplan).map((plan: any) => plan.id)
-
-    this.log(`De volgende bestemmingsplan(nen) gevonden: \n${planIds.map((id) => `\t${id}`).join('\n')}`)
-
-    const bestemmingsvlakken: any[] = (
-      await Promise.all(
-        planIds.flatMap(async (planId) => {
-          const response = await ruimtelijkePlannen.bestemmingsvlakZoek(planId, geoShape)
-          return response['_embedded']['bestemmingsvlakken']
-        }),
-      )
+    const data = this.groepData()
+    const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
+    const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
+      (f: any) => f.type == 'enkelbestemming',
     )
-      .flat()
-      .filter((items) => items)
-      .filter((f) => f.type == 'enkelbestemming')
 
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
 
@@ -40,7 +26,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
 
     const gebruiksfunctie: string = bestemmingsvlakken[0]['naam']
 
-    this.log(`Bestemmingsvlak is van type ${gebruiksfunctie}`)
+    this.log(`Bestemmingsvlak ${gebruiksfunctie}`)
 
     return { gebruiksfunctie }
   }
@@ -75,12 +61,12 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
         ?IfcPropertySingleValue ifc:nominalValue_IfcPropertySingleValue/express:hasString ?functie ;
                                 ifc:name_IfcProperty/express:hasString "Gebruiksfunctie" .
 
-        filter(?functie != ${gebruiksfunctie})
+        filter(lcase(str(?functie)) != "${gebruiksfunctie.toLowerCase()}")
       }
     `
   }
 
-  validatieMelding({ gebruiksfunctie }: SparqlInputs): string {
-    return `Ruimte {?this} heeft de gebruiksfunctie {?functie}. Dit moet ${gebruiksfunctie} zijn.`
+  bericht({ gebruiksfunctie }: SparqlInputs): string {
+    return `Ruimte {?space} heeft de gebruiksfunctie "{?functie}". Dit moet "${gebruiksfunctie}" zijn.`
   }
 }

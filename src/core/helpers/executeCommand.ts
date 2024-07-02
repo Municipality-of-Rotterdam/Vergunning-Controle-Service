@@ -8,8 +8,7 @@ export const createExecutor =
     const log = createLogger(component, meta, subComponent)
 
     const root = import.meta.url.replaceAll('/src/helpers/executeCommand.ts', '').replaceAll('file://', '')
-    const cleanedCommand = command.replaceAll(root, '.')
-
+    // const cleanedCommand = command.replaceAll(root, '.')
     // log(`Executing ${cleanedCommand}`)
 
     return new Promise((resolve, reject) => {

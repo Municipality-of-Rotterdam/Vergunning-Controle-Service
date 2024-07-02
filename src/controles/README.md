@@ -59,15 +59,6 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
   public naam = 'Bebouwingsnormen: Hoogte'
 
   /**
-   * Here you have to select the RDF classes which you want to use the SPARQL query so that they can included into the smaller dataset
-   * that is used instead of the huge dataset that has many things that we are not interested in.
-   *
-   * TODO use dataSelectie also as a check to see that the minimum data is in the data store.
-   * Stop the VCS if there is no instances of any of these classes.
-   */
-  dataSelectie: NamedNode<string>[] = []
-
-  /**
    * In the prepare phase you can call APIs and gather outputs.
    * These outputs must be returned in an object. This object must have the type SparqlInputs.
    * You can log after each return value from the API.
@@ -78,7 +69,6 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
 
     // Hier is `this.groep.data` beschikbaar.
 
-    return { max }
   }
 
   /**
@@ -87,28 +77,6 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
    */
   sparql({ max }: SparqlInputs): string {
     return `
-      prefix xsd:   <http://www.w3.org/2001/XMLSchema#>
-      prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
-      prefix express: <https://w3id.org/express#>
-
-      SELECT ?this ?aantalVerdiepingen WHERE {
-        {
-          SELECT ?this ((MAX(?floorNumber)) + 1  AS ?aantalVerdiepingen) WHERE {
-            ?this a ifc:IfcBuilding.
-            [] a ifc:IfcRelAggregates;
-              ifc:relatedObjects_IfcRelAggregates ?storey;
-              ifc:relatingObject_IfcRelAggregates ?this.
-            ?storey a ifc:IfcBuildingStorey;
-              ifc:name_IfcRoot ?storeyLabel.
-            ?storeyLabel a ifc:IfcLabel;
-              express:hasString ?positiveFloorLabel.
-            FILTER(REGEX(?positiveFloorLabel, "^(0*[1-9][0-9]*) .*verdieping$"))
-            BIND(xsd:integer(SUBSTR(?positiveFloorLabel, 1 , 2 )) AS ?floorNumber)
-          }
-          GROUP BY ?this
-        }
-        FILTER(?aantalVerdiepingen > ${max})
-      }
     `
   }
 

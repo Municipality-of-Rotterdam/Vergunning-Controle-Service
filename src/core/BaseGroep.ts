@@ -1,6 +1,5 @@
 import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
-import { NamedNode } from '@rdfjs/types'
 
 import { BaseControle } from './BaseControle.js'
 import { StepContext } from './executeSteps.js'
@@ -8,14 +7,13 @@ import { StepContext } from './executeSteps.js'
 const log = createLogger('checks', import.meta)
 
 export abstract class BaseGroep<T extends {}> {
-  public controles: BaseControle<unknown>[] = []
+  public controles: BaseControle<unknown, T>[] = []
 
   public abstract naam: string
 
   public data?: T
-  public dataSelectie: NamedNode[] = []
 
-  setChecks = (controles: BaseControle<unknown>[]) => {
+  setChecks = (controles: BaseControle<unknown, T>[]) => {
     this.controles = controles
 
     for (const controle of controles) {

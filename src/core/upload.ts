@@ -6,20 +6,9 @@ import App from '@triply/triplydb'
 
 const log = createLogger('upload', import.meta, 'Upload')
 
-const fileUploadBlackList = [
-  'building.glb',
-  'data_ifcOWL.ttl',
-  'data.ttl',
-  'data.trig',
-  'gebouw.ttl',
-  'footprint.txt',
-  'model.ttl',
-  'shacl-report.ttl',
-]
-
 export const upload = async ({
   outputsDir,
-  focusedDataset,
+  gebouwDataset,
   datasetName,
   args,
   baseIRI,
@@ -27,7 +16,7 @@ export const upload = async ({
   verrijkingenDataset,
 }: Pick<
   StepContext,
-  'outputsDir' | 'focusedDataset' | 'args' | 'datasetName' | 'account' | 'baseIRI' | 'verrijkingenDataset'
+  'outputsDir' | 'gebouwDataset' | 'args' | 'datasetName' | 'account' | 'baseIRI' | 'verrijkingenDataset'
 >) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
@@ -36,7 +25,9 @@ export const upload = async ({
   const files = await fs.readdir(outputsDir)
 
   for (const file of files) {
-    if (fileUploadBlackList.includes(file)) continue
+    // We do not want to upload linked data as assets. Also the footprint.txt is added as linked data
+    const extensions = ['.trig', '.ttl', '.txt']
+    if (extensions.some((ext) => file.endsWith(ext))) continue
 
     const fileId = file
 
@@ -67,7 +58,7 @@ export const upload = async ({
   if (!args.clean) {
     const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
       body: JSON.stringify({
-        query: `ASK WHERE { GRAPH <${baseIRI}${datasetName}/gebouw> { ?s ?p ?o } }`,
+        query: `ASK WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?s ?p ?o } }`,
       }),
       method: 'POST',
       headers: {
@@ -81,22 +72,22 @@ export const upload = async ({
 
     if (graphExists) shouldUpload = false
   }
-
   if (shouldUpload) {
     log(`Dataset uploaden naar TriplyDB`)
 
-    await dataset.importFromStore(focusedDataset as any, {
-      defaultGraphName: `https://www.rotterdam.nl/vcs/${datasetName}/gebouw`,
+    /* TODO We have already done this --- other upload steps should probably also be moved to their respective creation steps
+    await dataset.importFromStore(gebouwDataset as any, {
+      defaultGraphName: `${baseIRI}${datasetName}/graph/gebouw`,
       overwriteAll: true,
-    })
+    })*/
 
     await dataset.importFromStore(verrijkingenDataset as any, {
-      defaultGraphName: `https://www.rotterdam.nl/vcs/${datasetName}/verrijkingen`,
+      defaultGraphName: `${baseIRI}${datasetName}/graph/verrijkingen`,
       overwriteAll: true,
     })
 
     log(`Klaar met uploaden naar TriplyDB`)
   } else {
-    log(`Dataset upload overgeslagen`)
+    //log(`Dataset upload overgeslagen`)
   }
 }

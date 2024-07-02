@@ -1,19 +1,13 @@
 import { existsSync } from 'fs'
-import { writeFile } from 'fs/promises'
-import grapoi from 'grapoi'
 
-import { getCheckGroups } from '@core/controles.js'
 import { StepContext } from '@core/executeSteps.js'
 import { createExecutor } from '@helpers/executeCommand.js'
 import { createLogger } from '@helpers/logger.js'
-import { express, ifc, rdf, rdfs } from '@helpers/namespaces.js'
-import { parseToStore } from '@helpers/parseToStore.js'
-import { writeTurtle } from '@helpers/writeTurtle.js'
-import factory from '@rdfjs/data-model'
+import { ifc } from '@helpers/namespaces.js'
 import { Quad_Subject } from '@rdfjs/types'
-import { Store as TriplyStore } from '@triplydb/data-factory'
+import App from '@triply/triplydb'
 
-import { addLinkedDataToStore } from './addLinkedDataToStore.js'
+// import { addLinkedDataToStore } from './addLinkedDataToStore.js'
 
 import type { GrapoiPointer } from '@helpers/grapoi.js'
 const executeCommand = createExecutor('linked-data', import.meta, 'Linked Data')
@@ -23,52 +17,65 @@ export const maakLinkedData = async ({
   outputsDir,
   inputIfc,
   baseIRI,
-}: Pick<StepContext, 'outputsDir' | 'inputIfc' | 'baseIRI'>) => {
-  const storeCache = `${outputsDir}/gebouw.ttl`
-  if (!existsSync(storeCache)) {
-    log('Omvormen van de invoer .ifc naar Linked Data')
+  account,
+  datasetName,
+  args,
+}: Pick<StepContext, 'outputsDir' | 'inputIfc' | 'baseIRI' | 'account' | 'datasetName' | 'args'>) => {
+  const storeCache = `${outputsDir}gebouw.ttl`
+  const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
+  const user = await triply.getAccount(account)
+  const dataset = await user.getDataset(datasetName)
+  const { apiUrl } = await triply.getInfo()
 
-    const dataset = new TriplyStore()
+  if (args.clean) {
+    // TODO: ... of als de dataset nog niet bestaat
+    if (args.clean || !existsSync(storeCache)) {
+      log('Omvormen van de invoer .ifc naar Linked Data')
 
-    const resolvedOutputTurtle = `${outputsDir}/data.ttl`
-    if (!existsSync(resolvedOutputTurtle)) {
       try {
         await executeCommand(
-          `java -jar "./src/tools/IFCtoLBD_CLI.jar" "${inputIfc}" --hasBuildingElements --hasBuildingElementProperties --ifcOWL -u="${baseIRI}" -t="${resolvedOutputTurtle}"`,
-          // TODO Check met Kathrin welke variant we moeten gebruiken.
-          // `java -jar "./src/tools/IFCtoLBD_CLI.jar" "${inputIfc}" -be --hasGeolocation --hasGeometry --hasUnits --hasBuildingElementProperties --ifcOWL -l100 -u=${baseIRI}  -t="${resolvedOutputTurtle}"`
+          // Interesting future options (see https://github.com/jyrkioraskari/IFCtoLBD): --hasGeolocation --hasGeometry --hasUnits
+          `java -Xms2g -Xmx8g -jar "./src/tools/IFCtoLBD_CLI.jar" "${inputIfc}" --hasBuildingElements --hasBuildingElementProperties --hasSeparateBuildingElementsModel --hasSeparatePropertiesModel --ifcOWL -u="${baseIRI}" -t="${storeCache}"`,
         )
       } catch (error) {
         log((error as Error).message)
       }
     } else {
-      log('Omzetting overgeslagen, we maken gebruik van cache bestanden', 'IFCtoLBD')
+      log(`${storeCache} gevonden, we maken gebruik van cache`, 'Linked Data')
     }
 
-    await addLinkedDataToStore(outputsDir, dataset)
-    const groups = await getCheckGroups()
-
-    const classes = groups.flatMap((group) => {
-      return [...group.dataSelectie, ...group.controles.flatMap((check) => check.dataSelectie)]
-    })
-    const pointer: GrapoiPointer = grapoi({ dataset, factory })
-    const filteredPointers = pointer.hasOut(rdf('type'), classes).out()
-
-    const focusedDataset = new TriplyStore([...filteredPointers.quads()] as any)
-
-    const output = await writeTurtle([...focusedDataset])
-    await writeFile(storeCache, output, 'utf8')
-    log('Opslaan van gebouw.ttl')
-  } else {
-    log('gebouw.ttl gevonden, we maken gebruik van cache', 'Linked Data')
+    log('Uploaden van Linked Data naar TriplyDB')
+    await dataset.importFromFiles(
+      [
+        storeCache,
+        `${outputsDir}gebouw_ifcOWL.ttl`,
+        `${outputsDir}gebouw_building_elements.ttl`,
+        `${outputsDir}gebouw_element_properties.ttl`,
+      ],
+      {
+        defaultGraphName: `${baseIRI}${datasetName}/graph/gebouw`,
+        overwriteAll: true,
+      },
+    )
   }
 
-  const focusedDataset = new TriplyStore()
-  await parseToStore(`${outputsDir}/gebouw.ttl`, focusedDataset)
-
   // Determine the subject of the building
-  const pointer: GrapoiPointer = grapoi({ dataset: focusedDataset, factory })
-  const building = pointer.hasOut(rdf('type'), ifc('IfcBuilding'))
-  if (!building.term) throw new Error('Kon niet het subject vinden van het gebouw')
-  return { focusedDataset, gebouwSubject: building.term as Quad_Subject }
+
+  const sparqlUrl = `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
+  const response = await fetch(sparqlUrl, {
+    body: JSON.stringify({
+      query: `SELECT ?subject WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?subject a <${ifc('IfcBuilding').value}> } }`,
+    }),
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      Accepts: 'application/sparql-results+json, application/n-triples',
+      Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
+    },
+  }).then((response) => response.json())
+  const gebouwSubject = response.length == 1 ? response[0]['subject'] : null
+  if (!gebouwSubject)
+    throw new Error(`Kon het subject van het gebouw niet vinden; response was ${JSON.stringify(response)}`)
+
+  return { dataset, gebouwSubject: gebouwSubject as Quad_Subject }
 }
