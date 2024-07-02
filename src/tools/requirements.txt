@@ -2,6 +2,6 @@ ifcopenshell
 ifctester
 bcf-client
 pystache
-numpy
+numpy==1.26.4
 shapely
 argparse

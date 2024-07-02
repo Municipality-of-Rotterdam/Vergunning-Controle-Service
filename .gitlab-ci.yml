@@ -27,8 +27,8 @@ release-docker:
   stage: release
   script:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker build -f docker/Dockerfile -t ${CI_REGISTRY_IMAGE}:24.05.23 .
-    - docker push ${CI_REGISTRY_IMAGE}:24.05.23
+    - docker build -f docker/Dockerfile -t ${CI_REGISTRY_IMAGE}:24.07.02 .
+    - docker push ${CI_REGISTRY_IMAGE}:24.07.02
 
 main:
   stage: run-etls

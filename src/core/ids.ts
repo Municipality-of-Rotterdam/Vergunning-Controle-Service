@@ -20,8 +20,8 @@ export const idsValidatie = async ({ inputIfc, inputIds, outputsDir }: StepConte
   } catch (e) {
     // Just continue if IDS validation fails
     if (e instanceof Error) {
-      log(e.message)
       if (!e.message.includes('validation failed')) throw e
+      else log(e.message)
     } else {
       throw e
     }
