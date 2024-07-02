@@ -38,11 +38,12 @@ def main(source_ifc_path, source_ids_path, html_report_destination_path='IDS_val
 
     # Check overall status and print success or failure message
     if status == True:
-        print(f"IFC IDS validation passed! The IFC model meets all IDS requirements.\nThe resulting report was is available here: {html_report_destination_path}")
+        print("IFC IDS validation passed! The IFC model meets all IDS requirements.")
     else:
         # Report validation results for console
         console_reporter.report()
-        raise Exception(f"IFC IDS validation failed! The IFC model does not meet all IDS requirements.\nThe resulting report is available here: {html_report_destination_path}")
+        print("IFC IDS validation failed! The IFC model does not meet all IDS requirements.")
+    print(f"The resulting report is available here: {html_report_destination_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="IFC IDS Validation Script")

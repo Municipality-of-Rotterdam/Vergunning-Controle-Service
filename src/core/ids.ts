@@ -1,71 +1,30 @@
 import { readdir } from 'fs/promises'
-import * as path from "path";
+import * as path from 'path'
 import { StepContext } from '@core/executeSteps.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 import { GeoData } from '@verrijkingen/geoReference.js'
+import { createExecutor } from '@helpers/executeCommand.js'
+import { createLogger } from '@helpers/logger.js'
 
-export type Validation = {}
+const executeCommand = createExecutor('idsValidatie', import.meta, 'idsValidatie')
+const log = createLogger('idsValidatie', import.meta)
 
-export const idsValidatie = async (context: StepContext): Promise<Validation> => {
-
-  const python = path.join(__dirname, "src", "tools", "validate_IFC.py");
-  // return output as Validation
-}
-
-    // VCS IDS Validation
-    if (idsFilePath) {
-      try {
-        await vcs.IFC.validateWithIds(idsFilePath);
-      } catch (error) {
-        console.error("Error during validation!");
-      }
-      console.info("Uploading IDS Validation Reports");
-
-      // html
-      try {
-        const asset = await dataset.getAsset(reportName + ".html");
-        await asset.delete();
-      } catch (error) {}
-      if (fs.existsSync(reportPathHtml)) {
-        await dataset.uploadAsset(reportPathHtml, reportName + ".html");
-      }
-
-      // bfc
-      try {
-        const asset = await dataset.getAsset(reportName + ".bcf");
-        await asset.delete();
-      } catch (error) {}
-      if (fs.existsSync(reportPathBcf)) {
-        await dataset.uploadAsset(reportPathBcf, reportName + ".bcf");
-      }
+export const idsValidatie = async ({ inputIfc, inputIds, outputsDir }: StepContext): Promise<{}> => {
+  const pythonScript = path.join('src', 'tools', 'validate_IFC.py')
+  const idsReportHtml = path.join(outputsDir, 'IDSValidationReport.html')
+  const idsReportBcf = path.join(outputsDir, 'IDSValidationReport.bcf')
+  try {
+    await executeCommand(
+      `python3 ${pythonScript} "${inputIfc}" "${inputIds}" -r "${idsReportHtml}" -b "${idsReportBcf}"`,
+    )
+  } catch (e) {
+    // Just continue if IDS validation fails
+    if (e instanceof Error) {
+      log(e.message)
+      if (!e.message.includes('validation failed')) throw e
+    } else {
+      throw e
     }
-    
-    
-        validateWithIds: async (idsFilePath: string | string[], ifcFilePath: string = this.ifcFilePath): Promise<void> => {
-      const requirements = path.join("python", "requirements.txt");
-      const dataDir = path.join("output");
-
-      // Check if data directory exists
-      if (!fs.existsSync(dataDir)) {
-        await fs.promises.mkdir(dataDir);
-      }
-      if (typeof idsFilePath == "string") {
-        idsFilePath = [idsFilePath];
-      }
-
-      for (let index = 0; index < idsFilePath.length; index++) {
-        const ids = idsFilePath[index];
-        const htmlReportDestinationPath = path.join("outputs", "IDSValidationReport.html");
-        const bcfReportDestinationPath = path.join("outputs", "IDSValidationReport.bcf");
-        await executeCommand(`python3 -m pip install -r ${requirements} --quiet`);
-        try {
-          await executeCommand(
-            `python3 ${pythonScript} "${ifcFilePath}" "${idsFilePath}" -r "${htmlReportDestinationPath}" -b "${bcfReportDestinationPath}"`,
-          );
-        } catch (error) {
-          throw error;
-        }
-      }
-    },
-  };
+  }
+  return {}
 }
