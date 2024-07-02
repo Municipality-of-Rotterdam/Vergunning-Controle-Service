@@ -6,9 +6,6 @@ default:
   tags:
     - etl
 
-workflow:
-  name: $PIPELINE_NAME
-
 stages:
   - release
   # 0: Only install, lint and build, gets triggered on push and merge-requests:
