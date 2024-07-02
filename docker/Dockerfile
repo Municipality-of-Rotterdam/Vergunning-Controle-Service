@@ -25,18 +25,8 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     libbz2-dev
 
-# Install Python 3.12
-RUN wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz \
-    && tar -xf Python-3.12.0.tgz \
-    && cd Python-3.12.0 \
-    && ./configure --enable-optimizations \
-    && make -j $(nproc) \
-    && make altinstall \
-    && cd .. \
-    && rm -rf Python-3.12.0 Python-3.12.0.tgz
-
-# Update alternatives to use python3.12 by default
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.12 1
+# Install Python
+RUN apt-get install -y python3
 
 # Verify Python installation
 RUN python3 --version

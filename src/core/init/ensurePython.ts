@@ -14,7 +14,7 @@ export const ensurePython = async () => {
       log(`Python3 is not installed`, 'Python3')
       throw new Error('Could not find Python3 in the environment, is it installed?')
     } else {
-      throw new Error('Unknown error while checking for Python3')
+      throw new Error(`Unknown error while checking for Python3: ${(error as Error).message}`)
     }
   }
 }
