@@ -40,8 +40,11 @@ def main(file, building_iri, ifc_classes):
     mc_delta_x = map_conversion[0][2] # should be RD (metres)
     mc_delta_y = map_conversion[0][3] # should be RD (metres)
     mc_elevation = map_conversion[0][4] # needed for 3D geometries; should in metres relative to NAP
+    mc_scale = map_conversion[0][7]
+    if mc_scale is None:
+        mc_scale = 1
     mc_rotation = -1 * np.arctan(map_conversion[0][6]/map_conversion[0][5])
-    origin_wkt = 'POINT Z(' + str(mc_delta_x) + ' ' + str(mc_delta_y) + ' ' + str(mc_elevation) + ')'
+    origin_wkt = 'POINT Z(' + str(mc_delta_x * mc_scale) + ' ' + str(mc_delta_y* mc_scale) + ' ' + str(mc_elevation * mc_scale) + ')'
     
     geometries = []
     for ifc_class in ifc_classes:
@@ -67,12 +70,12 @@ def main(file, building_iri, ifc_classes):
 
     # georeference the coordinates
     if outer_shape.geom_type == 'LinearRing':
-        footprint = georeference(outer_shape, mc_delta_x, mc_delta_y, mc_rotation)
+        footprint = georeference(outer_shape, mc_scale, mc_delta_x, mc_delta_y, mc_rotation)
         footprint_geomtype = 'Polygon'
     elif outer_shape.geom_type == 'MultiLineString':
         polys = []
         for linestring in list(outer_shape.geoms):
-            polys.append(georeference(linestring, mc_delta_x, mc_delta_y, mc_rotation))
+            polys.append(georeference(linestring, mc_scale, mc_delta_x, mc_delta_y, mc_rotation))
         footprint = shapely.MultiPolygon(polys)
         footprint_geomtype = 'MultiPolygon'
     else:
@@ -131,7 +134,7 @@ prefix ex: <http://www.example.org/>
     #print('footprint area (square metres):', round(footprint.area,3))
 
 
-def georeference(lstr, mc_delta_x, mc_delta_y, mc_rotation) -> shapely.Polygon:
+def georeference(lstr, mc_scale, mc_delta_x, mc_delta_y, mc_rotation) -> shapely.Polygon:
     """"
     Georefence the X and Y coordinates, drop the Z coordinate and round to 3 decimals (milimetres).
     First do the rotation, then the translation, using the parameters from IfcMapConversion.
@@ -146,8 +149,8 @@ def georeference(lstr, mc_delta_x, mc_delta_y, mc_rotation) -> shapely.Polygon:
     verts_georef = []
     verts = lstr.coords[:]
     for vert in verts :
-        x_georef = (vert[0] * np.cos(mc_rotation) + vert[1] * np.sin(mc_rotation)) + mc_delta_x
-        y_georef = (-1 * vert[0] * np.sin(mc_rotation) + vert[1] * np.cos(mc_rotation)) + mc_delta_y
+        x_georef = (vert[0] * mc_scale * np.cos(mc_rotation) + vert[1] * mc_scale * np.sin(mc_rotation)) + mc_delta_x
+        y_georef = (-1 * vert[0] * mc_scale * np.sin(mc_rotation) + vert[1] * mc_scale * np.cos(mc_rotation)) + mc_delta_y
         verts_georef.append([round(x_georef,3),round(y_georef,3)])
 
     return shapely.Polygon(verts_georef)
