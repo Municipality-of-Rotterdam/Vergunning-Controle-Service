@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rpt, rdfs } from '@helpers/namespaces.js'
+import { rpt, rdfs, prov } from '@helpers/namespaces.js'
 import App from '@triply/triplydb'
 
 import RapportageTemplate from './RapportageTemplate.js'
@@ -52,16 +52,9 @@ export const rapportage = async ({
         coordinates: [voetprintCoordinates],
       },
     },
-    controles: validationPointer.out(rpt('controle')).map((controle) => {
-      return {
-        label: controle.out(rdfs('label')).value,
-        validated: controle.out(rpt('passed')).value === 'true',
-        message: controle.out(rpt('message')).value,
-      }
-    }),
   }
 
-  const html = renderToStaticMarkup(RapportageTemplate(props))
+  const html = renderToStaticMarkup(RapportageTemplate(props, validationPointer))
   await writeFile(`${outputsDir}/vcs-rapport.html`, html)
   const fileId = `vcs-rapport.html`
 

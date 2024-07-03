@@ -51,6 +51,8 @@ export const valideer = async ({
 
       headerLogBig(`Controle: "${controle.naam}": Uitvoering`)
 
+      let message: string
+      let success: boolean
       if (controle.isToepasbaar(controle.sparqlInputs)) {
         const query = controle.sparql(controle.sparqlInputs)
         const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
@@ -67,8 +69,8 @@ export const valideer = async ({
         }
         const responseJson = await response.json()
         const result = responseJson[0] ?? null
-        const success: boolean = result ? result.success ?? false : true
-        let message = success
+        success = result ? result.success ?? false : true
+        message = success
           ? controle.berichtGeslaagd(controle.sparqlInputs)
           : controle.berichtGefaald(controle.sparqlInputs)
 
@@ -77,31 +79,27 @@ export const valideer = async ({
             message = message.replaceAll(`{?${key}}`, value as string)
           }
         }
-        provenance.done(activity)
 
         if (success) {
           log(chalk.greenBright(`✅ ${message}`), controle.naam)
         } else {
           log(chalk.redBright(`❌ ${message}`), controle.naam)
         }
-
-        reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
-          c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
-          c.addOut(rdf('type'), rpt('Controle'))
-          c.addOut(rdfs('label'), factory.literal(naam))
-          c.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
-          c.addOut(rpt('message'), factory.literal(message))
-        })
       } else {
-        log(`Niet van toepassing`, controle.naam)
-        reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
-          c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
-          c.addOut(rdf('type'), rpt('Controle'))
-          c.addOut(rdfs('label'), factory.literal(naam))
-          c.addOut(rpt('passed'), factory.literal('true', xsd('boolean')))
-          c.addOut(rpt('message'), factory.literal('Niet van toepassing'))
-        })
+        message = 'Niet van toepassing'
+        success = true
+        log(message, controle.naam)
       }
+
+      provenance.done(activity)
+
+      reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
+        c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
+        c.addOut(rdf('type'), rpt('Controle'))
+        c.addOut(rdfs('label'), factory.literal(naam))
+        c.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
+        c.addOut(rpt('message'), factory.literal(message))
+      })
     }
 
     if (checkGroup.activity) provenance.done(checkGroup.activity)

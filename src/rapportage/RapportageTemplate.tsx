@@ -1,20 +1,36 @@
 import { readFile } from 'fs/promises'
+import { rpt, rdfs, prov } from '@helpers/namespaces.js'
+import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 
 export type RapportageProps = {
   gebouw: string
   polygon: any
   geoData: any
   gltfUrl: string
-  controles: {
-    label: string
-    validated: boolean
-    message?: string
-  }[]
 }
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
 
-export default function ({ gebouw, controles, polygon, geoData, gltfUrl }: RapportageProps) {
+function Controle(controle: any) {
+  const label = controle.out(rdfs('label')).value
+  const validated = controle.out(rpt('passed')).value === 'true'
+  const message = controle.out(rpt('message')).value
+  //const prov = controle.out(prov('wasGeneratedBy')).out(prov('startedAtTime')).value
+  return (
+    <div key={label}>
+      <h1 className={!validated ? 'bg-danger-subtle' : ''}>
+        {validated ? <strong>✅</strong> : <strong>❌</strong>}
+        {label}
+      </h1>
+      <p>{message}</p>
+      <hr />
+    </div>
+  )
+}
+
+export default function ({ gebouw, polygon, geoData, gltfUrl }: RapportageProps, validationPointer: GrapoiPointer) {
+  const controles = validationPointer.out(rpt('controle'))
+
   return (
     <html lang="en">
       <head>
@@ -64,24 +80,8 @@ export default function ({ gebouw, controles, polygon, geoData, gltfUrl }: Rappo
 
         <div style={{ height: 880 }} id="cesiumContainer"></div>
 
-        <table className="table">
-          <thead>
-            <tr>
-              <th scope="col">Controle</th>
-              <th scope="col">Status</th>
-              <th scope="col">Bericht</th>
-            </tr>
-          </thead>
-          <tbody>
-            {controles.map((controle) => (
-              <tr key={controle.label}>
-                <td>{controle.label}</td>
-                <td>{controle.validated ? <strong>✅</strong> : <strong>❌</strong>}</td>
-                <td className={!controle.validated ? 'bg-danger-subtle' : ''}>{controle.message}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {controles.map((controle: GrapoiPointer) => Controle(controle))}
+
         <script type="module" dangerouslySetInnerHTML={{ __html: inlineScript }}></script>
       </body>
     </html>
