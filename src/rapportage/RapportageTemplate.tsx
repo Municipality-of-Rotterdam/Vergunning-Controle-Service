@@ -85,7 +85,7 @@ function Controle(controle: any, provenance: Provenance) {
   const provenanceNode = controle.out(prov('wasGeneratedBy'))
   return (
     <div key={label}>
-      <h1 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h1>
+      <h3 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h3>
       <p className="description">{description}</p>
       <p className="result">
         {validated ? <strong>✅</strong> : <strong>❌</strong>}
@@ -149,9 +149,11 @@ export default function (
       </head>
       <body className="p-5">
         <h1>VCS Validatierapportage</h1>
-        <h2>{gebouw}</h2>
+        <h2>
+          <a href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/">{gebouw}</a>
+        </h2>
 
-        <div style={{ height: 880 }} id="cesiumContainer"></div>
+        {/* TODO restore this when time is ripe <div style={{ height: 880 }} id="cesiumContainer"></div> */}
 
         {controles.map((controle: GrapoiPointer) => Controle(controle, provenance))}
 
