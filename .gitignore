@@ -1,7 +1,7 @@
 *.log
+*.ifc
 etl.err
 etl.trace*
-data
 lib
 node_modules
 npm-debug.log*
