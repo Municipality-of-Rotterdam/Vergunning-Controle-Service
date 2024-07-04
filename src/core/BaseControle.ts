@@ -42,6 +42,7 @@ export abstract class BaseControle<T, G extends {}> {
   apiResponse?: any
   abstract sparqlUrl: string
   abstract tekst: string
+  abstract verwijzing: string
 
   abstract bericht(inputs: T): string
   berichtGefaald(inputs: T): string {

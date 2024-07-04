@@ -113,6 +113,7 @@ export const valideer = async ({
         c.addOut(rdf('type'), rpt('Controle'))
         c.addOut(rdfs('label'), controle.naam)
         c.addOut(dct('description'), factory.literal(controle.tekst, 'nl'))
+        c.addOut(rpt('verwijzing'), factory.literal(controle.verwijzing, 'nl'))
         c.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
         c.addOut(rpt('message'), factory.literal(message))
         c.addOut(prov('wasGeneratedBy'), controle.activity?.term)

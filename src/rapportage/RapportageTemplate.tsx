@@ -92,11 +92,13 @@ function Controle(controle: any, provenance: Provenance) {
   const label = controle.out(rdfs('label')).value
   const validated = controle.out(rpt('passed')).value === 'true'
   const message = controle.out(rpt('message')).value
+  const verwijzing = controle.out(rpt('verwijzing')).value
   const description = controle.out(dct('description')).value
   const provenanceNode = controle.out(prov('wasGeneratedBy'))
   const source = controle.out(dct('source'))
   return (
     <div key={label}>
+      <hr />
       <h3 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h3>
       <dl>
         <dt>Beschrijving</dt>
@@ -107,10 +109,11 @@ function Controle(controle: any, provenance: Provenance) {
         </dd>
         <dt>Bestemmingsplan</dt>
         <dd>{Bestemmingsplan(source)}</dd>
+        <dt>Verwijzing</dt>
+        <dd>{verwijzing}</dd>
         <dt>Provenance</dt>
         <dd className="provenance">{ProvenanceHtml(provenance, provenanceNode)}</dd>
       </dl>
-      <hr />
     </div>
   )
 }
@@ -119,15 +122,18 @@ export default function (
   { gebouw, polygon, geoData, gltfUrl, footprintUrl, datasetName }: RapportageProps,
   validationPointer: GrapoiPointer,
   provenance: Provenance,
+  idsControle: GrapoiPointer,
 ) {
   const controles = validationPointer.out(rpt('controle'))
+  const ifc = validationPointer.out(rpt('ifc'))
+  const idsFiles = idsControle.out(rdfs('seeAlso'))
 
   return (
     <html lang="en">
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{`VCS-rapport ${gebouw}`}</title>
+        <title>{`Vergunningscontrolerapport ${datasetName}`}</title>
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet"
@@ -168,6 +174,18 @@ export default function (
       <body className="p-5">
         <h1>Vergunningscontrolerapport {datasetName}</h1>
         <dl>
+          <dt>IFC-bestand</dt>
+          <dd>
+            <a href={ifc.value.toString()}>{ifc.value}</a>
+          </dd>
+          <dt>IDS-controle</dt>
+          <dd>
+            {idsFiles.map((f) => (
+              <div key={f.value}>
+                <a href={f.value.toString()}>{f.value.toString()}</a>
+              </div>
+            ))}
+          </dd>
           <dt>Voetprint</dt>
           <dd>
             <a href={footprintUrl}>{footprintUrl}</a>

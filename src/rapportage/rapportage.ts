@@ -19,6 +19,7 @@ export const rapportage = async ({
   geoData,
   provenance,
   gebouwSubject,
+  idsControle,
 }: Pick<
   StepContext,
   | 'validationPointer'
@@ -29,6 +30,7 @@ export const rapportage = async ({
   | 'geoData'
   | 'provenance'
   | 'gebouwSubject'
+  | 'idsControle'
 >) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
@@ -65,7 +67,7 @@ export const rapportage = async ({
     },
   }
 
-  const html = renderToStaticMarkup(RapportageTemplate(props, validationPointer, provenance))
+  const html = renderToStaticMarkup(RapportageTemplate(props, validationPointer, provenance, idsControle))
   await writeFile(`${outputsDir}/vcs-rapport.html`, html)
   const fileId = `vcs-rapport.html`
 

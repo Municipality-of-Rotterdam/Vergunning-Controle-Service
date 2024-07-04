@@ -16,7 +16,12 @@ Then: Het gebruik van het gebouw is in overeenstemming met de specifieke gebruik
 
 export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlInputs, GroepsData> {
   public naam = 'Wonen: Bedrijfsfunctie'
-  public tekst = `Woningen mogen mede worden gebruikt voor de uitoefening van een aan huis gebonden beroep of bedrijf, mits: de woonfunctie in overwegende mate gehandhaafd blijft, waarbij het bruto vloeroppervlak van de woning voor ten hoogste 30%, mag worden gebruikt voor een aan huis gebonden beroep of bedrijf;`
+  public tekst = `Woningen mogen mede worden gebruikt voor de uitoefening van een aan huis gebonden beroep of bedrijf, mits: de woonfunctie in overwegende mate gehandhaafd blijft, waarbij het bruto vloeroppervlak van de woning voor ten hoogste 30%, mag worden gebruikt voor een aan huis gebonden beroep of bedrijf`
+  public verwijzing = `Hoofdstuk 2 Bestemmingsregels 
+		Artikel 23 Wonen lid 
+			23.3 Specifieke gebruiksregels
+				23.3.1 Algemeen
+					a. `
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')

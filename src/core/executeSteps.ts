@@ -23,6 +23,9 @@ export type StepContext = {
   outputsDir: string
   ruleIds: number[]
 
+  // ids
+  idsControle: GrapoiPointer
+
   // maakLinkedData
   gebouwDataset: TriplyStore
   gebouwSubject: Quad_Subject
