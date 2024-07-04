@@ -16,6 +16,7 @@ import Dataset from '@triply/triplydb/Dataset.js'
 
 const log = createLogger('init', import.meta)
 
+// TODO: depends on token
 export const baseIRI = 'https://demo.triplydb.com/rotterdam/'
 
 export const init = async () => {
@@ -97,29 +98,33 @@ export const init = async () => {
 
   const ifcOutput = `${ifcDir}/${args.ifc}`
 
-  let asset: Asset
+  let ifcAsset: Asset
   try {
-    asset = await vcsDataset.getAsset(args.ifc)
+    ifcAsset = await vcsDataset.getAsset(args.ifc)
   } catch (error) {
     throw new Error(`Kon het IFC asset niet vinden in TriplyDB`)
   }
 
   // write asset to input ifc directory
-  await writeFile(ifcOutput, await asset.toStream(), 'utf8')
+  await writeFile(ifcOutput, await ifcAsset.toStream(), 'utf8')
 
+  const consoleUrl = (await triply.getInfo()).consoleUrl
+  const userName = (await user.getInfo()).accountName
+  const ifcAssetURL = `${consoleUrl}/_api/datasets/${userName}/vcs/assets/download?fileName=${args.ifc}`
   const inputIfc = import.meta.resolve(`../../../input/ifc/${args.ifc}`).replace('file://', '')
   const ifcIdentifier = crypto.createHash('md5').update(inputIfc).digest('hex')
 
   return {
-    baseIRI,
     account,
+    args,
+    baseIRI,
     datasetName,
-    ruleIds,
-    outputsDir,
-    inputIfc,
+    idsIdentifier,
+    ifcAssetURL,
     ifcIdentifier,
     inputIds,
-    idsIdentifier,
-    args,
+    inputIfc,
+    outputsDir,
+    ruleIds,
   }
 }
