@@ -81,15 +81,17 @@ function Controle(controle: any, provenance: Provenance) {
   const label = controle.out(rdfs('label')).value
   const validated = controle.out(rpt('passed')).value === 'true'
   const message = controle.out(rpt('message')).value
+  const description = controle.out(dct('description')).value
   const provenanceNode = controle.out(prov('wasGeneratedBy'))
   return (
     <div key={label}>
-      <h1 className={!validated ? 'bg-danger-subtle' : ''}>
+      <h1 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h1>
+      <p className="description">{description}</p>
+      <p className="result">
         {validated ? <strong>✅</strong> : <strong>❌</strong>}
-        {label}
-      </h1>
-      <p className="result">{message}</p>
-      <p>{ProvenanceHtml(provenance, provenanceNode)}</p>
+        {message}
+      </p>
+      <p className="provenance">{ProvenanceHtml(provenance, provenanceNode)}</p>
       <hr />
     </div>
   )

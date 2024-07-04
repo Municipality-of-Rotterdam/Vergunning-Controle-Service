@@ -3,7 +3,7 @@ import grapoi from 'grapoi'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rdf, rdfs, rpt, xsd, prov } from '@helpers/namespaces.js'
+import { rdf, rdfs, rpt, xsd, prov, dct } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import App from '@triply/triplydb'
 import { Store as TriplyStore } from '@triplydb/data-factory'
@@ -98,7 +98,8 @@ export const valideer = async ({
       reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
         c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
         c.addOut(rdf('type'), rpt('Controle'))
-        c.addOut(rdfs('label'), factory.literal(naam))
+        c.addOut(rdfs('label'), controle.naam)
+        c.addOut(dct('description'), factory.literal(controle.tekst, 'nl'))
         c.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
         c.addOut(rpt('message'), factory.literal(message))
       })

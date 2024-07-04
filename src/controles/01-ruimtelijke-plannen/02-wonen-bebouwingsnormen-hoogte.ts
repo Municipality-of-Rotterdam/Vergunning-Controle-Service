@@ -9,6 +9,7 @@ type SparqlInputs = {
 
 export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<SparqlInputs, GroepsData> {
   public naam = 'Bebouwingsnormen: Hoogte'
+  public tekst = `De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven;`
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
