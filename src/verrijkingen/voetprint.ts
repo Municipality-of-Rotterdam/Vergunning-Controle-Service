@@ -5,7 +5,7 @@ import { createExecutor } from '@helpers/executeCommand.js'
 import { createLogger } from '@helpers/logger.js'
 import { StepContext } from '@root/core/executeSteps.js'
 
-const executeCommand = createExecutor('verrijking', import.meta, 'footprint_approx')
+const executeCommand = createExecutor('verrijking', import.meta, 'voetprint')
 
 const log = createLogger('verrijking', import.meta)
 

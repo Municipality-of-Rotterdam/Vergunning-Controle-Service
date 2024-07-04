@@ -50,7 +50,9 @@ export const createExecutor =
       child.on('close', (code) => {
         if (code !== 0) {
           // log(`Command "${command}" exited with code ${code}`)
-          reject(new Error(`Command "${command}" exited with code ${code}`))
+          log(output.join('\n'))
+          log(errors.join('\n'))
+          reject(new Error(`Command "${command}" exited with code ${code}.`))
         } else {
           resolve(output.join('\n'))
         }

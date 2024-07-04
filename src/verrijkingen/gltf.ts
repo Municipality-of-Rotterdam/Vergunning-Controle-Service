@@ -9,7 +9,7 @@ import { StepContext } from '@root/core/executeSteps.js'
 
 const { glbToGltf } = gltfPipeline
 
-const executeCommand = createExecutor('verrijking', import.meta, 'footprint_approx')
+const executeCommand = createExecutor('verrijking', import.meta, 'gltf')
 
 const log = createLogger('verrijking', import.meta)
 
