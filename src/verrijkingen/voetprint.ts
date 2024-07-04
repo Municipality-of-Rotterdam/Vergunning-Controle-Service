@@ -36,7 +36,7 @@ export default async function Voetprint({
     factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${polygon}`, geo('wktLiteral')),
   )
   verrijkingenDataset.add(quad as any)
-  log(`De voetprint is toegevoegd aan de verrijkingen Linked Data graaf`, 'Voetprint')
+  log(`De voetprint is toegevoegd aan de verrijkingen linked data graaf`, 'Voetprint')
 
   const voetprintCoordinates = polygon
     .split('((')
