@@ -172,7 +172,7 @@ export default function (
           <dd>
             <a href={footprintUrl}>{footprintUrl}</a>
           </dd>
-          <dt>3D model</dt>
+          <dt>3D model met bestemmingsvlakken</dt>
           <dd>
             <a href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/">
               https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/
