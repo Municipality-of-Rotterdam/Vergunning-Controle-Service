@@ -97,6 +97,7 @@ function Controle(controle: any, provenance: Provenance) {
   const source = controle.out(dct('source'))
   return (
     <div key={label}>
+      <hr />
       <h3 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h3>
       <dl>
         <dt>Beschrijving</dt>
@@ -110,7 +111,6 @@ function Controle(controle: any, provenance: Provenance) {
         <dt>Provenance</dt>
         <dd className="provenance">{ProvenanceHtml(provenance, provenanceNode)}</dd>
       </dl>
-      <hr />
     </div>
   )
 }
@@ -121,6 +121,7 @@ export default function (
   provenance: Provenance,
 ) {
   const controles = validationPointer.out(rpt('controle'))
+  const ifc = validationPointer.out(rpt('ifc'))
 
   return (
     <html lang="en">
@@ -168,6 +169,10 @@ export default function (
       <body className="p-5">
         <h1>Vergunningscontrolerapport {datasetName}</h1>
         <dl>
+          <dt>IFC-bestand</dt>
+          <dd>
+            <a href={ifc.value.toString()}>{ifc.value}</a>
+          </dd>
           <dt>Voetprint</dt>
           <dd>
             <a href={footprintUrl}>{footprintUrl}</a>
