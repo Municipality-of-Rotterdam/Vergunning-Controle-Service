@@ -14,7 +14,7 @@ import Provenance from './Provenance.js'
  */
 export const controles = async (context: StepContext) => {
   const { ruleIds } = context
-  context.provenance = new Provenance(`${context.baseIRI}${context.datasetName}`)
+  // context.provenance = new Provenance(`${context.baseIRI}${context.datasetName}`)
   const checkGroups = await getCheckGroups()
 
   for (const group of checkGroups) {

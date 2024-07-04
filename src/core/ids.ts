@@ -1,25 +1,28 @@
-import { readdir } from 'fs/promises'
 import * as path from 'path'
-import { StepContext } from '@core/executeSteps.js'
-import { Store as TriplyStore } from '@triplydb/data-factory'
-import { GeoData } from '@verrijkingen/geoReference.js'
 import { createExecutor } from '@helpers/executeCommand.js'
 import { createLogger } from '@helpers/logger.js'
+import { StepContext } from './executeSteps.js'
+import Provenance from './Provenance.js'
 
-const executeCommand = createExecutor('idsValidatie', import.meta, 'idsValidatie')
-const log = createLogger('idsValidatie', import.meta)
+const executeCommand = createExecutor('idsControle', import.meta, 'idsControle')
+const log = createLogger('idsControle', import.meta)
 
-export const idsValidatie = async ({ inputIfc, inputIds, outputsDir }: StepContext): Promise<{}> => {
+export const idsControle = async (context: StepContext): Promise<{}> => {
+  context.provenance = new Provenance(`${context.baseIRI}${context.datasetName}`)
+  const idsControle = context.provenance.activity({
+    label: 'IDS controle',
+    description: 'IDS controle door https://pypi.org/project/ifctester/',
+  })
   const pythonScript = path.join('src', 'tools', 'validate_IFC.py')
-  const idsReportHtml = path.join(outputsDir, 'IDSValidationReport.html')
-  const idsReportBcf = path.join(outputsDir, 'IDSValidationReport.bcf')
-  log('Uitvoeren van IDS validatie', 'IDS validate')
+  const idsReportHtml = path.join(context.outputsDir, 'IDSValidationReport.html')
+  const idsReportBcf = path.join(context.outputsDir, 'IDSValidationReport.bcf')
+  log('Uitvoeren van IDS controle', 'IDS controle')
   try {
     await executeCommand(
-      `python3 ${pythonScript} "${inputIfc}" "${inputIds}" -r "${idsReportHtml}" -b "${idsReportBcf}"`,
+      `python3 ${pythonScript} "${context.inputIfc}" "${context.inputIds}" -r "${idsReportHtml}" -b "${idsReportBcf}"`,
     )
   } catch (e) {
-    // Just continue if IDS validation fails
+    // Just continue if IDS control fails
     if (e instanceof Error) {
       if (!e.message.includes('validation failed')) throw e
       else log(e.message)
@@ -27,5 +30,6 @@ export const idsValidatie = async ({ inputIfc, inputIds, outputsDir }: StepConte
       throw e
     }
   }
+  context.provenance.done(idsControle)
   return {}
 }

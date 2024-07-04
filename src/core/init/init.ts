@@ -13,6 +13,7 @@ import { createLogger } from '@helpers/logger.js'
 import App from '@triply/triplydb'
 import Asset from '@triply/triplydb/Asset.js'
 import Dataset from '@triply/triplydb/Dataset.js'
+import Provenance from '../Provenance.js'
 
 const log = createLogger('init', import.meta)
 

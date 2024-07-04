@@ -62,7 +62,7 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{},
     return { bouwaanduiding }
   }
 
-  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/3-Wonen-bebouwingsnormen-vorm/1'
+  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/3-Wonen-bebouwingsnormen-vorm/'
   sparql({ bouwaanduiding }: SparqlInputs): string {
     const query = `
       prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
