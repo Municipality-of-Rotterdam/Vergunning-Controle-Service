@@ -10,8 +10,8 @@ import App from '@triply/triplydb'
 // import { addLinkedDataToStore } from './addLinkedDataToStore.js'
 
 import type { GrapoiPointer } from '@helpers/grapoi.js'
-const executeCommand = createExecutor('linked-data', import.meta, 'Linked Data')
-const log = createLogger('linked-data', import.meta, 'Linked Data')
+const executeCommand = createExecutor('linked-data', import.meta, 'Linked data')
+const log = createLogger('linked-data', import.meta, 'Linked data')
 
 export const maakLinkedData = async ({
   outputsDir,
@@ -30,7 +30,7 @@ export const maakLinkedData = async ({
   if (args.clean) {
     // TODO: ... of als de dataset nog niet bestaat
     if (args.clean || !existsSync(storeCache)) {
-      log('Omvormen van de invoer .ifc naar Linked Data')
+      log('Omvormen van de invoer .ifc naar linked data')
 
       try {
         await executeCommand(
@@ -41,10 +41,10 @@ export const maakLinkedData = async ({
         log((error as Error).message)
       }
     } else {
-      log(`${storeCache} gevonden, we maken gebruik van cache`, 'Linked Data')
+      log(`${storeCache} gevonden, we maken gebruik van cache`, 'Linked data')
     }
 
-    log('Uploaden van Linked Data naar TriplyDB')
+    log('Uploaden van linked data naar TriplyDB')
     await dataset.importFromFiles(
       [
         storeCache,

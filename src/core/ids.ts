@@ -13,6 +13,7 @@ export const idsValidatie = async ({ inputIfc, inputIds, outputsDir }: StepConte
   const pythonScript = path.join('src', 'tools', 'validate_IFC.py')
   const idsReportHtml = path.join(outputsDir, 'IDSValidationReport.html')
   const idsReportBcf = path.join(outputsDir, 'IDSValidationReport.bcf')
+  log('Uitvoeren van IDS validatie', 'IDS validate')
   try {
     await executeCommand(
       `python3 ${pythonScript} "${inputIfc}" "${inputIds}" -r "${idsReportHtml}" -b "${idsReportBcf}"`,

@@ -13,7 +13,7 @@ import { rapportage } from '@root/rapportage/rapportage.js'
 await executeSteps([
   ['Initialisatie', init],
   ['IDS validatie', idsValidatie],
-  ['Linked Data', maakLinkedData],
+  ['Linked data', maakLinkedData],
   ['Verrijkingen', verrijk],
   ['Opslaan naar TriplyDB database', upload],
   ['Controles voorbereiden', controles],
