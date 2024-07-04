@@ -12,6 +12,7 @@ export type StepContext = {
   ruleIds: number[]
   outputsDir: string
   inputIfc: string
+  ifcAssetURL: string
   ifcIdentifier: string
   inputIds: string
   idsIdentifier: string

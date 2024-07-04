@@ -26,6 +26,10 @@ Once you have your token, open the file `.env` and write the following line:
 
 You also need `RP_API_TOKEN`. You can find it in the GitLab CI environment settings.
 
+### IFC input
+
+The IFC file that will be checked needs to be uploaded as an asset to the `vcs` dataset of the respective DTAP environment. See for example here: https://demo.triplydb.com/rotterdam/vcs/assets. This way, we can integrate the application with the DSO, and trigger a web hook to run the application every time a new IFC file from the DSO is uploaded.
+
 ### Running the application
 
 You can run the application with the following commands:

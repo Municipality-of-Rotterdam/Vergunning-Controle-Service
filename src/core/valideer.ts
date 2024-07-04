@@ -14,16 +14,16 @@ import type { GrapoiPointer } from '@helpers/grapoi.js'
 const log = createLogger('checks', import.meta)
 
 export const valideer = async ({
-  inputIfc,
-  checkGroups,
-  datasetName,
   account,
   baseIRI,
-  ruleIds,
+  checkGroups,
+  datasetName,
+  ifcAssetURL,
   provenance,
+  ruleIds,
 }: Pick<
   StepContext,
-  'inputIfc' | 'checkGroups' | 'datasetName' | 'account' | 'baseIRI' | 'ruleIds' | 'provenance'
+  'ifcAssetURL' | 'checkGroups' | 'datasetName' | 'account' | 'baseIRI' | 'ruleIds' | 'provenance'
 >) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
@@ -34,7 +34,8 @@ export const valideer = async ({
 
   reportPointer.addOut(rdf('type'), rpt('ValidateRapport'))
   reportPointer.addOut(rpt('building'), factory.namedNode(`${baseIRI}${datasetName}/gebouw`))
-  reportPointer.addOut(rpt('ifc'), factory.literal(inputIfc))
+
+  reportPointer.addOut(rpt('ifc'), factory.literal(ifcAssetURL, xsd('anyURI')))
 
   const { apiUrl } = await triply.getInfo()
 
