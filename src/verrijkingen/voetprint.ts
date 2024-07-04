@@ -30,12 +30,17 @@ export default async function Voetprint({
   //   geo('asWKT'),
   //   factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${polygon}`, geo('wktLiteral')),
   // )
-  const quads: Quad[] = []
   const parser = new N3.Parser()
   parser.parse(polygon, (error, quad, prefixes) => {
-    if (quad) quads.push(quad)
+    if (quad) {
+      log(quad)
+      verrijkingenDataset.add(quad as any)
+    }
+    if (error) {
+      throw error
+    }
   })
-  verrijkingenDataset.addQuads(quads as any)
+  log(`Aantal quads in verrijkingenDataset: ${verrijkingenDataset.size}`)
 
   log(`De voetprint is toegevoegd aan de verrijkingen linked data graaf`, 'Voetprint')
 
