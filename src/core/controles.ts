@@ -1,15 +1,20 @@
+import grapoi from 'grapoi'
 import { readdir } from 'fs/promises'
-
+import factory from '@rdfjs/data-model'
+import { rdf, rdfs, rpt, xsd } from '@helpers/namespaces.js'
+import type { GrapoiPointer } from '@helpers/grapoi.js'
 import { BaseControle } from '@core/BaseControle.js'
 import { BaseGroep } from '@core/BaseGroep.js'
 import { StepContext } from '@core/executeSteps.js'
+
+import Provenance from './Provenance.js'
 
 /**
  * Imports all the checks, processes them and creates a SHACL shape.
  */
 export const controles = async (context: StepContext) => {
   const { ruleIds } = context
-
+  // context.provenance = new Provenance(`${context.baseIRI}${context.datasetName}`)
   const checkGroups = await getCheckGroups()
 
   for (const group of checkGroups) {
@@ -23,7 +28,7 @@ export const controles = async (context: StepContext) => {
     }
   }
 
-  return { checkGroups }
+  return { checkGroups, provenance: context.provenance }
 }
 
 export const getCheckGroups = async () => {

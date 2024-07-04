@@ -9,11 +9,14 @@ type SparqlInputs = {
 
 export default class Controle2WonenBestemmingsomschrijving extends BaseControle<SparqlInputs, GroepsData> {
   public naam = 'Bestemmingsomschrijving'
+  public tekst = `De voor 'Wonen' aangewezen gronden zijn bestemd voor:
+• woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
     const data = this.groepData()
     const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
+    this.apiResponse = response
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',
     )
@@ -31,7 +34,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
     return { gebruiksfunctie }
   }
 
-  // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/1-Wonen-bestemmingsomschrijving>
+  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/1-Wonen-bestemmingsomschrijving'
   sparql({ gebruiksfunctie }: SparqlInputs): string {
     return `
       prefix express: <https://w3id.org/express#>

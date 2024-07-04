@@ -3,21 +3,25 @@ import { GrapoiPointer } from '@helpers/grapoi.js'
 import { headerLog } from '@helpers/headerLog.js'
 import { Quad_Subject } from '@rdfjs/types'
 import { Store as TriplyStore } from '@triplydb/data-factory'
+import Provenance from './Provenance.js'
 
 import { Verrijkingen } from './verrijkingen.js'
 
 export type StepContext = {
   // Init
-  ruleIds: number[]
-  outputsDir: string
-  inputIfc: string
+  account: string
+  args: Record<string, string>
+  assetBaseUrl: string
+  ifcAssetBaseUrl: string
+  baseIRI: string
+  consoleUrl: string
+  datasetName: string
+  idsIdentifier: string
   ifcIdentifier: string
   inputIds: string
-  idsIdentifier: string
-  args: Record<string, string>
-  datasetName: string
-  account: string
-  baseIRI: string
+  inputIfc: string
+  outputsDir: string
+  ruleIds: number[]
 
   // maakLinkedData
   gebouwDataset: TriplyStore
@@ -29,10 +33,11 @@ export type StepContext = {
 
   // controles
   checkGroups: BaseGroep<{}>[]
+  provenance: Provenance
 
   // Valideer
-  report: TriplyStore
-  pointer: GrapoiPointer
+  validation: TriplyStore
+  validationPointer: GrapoiPointer
 } & Verrijkingen
 
 type Step = [string, (context: StepContext) => Promise<Partial<StepContext> | void>]

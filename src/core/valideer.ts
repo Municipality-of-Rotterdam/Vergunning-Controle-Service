@@ -3,7 +3,7 @@ import grapoi from 'grapoi'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rdf, rdfs, xsd, rpt } from '@helpers/namespaces.js'
+import { rdf, rdfs, rpt, xsd, prov, dct, skos } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import App from '@triply/triplydb'
 import { Store as TriplyStore } from '@triplydb/data-factory'
@@ -14,13 +14,18 @@ import type { GrapoiPointer } from '@helpers/grapoi.js'
 const log = createLogger('checks', import.meta)
 
 export const valideer = async ({
-  inputIfc,
+  account,
+  args,
+  ifcAssetBaseUrl,
+  baseIRI,
   checkGroups,
   datasetName,
-  account,
-  baseIRI,
+  provenance,
   ruleIds,
-}: Pick<StepContext, 'inputIfc' | 'checkGroups' | 'datasetName' | 'account' | 'baseIRI' | 'ruleIds'>) => {
+}: Pick<
+  StepContext,
+  'account' | 'args' | 'ifcAssetBaseUrl' | 'baseIRI' | 'checkGroups' | 'datasetName' | 'provenance' | 'ruleIds'
+>) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
   const dataset = await user.getDataset(datasetName)
@@ -30,7 +35,8 @@ export const valideer = async ({
 
   reportPointer.addOut(rdf('type'), rpt('ValidateRapport'))
   reportPointer.addOut(rpt('building'), factory.namedNode(`${baseIRI}${datasetName}/gebouw`))
-  reportPointer.addOut(rpt('ifc'), factory.literal(inputIfc))
+
+  reportPointer.addOut(rpt('ifc'), factory.literal(`${ifcAssetBaseUrl}${args.ifc}`, xsd('anyURI')))
 
   const { apiUrl } = await triply.getInfo()
 
@@ -40,14 +46,30 @@ export const valideer = async ({
 
     headerLogBig(`Groep: "${checkGroup.naam}": Uitvoering`, 'yellowBright')
 
+    // TODO oh no
+    const data = checkGroup.data
+    const bp: GrapoiPointer = grapoi({ dataset: report, factory, term: factory.blankNode() })
+    if (data && 'bestemmingsplan' in data) {
+      const bestemmingsplan: any = data.bestemmingsplan
+      bp.addOut(rdf('type'), rpt('Bestemmingsplan'))
+      bp.addOut(rdfs('label'), bestemmingsplan.id)
+      bp.addOut(skos('prefLabel'), bestemmingsplan.naam)
+      bp.addOut(rdfs('seeAlso'), factory.literal(bestemmingsplan['verwijzingNaarVaststellingsbesluit'], xsd('anyUri')))
+    }
+
     for (const controle of checkGroup.controles) {
-      const name = controle.naam
-      const query = controle.sparql(controle.sparqlInputs)
-      headerLogBig(`Controle: "${name}": Uitvoering`)
+      const naam = controle.naam
 
+      const uitvoering = provenance.activity({ label: `Uitvoering ${controle.naam}`, partOf: controle.activity })
+
+      provenance.addSparql(uitvoering, controle.sparqlUrl)
+
+      headerLogBig(`Controle: "${controle.naam}": Uitvoering`)
+
+      let message: string
+      let success: boolean
       if (controle.isToepasbaar(controle.sparqlInputs)) {
-        log(`Bevragen van de SPARQL service`, name)
-
+        const query = controle.sparql(controle.sparqlInputs)
         const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
           body: JSON.stringify({ query }),
           method: 'POST',
@@ -62,8 +84,8 @@ export const valideer = async ({
         }
         const responseJson = await response.json()
         const result = responseJson[0] ?? null
-        const success: boolean = result ? result.success ?? false : true
-        let message = success
+        success = result ? result.success ?? false : true
+        message = success
           ? controle.berichtGeslaagd(controle.sparqlInputs)
           : controle.berichtGefaald(controle.sparqlInputs)
 
@@ -74,28 +96,38 @@ export const valideer = async ({
         }
 
         if (success) {
-          log(chalk.greenBright(`✅ ${message}`), name)
+          log(chalk.greenBright(`✅ ${message}`), controle.naam)
         } else {
-          log(chalk.redBright(`❌ ${message}`), name)
+          log(chalk.redBright(`❌ ${message}`), controle.naam)
         }
-
-        reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
-          controle.addOut(rdf('type'), rpt('Controle'))
-          controle.addOut(rdfs('label'), factory.literal(name))
-          controle.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
-          controle.addOut(rpt('message'), factory.literal(message))
-        })
       } else {
-        log(`Niet van toepassing`, name)
-        reportPointer.addOut(rpt('controle'), (controle: GrapoiPointer) => {
-          controle.addOut(rdf('type'), rpt('Controle'))
-          controle.addOut(rdfs('label'), factory.literal(name))
-          controle.addOut(rpt('passed'), factory.literal('true', xsd('boolean')))
-          controle.addOut(rpt('message'), factory.literal('Niet van toepassing'))
-        })
+        message = 'Niet van toepassing'
+        success = true
+        log(message, controle.naam)
       }
+
+      provenance.done(uitvoering)
+
+      if (controle.activity) provenance.done(controle.activity)
+      reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
+        c.addOut(rdf('type'), rpt('Controle'))
+        c.addOut(rdfs('label'), controle.naam)
+        c.addOut(dct('description'), factory.literal(controle.tekst, 'nl'))
+        c.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
+        c.addOut(rpt('message'), factory.literal(message))
+        c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
+        c.addOut(dct('source'), bp)
+      })
     }
+
+    if (checkGroup.activity) provenance.done(checkGroup.activity)
   }
+
+  log('Uploaden van het provenance log naar TriplyDB', 'Upload')
+  await dataset.importFromStore(provenance as any, {
+    defaultGraphName: `${baseIRI}${datasetName}/graph/provenance-log`,
+    overwriteAll: true,
+  })
 
   log('Uploaden van het validatie rapport naar TriplyDB', 'Upload')
 
@@ -106,5 +138,5 @@ export const valideer = async ({
 
   log('Klaar met het uploaden van het validatie rapport naar TriplyDB', 'Upload')
 
-  return { report, pointer: reportPointer }
+  return { validation: report, validationPointer: reportPointer }
 }

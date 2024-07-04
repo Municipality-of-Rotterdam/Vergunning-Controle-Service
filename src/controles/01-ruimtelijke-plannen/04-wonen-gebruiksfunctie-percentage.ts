@@ -16,12 +16,14 @@ Then: Het gebruik van het gebouw is in overeenstemming met de specifieke gebruik
 
 export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlInputs, GroepsData> {
   public naam = 'Wonen: Bedrijfsfunctie'
+  public tekst = `Woningen mogen mede worden gebruikt voor de uitoefening van een aan huis gebonden beroep of bedrijf, mits: de woonfunctie in overwegende mate gehandhaafd blijft, waarbij het bruto vloeroppervlak van de woning voor ten hoogste 30%, mag worden gebruikt voor een aan huis gebonden beroep of bedrijf;`
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
     const data = this.groepData()
 
     const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
+    this.apiResponse = response
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',
     )
@@ -43,7 +45,7 @@ export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlIn
     return gebruiksfunctie.toLowerCase() == 'wonen'
   }
 
-  // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/3>
+  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/'
   sparql(): string {
     return `
 prefix express: <https://w3id.org/express#>

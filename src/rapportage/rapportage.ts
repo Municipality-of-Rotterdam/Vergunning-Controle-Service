@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rpt, rdfs } from '@helpers/namespaces.js'
+import { rpt, rdfs, prov } from '@helpers/namespaces.js'
 import App from '@triply/triplydb'
 
 import RapportageTemplate from './RapportageTemplate.js'
@@ -11,13 +11,25 @@ import RapportageTemplate from './RapportageTemplate.js'
 const log = createLogger('rapportage', import.meta)
 
 export const rapportage = async ({
-  pointer,
+  validationPointer,
   outputsDir,
   datasetName,
   account,
   voetprintCoordinates,
   geoData,
-}: Pick<StepContext, 'pointer' | 'outputsDir' | 'datasetName' | 'account' | 'voetprintCoordinates' | 'geoData'>) => {
+  provenance,
+  gebouwSubject,
+}: Pick<
+  StepContext,
+  | 'validationPointer'
+  | 'outputsDir'
+  | 'datasetName'
+  | 'account'
+  | 'voetprintCoordinates'
+  | 'geoData'
+  | 'provenance'
+  | 'gebouwSubject'
+>) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
   const dataset = await user.getDataset(datasetName)
@@ -39,7 +51,9 @@ export const rapportage = async ({
   log('Genereren van het vcs rapport', 'VCS rapport')
 
   const props = {
-    gebouw: pointer.out(rpt('building')).value.toString(),
+    datasetName,
+    footprintUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}/browser?resource=${encodeURIComponent(gebouwSubject.toString())}`,
+    gebouw: validationPointer.out(rpt('building')).value.toString(),
     geoData: geoData,
     gltfUrl: gltfAsset.getInfo().url,
     polygon: {
@@ -49,16 +63,9 @@ export const rapportage = async ({
         coordinates: [voetprintCoordinates],
       },
     },
-    controles: pointer.out(rpt('controle')).map((controle) => {
-      return {
-        label: controle.out(rdfs('label')).value,
-        validated: controle.out(rpt('passed')).value === 'true',
-        message: controle.out(rpt('message')).value,
-      }
-    }),
   }
 
-  const html = renderToStaticMarkup(RapportageTemplate(props))
+  const html = renderToStaticMarkup(RapportageTemplate(props, validationPointer, provenance))
   await writeFile(`${outputsDir}/vcs-rapport.html`, html)
   const fileId = `vcs-rapport.html`
 
