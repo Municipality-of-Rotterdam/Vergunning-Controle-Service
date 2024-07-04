@@ -119,9 +119,11 @@ export default function (
   { gebouw, polygon, geoData, gltfUrl, footprintUrl, datasetName }: RapportageProps,
   validationPointer: GrapoiPointer,
   provenance: Provenance,
+  idsControle: GrapoiPointer,
 ) {
   const controles = validationPointer.out(rpt('controle'))
   const ifc = validationPointer.out(rpt('ifc'))
+  const idsFiles = idsControle.out(rdfs('seeAlso'))
 
   return (
     <html lang="en">
@@ -172,6 +174,14 @@ export default function (
           <dt>IFC-bestand</dt>
           <dd>
             <a href={ifc.value.toString()}>{ifc.value}</a>
+          </dd>
+          <dt>IDS-controle</dt>
+          <dd>
+            {idsFiles.map((f) => (
+              <div key={f.value}>
+                <a href={f.value.toString()}>{f.value.toString()}</a>
+              </div>
+            ))}
           </dd>
           <dt>Voetprint</dt>
           <dd>

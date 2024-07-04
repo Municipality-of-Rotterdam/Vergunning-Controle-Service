@@ -33,5 +33,5 @@ export const idsControle = async (context: StepContext): Promise<{}> => {
   context.provenance.addSeeAlso(idsControle, `${context.assetBaseUrl}IDSValidationReport.html`)
   context.provenance.addSeeAlso(idsControle, `${context.assetBaseUrl}IDSValidationReport.bcf`)
   context.provenance.done(idsControle)
-  return {}
+  return { idsControle }
 }
