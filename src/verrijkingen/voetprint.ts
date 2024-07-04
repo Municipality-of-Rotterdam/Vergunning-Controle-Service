@@ -33,7 +33,6 @@ export default async function Voetprint({
   const parser = new N3.Parser()
   parser.parse(polygon, (error, quad, prefixes) => {
     if (quad) {
-      log(quad)
       verrijkingenDataset.add(quad as any)
     }
     if (error) {

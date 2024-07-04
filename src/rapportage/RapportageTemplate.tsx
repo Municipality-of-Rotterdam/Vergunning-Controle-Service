@@ -5,6 +5,7 @@ import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 import Provenance from '@core/Provenance.js'
 
 export type RapportageProps = {
+  footprintUrl: string
   gebouw: string
   polygon: any
   geoData: any
@@ -98,7 +99,7 @@ function Controle(controle: any, provenance: Provenance) {
 }
 
 export default function (
-  { gebouw, polygon, geoData, gltfUrl }: RapportageProps,
+  { gebouw, polygon, geoData, gltfUrl, footprintUrl }: RapportageProps,
   validationPointer: GrapoiPointer,
   provenance: Provenance,
 ) {
@@ -149,9 +150,17 @@ export default function (
       </head>
       <body className="p-5">
         <h1>VCS Validatierapportage</h1>
-        <h2>
-          <a href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/">{gebouw}</a>
-        </h2>
+        <h2>{gebouw}</h2>
+        <dl>
+          <dt>Footprint</dt>
+          <dd>
+            <a href={footprintUrl}>{footprintUrl}</a>
+          </dd>
+          <dt>3D model</dt>
+          <dd>
+            <a href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/">{gebouw}</a>
+          </dd>
+        </dl>
 
         {/* TODO restore this when time is ripe <div style={{ height: 880 }} id="cesiumContainer"></div> */}
 
