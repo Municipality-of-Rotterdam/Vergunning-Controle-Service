@@ -1,4 +1,5 @@
 *.log
+*.ifc
 etl.err
 etl.trace*
 lib
