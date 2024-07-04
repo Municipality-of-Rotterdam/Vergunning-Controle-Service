@@ -45,7 +45,7 @@ export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlIn
     return gebruiksfunctie.toLowerCase() == 'wonen'
   }
 
-  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/3'
+  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/'
   sparql(): string {
     return `
 prefix express: <https://w3id.org/express#>
