@@ -66,7 +66,7 @@ export const maakLinkedData = async ({
       },
     )
 
-    provenance.addSeeAlso(linkedData, `${consoleUrl}/datasets/${account ?? user.slug}/${datasetName}`)
+    provenance.addSeeAlso(linkedData, `${consoleUrl}/${account ?? user.slug}/${datasetName}`)
     provenance.done(linkedData)
   }
 
