@@ -13,6 +13,7 @@ export abstract class BaseGroep<T extends {}> {
   public abstract naam: string
   public activity?: Activity
   public data?: T
+  public apiResponse?: any
 
   setChecks = (controles: BaseControle<unknown, T>[]) => {
     this.controles = controles

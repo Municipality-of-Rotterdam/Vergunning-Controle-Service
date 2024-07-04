@@ -12,7 +12,9 @@ export default class GroepRuimtelijkePlannen extends BaseGroep<GroepsData> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
     const geoShape = { _geo: { contains: { type: 'Polygon', coordinates: [coordinates] } } }
 
-    let plans = (await ruimtelijkePlannen.plannen(geoShape, { planType: 'bestemmingsplan' }))['_embedded']['plannen']
+    const apiResponse = await ruimtelijkePlannen.plannen(geoShape, { planType: 'bestemmingsplan' })
+    this.apiResponse = apiResponse
+    let plans = apiResponse['_embedded']['plannen']
 
     this.log(`Bestemmingsplannen horende bij de voetafdruk: ${plans.map((plan: any) => `${plan.id}`).join('; ')}`)
 
