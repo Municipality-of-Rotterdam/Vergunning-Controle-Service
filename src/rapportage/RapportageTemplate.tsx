@@ -1,6 +1,8 @@
+import grapoi from 'grapoi'
 import { readFile } from 'fs/promises'
-import { rpt, rdfs, prov } from '@helpers/namespaces.js'
+import { rpt, rdfs, prov, dct, skos } from '@helpers/namespaces.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
+import Provenance from '@core/Provenance.js'
 
 export type RapportageProps = {
   gebouw: string
@@ -11,24 +13,95 @@ export type RapportageProps = {
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
 
-function Controle(controle: any) {
+function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
+  const provenancePointer = grapoi({ dataset: provenance, term: node.term })
+  const parts = provenancePointer.out(dct('hasPart'))
+  const startTime = provenancePointer.out(prov('startedAtTime')).value
+  const endTime = provenancePointer.out(prov('endedAtTime')).value
+  const sparqlUrl = provenancePointer.out(rpt('sparqlUrl')).value
+  const apiResponse = provenancePointer.out(rpt('apiResponse')).value
+  const apiCall = provenancePointer.out(rpt('apiCall')).value
+  const prefLabel = provenancePointer.out(skos('prefLabel')).value
+  const description = provenancePointer.out(dct('description')).value
+  return (
+    <details key={node.value}>
+      <summary>
+        Provenance for <i>{prefLabel ?? node.value}</i>
+      </summary>
+      <dl>
+        {description && (
+          <>
+            <dt>Description</dt>
+            <dd>{description}</dd>
+          </>
+        )}
+        {startTime && (
+          <>
+            <dt>Start time</dt>
+            <dd>{startTime}</dd>
+          </>
+        )}
+        {endTime && (
+          <>
+            <dt>End time</dt>
+            <dd>{endTime}</dd>
+          </>
+        )}
+        {apiCall && (
+          <>
+            <dt>API call</dt>
+            <dd>
+              <a href={apiCall}>{apiCall}</a>
+            </dd>
+          </>
+        )}
+        {apiResponse && (
+          <>
+            <dt>API response</dt>
+            <dd>
+              <pre>{apiResponse}</pre>
+            </dd>
+          </>
+        )}
+        {sparqlUrl && (
+          <>
+            <dt>SPARQL Query</dt>
+            <dd>
+              <a href={sparqlUrl}>{sparqlUrl}</a>
+            </dd>
+          </>
+        )}
+      </dl>
+      {parts.map((part: GrapoiPointer) => ProvenanceHtml(provenance, part))}
+    </details>
+  )
+}
+
+function Controle(controle: any, provenance: Provenance) {
   const label = controle.out(rdfs('label')).value
   const validated = controle.out(rpt('passed')).value === 'true'
   const message = controle.out(rpt('message')).value
-  //const prov = controle.out(prov('wasGeneratedBy')).out(prov('startedAtTime')).value
+  const description = controle.out(dct('description')).value
+  const provenanceNode = controle.out(prov('wasGeneratedBy'))
   return (
     <div key={label}>
-      <h1 className={!validated ? 'bg-danger-subtle' : ''}>
+      <h1 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h1>
+      <p className="description">{description}</p>
+      <p className="result">
         {validated ? <strong>✅</strong> : <strong>❌</strong>}
-        {label}
-      </h1>
-      <p>{message}</p>
+        {message}
+      </p>
+      <p className="provenance">{ProvenanceHtml(provenance, provenanceNode)}</p>
       <hr />
     </div>
   )
 }
 
-export default function ({ gebouw, polygon, geoData, gltfUrl }: RapportageProps, validationPointer: GrapoiPointer) {
+export default function (
+  { gebouw, polygon, geoData, gltfUrl }: RapportageProps,
+  validationPointer: GrapoiPointer,
+  provenance: Provenance,
+) {
   const controles = validationPointer.out(rpt('controle'))
 
   return (
@@ -80,7 +153,7 @@ export default function ({ gebouw, polygon, geoData, gltfUrl }: RapportageProps,
 
         <div style={{ height: 880 }} id="cesiumContainer"></div>
 
-        {controles.map((controle: GrapoiPointer) => Controle(controle))}
+        {controles.map((controle: GrapoiPointer) => Controle(controle, provenance))}
 
         <script type="module" dangerouslySetInnerHTML={{ __html: inlineScript }}></script>
       </body>

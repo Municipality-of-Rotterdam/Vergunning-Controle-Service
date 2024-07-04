@@ -9,6 +9,8 @@ type SparqlInputs = {
 
 export default class Controle2WonenBestemmingsomschrijving extends BaseControle<SparqlInputs, GroepsData> {
   public naam = 'Bestemmingsomschrijving'
+  public tekst = `De voor 'Wonen' aangewezen gronden zijn bestemd voor:
+• woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')

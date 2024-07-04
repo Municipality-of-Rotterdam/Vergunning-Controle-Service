@@ -47,10 +47,11 @@ export default class Provenance extends TriplyStore {
   addApiResponse(activity: Activity, response: any) {
     // TODO
     activity.addOut(rpt('apiResponse'), JSON.stringify(response))
+    activity.addOut(rpt('apiCall'), response['_links']['self']['href'])
   }
 
   addSparql(activity: Activity, sparqlUrl: string) {
     // TODO
-    activity.addOut(rpt('sparql'), factory.literal(sparqlUrl, xsd('anyUri')))
+    activity.addOut(rpt('sparqlUrl'), factory.literal(sparqlUrl, xsd('anyUri')))
   }
 }

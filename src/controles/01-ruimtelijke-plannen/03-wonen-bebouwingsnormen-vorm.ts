@@ -21,6 +21,8 @@ function bouwaanduidingNode(name: string): NamedNode {
 
 export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{}, GroepsData> {
   public naam = 'Bebouwingsnormen: Vorm'
+  public tekst = `Ter plaatse van de aanduiding "plat dak" dienen woningen plat te worden afgedekt:`
+
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
     const data = this.groepData()
