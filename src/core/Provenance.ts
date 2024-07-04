@@ -40,6 +40,10 @@ export default class Provenance extends TriplyStore {
     activity.addOut(prov('endedAtTime'), factory.literal(now.toISOString(), xsd('dateTime')))
   }
 
+  addSeeAlso(activity: Activity, seeAlso: string) {
+    activity.addOut(rdfs('seeAlso'), factory.literal(seeAlso, xsd('anyURI')))
+  }
+
   addSource(activity: Activity, source: string) {
     activity.addOut(dct('source'), source)
   }

@@ -16,7 +16,7 @@ const log = createLogger('checks', import.meta)
 export const valideer = async ({
   account,
   args,
-  assetBaseURL,
+  ifcAssetBaseUrl,
   baseIRI,
   checkGroups,
   datasetName,
@@ -24,7 +24,7 @@ export const valideer = async ({
   ruleIds,
 }: Pick<
   StepContext,
-  'account' | 'args' | 'assetBaseURL' | 'baseIRI' | 'checkGroups' | 'datasetName' | 'provenance' | 'ruleIds'
+  'account' | 'args' | 'ifcAssetBaseUrl' | 'baseIRI' | 'checkGroups' | 'datasetName' | 'provenance' | 'ruleIds'
 >) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
@@ -36,7 +36,7 @@ export const valideer = async ({
   reportPointer.addOut(rdf('type'), rpt('ValidateRapport'))
   reportPointer.addOut(rpt('building'), factory.namedNode(`${baseIRI}${datasetName}/gebouw`))
 
-  reportPointer.addOut(rpt('ifc'), factory.literal(`${assetBaseURL}${args.ifc}`, xsd('anyURI')))
+  reportPointer.addOut(rpt('ifc'), factory.literal(`${ifcAssetBaseUrl}${args.ifc}`, xsd('anyURI')))
 
   const { apiUrl } = await triply.getInfo()
 

@@ -13,7 +13,6 @@ import { createLogger } from '@helpers/logger.js'
 import App from '@triply/triplydb'
 import Asset from '@triply/triplydb/Asset.js'
 import Dataset from '@triply/triplydb/Dataset.js'
-import Provenance from '../Provenance.js'
 
 const log = createLogger('init', import.meta)
 
@@ -111,7 +110,8 @@ export const init = async () => {
 
   const consoleUrl = (await triply.getInfo()).consoleUrl
   const userName = (await user.getInfo()).accountName
-  const assetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/vcs/assets/download?fileName=${args.ifc}`
+  const ifcAssetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/vcs/assets/download?fileName=`
+  const assetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/${datasetName}/assets/download?fileName=`
   const inputIfc = import.meta.resolve(`../../../input/ifc/${args.ifc}`).replace('file://', '')
   const ifcIdentifier = crypto.createHash('md5').update(inputIfc).digest('hex')
 
@@ -120,8 +120,10 @@ export const init = async () => {
     args,
     assetBaseUrl,
     baseIRI,
+    consoleUrl,
     datasetName,
     idsIdentifier,
+    ifcAssetBaseUrl,
     ifcIdentifier,
     inputIds,
     inputIfc,

@@ -7,20 +7,23 @@ import { ifc } from '@helpers/namespaces.js'
 import { Quad_Subject } from '@rdfjs/types'
 import App from '@triply/triplydb'
 
-// import { addLinkedDataToStore } from './addLinkedDataToStore.js'
-
 import type { GrapoiPointer } from '@helpers/grapoi.js'
 const executeCommand = createExecutor('linked-data', import.meta, 'Linked data')
 const log = createLogger('linked-data', import.meta, 'Linked data')
 
 export const maakLinkedData = async ({
-  outputsDir,
-  inputIfc,
-  baseIRI,
   account,
-  datasetName,
   args,
-}: Pick<StepContext, 'outputsDir' | 'inputIfc' | 'baseIRI' | 'account' | 'datasetName' | 'args'>) => {
+  baseIRI,
+  consoleUrl,
+  datasetName,
+  inputIfc,
+  outputsDir,
+  provenance,
+}: Pick<
+  StepContext,
+  'account' | 'args' | 'baseIRI' | 'consoleUrl' | 'datasetName' | 'inputIfc' | 'outputsDir' | 'provenance'
+>) => {
   const storeCache = `${outputsDir}gebouw.ttl`
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
@@ -28,9 +31,14 @@ export const maakLinkedData = async ({
   const { apiUrl } = await triply.getInfo()
 
   if (args.clean) {
+    const linkedData = provenance.activity({
+      label: 'Linked data',
+      description: 'Conversie van linked data met het met het IFC naar LBD tool, en upload',
+    })
+
     // TODO: ... of als de dataset nog niet bestaat
     if (args.clean || !existsSync(storeCache)) {
-      log('Omvormen van de invoer .ifc naar linked data')
+      log('Conversie van linked data met het met het IFC naar LBD tool')
 
       try {
         await executeCommand(
@@ -57,10 +65,12 @@ export const maakLinkedData = async ({
         overwriteAll: true,
       },
     )
+
+    provenance.addSeeAlso(linkedData, `${consoleUrl}/${account ?? user.slug}/${datasetName}`)
+    provenance.done(linkedData)
   }
 
   // Determine the subject of the building
-
   const sparqlUrl = `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
   const response = await fetch(sparqlUrl, {
     body: JSON.stringify({
