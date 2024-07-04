@@ -94,7 +94,7 @@ export const valideer = async ({
       }
 
       provenance.done(uitvoering)
-
+      if (controle.activity) provenance.done(controle.activity)
       reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
         c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
         c.addOut(rdf('type'), rpt('Controle'))
