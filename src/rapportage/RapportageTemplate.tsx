@@ -92,6 +92,7 @@ function Controle(controle: any, provenance: Provenance) {
   const label = controle.out(rdfs('label')).value
   const validated = controle.out(rpt('passed')).value === 'true'
   const message = controle.out(rpt('message')).value
+  const verwijzing = controle.out(rpt('verwijzing')).value
   const description = controle.out(dct('description')).value
   const provenanceNode = controle.out(prov('wasGeneratedBy'))
   const source = controle.out(dct('source'))
@@ -108,6 +109,8 @@ function Controle(controle: any, provenance: Provenance) {
         </dd>
         <dt>Bestemmingsplan</dt>
         <dd>{Bestemmingsplan(source)}</dd>
+        <dt>Verwijzing</dt>
+        <dd>{verwijzing}</dd>
         <dt>Provenance</dt>
         <dd className="provenance">{ProvenanceHtml(provenance, provenanceNode)}</dd>
       </dl>
