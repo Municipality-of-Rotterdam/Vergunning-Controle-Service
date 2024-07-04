@@ -22,6 +22,7 @@ export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlIn
     const data = this.groepData()
 
     const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
+    this.apiResponse = response
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',
     )
@@ -43,7 +44,7 @@ export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlIn
     return gebruiksfunctie.toLowerCase() == 'wonen'
   }
 
-  // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/3>
+  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/3'
   sparql(): string {
     return `
 prefix express: <https://w3id.org/express#>

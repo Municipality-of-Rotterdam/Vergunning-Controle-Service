@@ -2,7 +2,7 @@ import { Store as TriplyStore } from '@triplydb/data-factory'
 
 import grapoi from 'grapoi'
 import factory from '@rdfjs/data-model'
-import { dct, prov, skos, xsd, rdf, rdfs } from '@helpers/namespaces.js'
+import { dct, prov, skos, xsd, rdf, rdfs, rpt } from '@helpers/namespaces.js'
 import type { GrapoiPointer } from '@helpers/grapoi.js'
 
 export type ActivityInfo = {
@@ -38,5 +38,19 @@ export default class Provenance extends TriplyStore {
   done(activity: Activity) {
     const now = new Date()
     activity.addOut(prov('endedAtTime'), factory.literal(now.toISOString(), xsd('dateTime')))
+  }
+
+  addSource(activity: Activity, source: string) {
+    activity.addOut(dct('source'), source)
+  }
+
+  addApiResponse(activity: Activity, response: any) {
+    // TODO
+    activity.addOut(rpt('apiResponse'), JSON.stringify(response))
+  }
+
+  addSparql(activity: Activity, sparqlUrl: string) {
+    // TODO
+    activity.addOut(rpt('sparql'), factory.literal(sparqlUrl, xsd('anyUri')))
   }
 }

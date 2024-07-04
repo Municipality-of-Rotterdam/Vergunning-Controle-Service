@@ -15,6 +15,7 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
 
     const data = this.groepData()
     const response = await ruimtelijkePlannen.maatvoeringen(data.bestemmingsplan.id, data.geoShape)
+    this.apiResponse = response
     const maatvoeringen: any[] = response['_embedded']['maatvoeringen'].filter(
       (maatvoering: any) => maatvoering['naam'] == 'maximum aantal bouwlagen',
     )
@@ -36,7 +37,7 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
     return { max }
   }
 
-  // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/2-Wonen-bebouwingsnormen-hoogte>
+  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/2-Wonen-bebouwingsnormen-hoogte'
   sparql({ max }: SparqlInputs): string {
     return `
       prefix xsd: <http://www.w3.org/2001/XMLSchema#>

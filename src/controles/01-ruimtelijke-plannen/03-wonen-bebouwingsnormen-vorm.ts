@@ -43,6 +43,7 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{},
       },
     }
     const response = await ruimtelijkePlannen.bouwaanduidingenZoek(data.bestemmingsplan.id, geoShape2)
+    this.apiResponse = response
     const bouwaanduidingen: any[] = response['_embedded']['bouwaanduidingen']
 
     this.log(`${bouwaanduidingen.length} bouwaanduidingen gevonden`)
@@ -58,7 +59,8 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{},
 
     return { bouwaanduiding }
   }
-  // Pulled from <https://demo.triplydb.com/rotterdam/-/queries/3-Wonen-bebouwingsnormen-vorm/1>
+
+  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/3-Wonen-bebouwingsnormen-vorm/1'
   sparql({ bouwaanduiding }: SparqlInputs): string {
     const query = `
       prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>

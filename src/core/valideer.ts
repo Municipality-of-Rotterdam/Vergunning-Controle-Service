@@ -47,7 +47,9 @@ export const valideer = async ({
     for (const controle of checkGroup.controles) {
       const naam = controle.naam
 
-      const activity = provenance.activity({ label: `Uitvoering ${controle.naam}`, partOf: controle.activity })
+      const uitvoering = provenance.activity({ label: `Uitvoering ${controle.naam}`, partOf: controle.activity })
+
+      provenance.addSparql(uitvoering, controle.sparqlUrl)
 
       headerLogBig(`Controle: "${controle.naam}": Uitvoering`)
 
@@ -91,7 +93,7 @@ export const valideer = async ({
         log(message, controle.naam)
       }
 
-      provenance.done(activity)
+      provenance.done(uitvoering)
 
       reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
         c.addOut(prov('wasGeneratedBy'), controle.activity?.term)

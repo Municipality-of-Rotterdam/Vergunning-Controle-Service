@@ -39,6 +39,9 @@ export abstract class BaseControle<T, G extends {}> {
   abstract voorbereiding(context: StepContext): Promise<T>
   abstract sparql(inputs: T): string // TODO should this not be pulled from TriplyDB?
 
+  apiResponse?: any
+  abstract sparqlUrl: string
+
   abstract bericht(inputs: T): string
   berichtGefaald(inputs: T): string {
     return this.bericht(inputs)
@@ -63,6 +66,10 @@ export abstract class BaseControle<T, G extends {}> {
     this.activity = context.provenance.activity({ label: this.naam, partOf: this.groep?.activity })
     const voorbereiding = context.provenance.activity({ label: `Voorbereiding ${this.naam}`, partOf: this.activity })
     this.sparqlInputs = await this.voorbereiding(context)
+
+    if (this.apiResponse) {
+      context.provenance.addApiResponse(voorbereiding, this.apiResponse)
+    }
     context.provenance.done(voorbereiding)
     if (this.sparqlInputs) {
       this.log(this.sparqlInputs)
