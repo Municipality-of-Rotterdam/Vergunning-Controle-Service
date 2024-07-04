@@ -3,7 +3,7 @@ import grapoi from 'grapoi'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rdf, rdfs, rpt, xsd, prov, dct } from '@helpers/namespaces.js'
+import { rdf, rdfs, rpt, xsd, prov, dct, skos } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import App from '@triply/triplydb'
 import { Store as TriplyStore } from '@triplydb/data-factory'
@@ -45,6 +45,17 @@ export const valideer = async ({
     if (ruleIds.length && ruleIds.some((ruleId) => !groupRuleIds.includes(ruleId))) continue
 
     headerLogBig(`Groep: "${checkGroup.naam}": Uitvoering`, 'yellowBright')
+
+    // TODO oh no
+    const data = checkGroup.data
+    const bp: GrapoiPointer = grapoi({ dataset: report, factory, term: factory.blankNode() })
+    if (data && 'bestemmingsplan' in data) {
+      const bestemmingsplan: any = data.bestemmingsplan
+      bp.addOut(rdf('type'), rpt('Bestemmingsplan'))
+      bp.addOut(rdfs('label'), bestemmingsplan.id)
+      bp.addOut(skos('prefLabel'), bestemmingsplan.naam)
+      bp.addOut(rdfs('seeAlso'), factory.literal(bestemmingsplan['verwijzingNaarVaststellingsbesluit'], xsd('anyUri')))
+    }
 
     for (const controle of checkGroup.controles) {
       const naam = controle.naam
@@ -96,14 +107,16 @@ export const valideer = async ({
       }
 
       provenance.done(uitvoering)
+
       if (controle.activity) provenance.done(controle.activity)
       reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
-        c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
         c.addOut(rdf('type'), rpt('Controle'))
         c.addOut(rdfs('label'), controle.naam)
         c.addOut(dct('description'), factory.literal(controle.tekst, 'nl'))
         c.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
         c.addOut(rpt('message'), factory.literal(message))
+        c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
+        c.addOut(dct('source'), bp)
       })
     }
 

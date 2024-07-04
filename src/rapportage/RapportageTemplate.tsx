@@ -14,6 +14,17 @@ export type RapportageProps = {
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
 
+function Bestemmingsplan(source: GrapoiPointer) {
+  const naam = source.out(skos('prefLabel'))
+  const id = source.out(rdfs('label'))
+  const url = source.out(rdfs('seeAlso'))
+  return (
+    <a href={url.value.toString()}>
+      {naam.value} ({id.value})
+    </a>
+  )
+}
+
 function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
   const provenancePointer = grapoi({ dataset: provenance, term: node.term })
   const parts = provenancePointer.out(dct('hasPart'))
@@ -84,6 +95,7 @@ function Controle(controle: any, provenance: Provenance) {
   const message = controle.out(rpt('message')).value
   const description = controle.out(dct('description')).value
   const provenanceNode = controle.out(prov('wasGeneratedBy'))
+  const source = controle.out(dct('source'))
   return (
     <div key={label}>
       <h3 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h3>
@@ -92,6 +104,7 @@ function Controle(controle: any, provenance: Provenance) {
         {validated ? <strong>✅</strong> : <strong>❌</strong>}
         {message}
       </p>
+      <p>{Bestemmingsplan(source)}</p>
       <p className="provenance">{ProvenanceHtml(provenance, provenanceNode)}</p>
       <hr />
     </div>
