@@ -5,6 +5,7 @@ import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 import Provenance from '@core/Provenance.js'
 
 export type RapportageProps = {
+  datasetName: string
   footprintUrl: string
   gebouw: string
   polygon: any
@@ -37,31 +38,29 @@ function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
   const description = provenancePointer.out(dct('description')).value
   return (
     <details key={node.value}>
-      <summary>
-        Provenance for <i>{prefLabel ?? node.value}</i>
-      </summary>
+      <summary>{prefLabel ?? node.value}</summary>
       <dl>
         {description && (
           <>
-            <dt>Description</dt>
+            <dt>Beschrijving</dt>
             <dd>{description}</dd>
           </>
         )}
         {startTime && (
           <>
-            <dt>Start time</dt>
+            <dt>Starttijd</dt>
             <dd>{startTime}</dd>
           </>
         )}
         {endTime && (
           <>
-            <dt>End time</dt>
+            <dt>Eindtijd</dt>
             <dd>{endTime}</dd>
           </>
         )}
         {apiCall && (
           <>
-            <dt>API call</dt>
+            <dt>API-verzoek</dt>
             <dd>
               <a href={apiCall}>{apiCall}</a>
             </dd>
@@ -69,7 +68,7 @@ function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
         )}
         {apiResponse && (
           <>
-            <dt>API response</dt>
+            <dt>API-respons</dt>
             <dd>
               <pre>{apiResponse}</pre>
             </dd>
@@ -77,7 +76,7 @@ function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
         )}
         {sparqlUrl && (
           <>
-            <dt>SPARQL Query</dt>
+            <dt>SPARQL query</dt>
             <dd>
               <a href={sparqlUrl}>{sparqlUrl}</a>
             </dd>
@@ -99,20 +98,25 @@ function Controle(controle: any, provenance: Provenance) {
   return (
     <div key={label}>
       <h3 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h3>
-      <p className="description">{description}</p>
-      <p className="result">
-        {validated ? <strong>✅</strong> : <strong>❌</strong>}
-        {message}
-      </p>
-      <p>{Bestemmingsplan(source)}</p>
-      <p className="provenance">{ProvenanceHtml(provenance, provenanceNode)}</p>
+      <dl>
+        <dt>Beschrijving</dt>
+        <dd>{description}</dd>
+        <dt>Resultaat</dt>
+        <dd className="result">
+          {validated ? <strong>✅</strong> : <strong>❌</strong>} {message}
+        </dd>
+        <dt>Bestemmingsplan</dt>
+        <dd>{Bestemmingsplan(source)}</dd>
+        <dt>Provenance</dt>
+        <dd className="provenance">{ProvenanceHtml(provenance, provenanceNode)}</dd>
+      </dl>
       <hr />
     </div>
   )
 }
 
 export default function (
-  { gebouw, polygon, geoData, gltfUrl, footprintUrl }: RapportageProps,
+  { gebouw, polygon, geoData, gltfUrl, footprintUrl, datasetName }: RapportageProps,
   validationPointer: GrapoiPointer,
   provenance: Provenance,
 ) {
@@ -123,7 +127,7 @@ export default function (
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{`Validatierapportage ${gebouw}`}</title>
+        <title>{`VCS-rapport ${gebouw}`}</title>
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet"
@@ -162,16 +166,17 @@ export default function (
         ></script>
       </head>
       <body className="p-5">
-        <h1>VCS Validatierapportage</h1>
-        <h2>{gebouw}</h2>
+        <h1>Vergunningscontrolerapport {datasetName}</h1>
         <dl>
-          <dt>Footprint</dt>
+          <dt>Voetprint</dt>
           <dd>
             <a href={footprintUrl}>{footprintUrl}</a>
           </dd>
           <dt>3D model</dt>
           <dd>
-            <a href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/">{gebouw}</a>
+            <a href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/">
+              https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/
+            </a>
           </dd>
         </dl>
 

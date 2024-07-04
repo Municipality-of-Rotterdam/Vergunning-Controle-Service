@@ -51,6 +51,7 @@ export const rapportage = async ({
   log('Genereren van het vcs rapport', 'VCS rapport')
 
   const props = {
+    datasetName,
     footprintUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}/browser?resource=${encodeURIComponent(gebouwSubject.toString())}`,
     gebouw: validationPointer.out(rpt('building')).value.toString(),
     geoData: geoData,
