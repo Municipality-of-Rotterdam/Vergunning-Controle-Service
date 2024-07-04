@@ -22,6 +22,8 @@ export const createExecutor =
         })
       }
 
+      const errors: string[] = []
+
       if (child.stderr) {
         child.stderr.on('data', (data) => {
           if (
@@ -36,9 +38,13 @@ export const createExecutor =
             ].some((warningString) => data.includes(warningString))
           ) {
           } else {
-            reject(new Error(`stderr: ${data}`))
+            errors.push(data)
           }
         })
+      }
+
+      if (errors.length > 0) {
+        reject(new Error(errors.join('\n')))
       }
 
       child.on('close', (code) => {

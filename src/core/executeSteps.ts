@@ -11,8 +11,10 @@ export type StepContext = {
   ruleIds: number[]
   outputsDir: string
   inputIfc: string
+  ifcIdentifier: string
+  inputIds: string
+  idsIdentifier: string
   args: Record<string, string>
-  identifier: string
   datasetName: string
   account: string
   baseIRI: string

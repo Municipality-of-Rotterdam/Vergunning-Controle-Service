@@ -88,6 +88,6 @@ export const upload = async ({
 
     log(`Klaar met uploaden naar TriplyDB`)
   } else {
-    //log(`Dataset upload overgeslagen`)
+    log(`Dataset upload overgeslagen`)
   }
 }

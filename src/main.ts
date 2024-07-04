@@ -4,6 +4,7 @@ import { init } from '@core/init/init.js'
 import { maakLinkedData } from '@core/init/maakLinkedData.js'
 import { upload } from '@core/upload.js'
 import { valideer } from '@core/valideer.js'
+import { idsValidatie } from '@core/ids.js'
 import { verrijk } from '@core/verrijkingen.js'
 import { rapportage } from '@root/rapportage/rapportage.js'
 
@@ -11,6 +12,7 @@ import { rapportage } from '@root/rapportage/rapportage.js'
 
 await executeSteps([
   ['Initialisatie', init],
+  ['IDS validatie', idsValidatie],
   ['Linked Data', maakLinkedData],
   ['Verrijkingen', verrijk],
   ['Opslaan naar TriplyDB database', upload],

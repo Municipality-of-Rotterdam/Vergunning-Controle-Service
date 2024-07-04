@@ -6,9 +6,6 @@ default:
   tags:
     - etl
 
-workflow:
-  name: $PIPELINE_NAME
-
 stages:
   - release
   # 0: Only install, lint and build, gets triggered on push and merge-requests:
@@ -27,8 +24,8 @@ release-docker:
   stage: release
   script:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker build -f docker/Dockerfile -t ${CI_REGISTRY_IMAGE}:24.05.23 .
-    - docker push ${CI_REGISTRY_IMAGE}:24.05.23
+    - docker build -f docker/Dockerfile -t ${CI_REGISTRY_IMAGE}:24.07.02 .
+    - docker push ${CI_REGISTRY_IMAGE}:24.07.02
 
 main:
   stage: run-etls
@@ -39,4 +36,4 @@ main:
   script:
     - npm install
     - npm run build
-    - node --max-old-space-size=16000 lib/main.js --filename=Kievitsweg_R23_MVP_IFC4.ifc --clean
+    - node --max-old-space-size=16000 lib/main.js --ifc=Kievitsweg_R23_MVP_IFC4.ifc --ids="IDS Rotterdam BIM.ids" --clean
