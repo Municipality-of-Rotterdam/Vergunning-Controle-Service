@@ -84,7 +84,7 @@ def main(file, building_iri, ifc_classes):
 
     #plot(footprint,'footprint')
 
-    ttl = '''
+    ttl = f'''
 prefix geo: <http://www.opengis.net/ont/geosparql#>
 prefix sf: <http://www.opengis.net/ont/sf#>
 prefix skos: <http://www.w3.org/2004/02/skos/core#>
@@ -93,40 +93,33 @@ prefix qudt: <http://qudt.org/schema/qudt/>
 prefix unit: <http://qudt.org/vocab/unit/> 
 prefix ex: <http://www.example.org/>
 
-<$BuildingIRI> geo:hasGeometry <$BuildingIRI/CRS_origin>.
-<$BuildingIRI> geo:hasGeometry <$BuildingIRI/footprint>.
-<$BuildingIRI> ex:hasRotation <$BuildingIRI/CRS_rotation>.
+<{building_iri}> geo:hasGeometry <{building_iri}/CRS_origin>.
+<{building_iri}> geo:hasGeometry <{building_iri}/footprint>.
+<{building_iri}> ex:hasRotation <{building_iri}/CRS_rotation>.
 
-<$BuildingIRI/CRS_origin>
+<{building_iri}/CRS_origin>
     a sf:Point ;
-    geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/7415> $OriginGeom"^^geo:wktLiteral ;
+    geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/7415> {origin_wkt}"^^geo:wktLiteral ;
     geo:coordinateDimension "3"^^xsd:integer ;
     skos:prefLabel "CRS origin from IfcMapConversion"@en, "oorsprong CRS uit IfcMapConversion"@nl
 .
 
-<$BuildingIRI/CRS_rotation>
+<{building_iri}/CRS_rotation>
     a qudt:Quantity ;
     qudt:hasUnit unit:RAD ;
-    qudt:numericValue "$Rotation"^^xsd:decimal ;
+    qudt:numericValue "{mc_rotation}"^^xsd:decimal ;
     skos:prefLabel "rotation angle for georeferencing geometry, from IfcMapConversion"@en,
                "rotatiehoek voor georeferentie, uit IfcMapConversion"@nl
 .
 
-<$BuildingIRI/footprint>
-    a sf:$FootprintType ;
-    geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> $FootprintGeom"^^geo:wktLiteral ;
+<{building_iri}/footprint>
+    a sf:{footprint_geomtype} ;
+    geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {footprint}"^^geo:wktLiteral ;
     geo:coordinateDimension "2"^^xsd:integer ;
-    geo:hasMetricPerimeterLength "$Perimeter"^^xsd:double ;
-    geo:hasMetricArea "$Area"^^xsd:double ;
+    geo:hasMetricPerimeterLength "{round(footprint.length)}"^^xsd:double ;
+    geo:hasMetricArea "{round(footprint.area, 3)}"^^xsd:double ;
     skos:prefLabel "2D footprint of the building"@en, "2D-voetafdruk van het gebouw"@nl
 .'''
-    ttl = ttl.replace('$BuildingIRI',building_iri)
-    ttl = ttl.replace('$FootprintGeom',str(footprint))
-    ttl = ttl.replace('$FootprintType',footprint_geomtype)
-    ttl = ttl.replace('$Area',str(round(footprint.area,3)))
-    ttl = ttl.replace('$Perimeter',str(round(footprint.length,3)))
-    ttl = ttl.replace('$OriginGeom',origin_wkt)
-    ttl = ttl.replace('$Rotation',str(mc_rotation))
 
     print (ttl)
     #print('\nfootprint WKT (CRS epsg:28992):',footprint)
