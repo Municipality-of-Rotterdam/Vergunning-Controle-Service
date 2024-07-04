@@ -18,9 +18,17 @@ export const rapportage = async ({
   voetprintCoordinates,
   geoData,
   provenance,
+  gebouwSubject,
 }: Pick<
   StepContext,
-  'validationPointer' | 'outputsDir' | 'datasetName' | 'account' | 'voetprintCoordinates' | 'geoData' | 'provenance'
+  | 'validationPointer'
+  | 'outputsDir'
+  | 'datasetName'
+  | 'account'
+  | 'voetprintCoordinates'
+  | 'geoData'
+  | 'provenance'
+  | 'gebouwSubject'
 >) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
@@ -43,6 +51,7 @@ export const rapportage = async ({
   log('Genereren van het vcs rapport', 'VCS rapport')
 
   const props = {
+    footprintUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}/browser?resource=${encodeURIComponent(gebouwSubject.toString())}`,
     gebouw: validationPointer.out(rpt('building')).value.toString(),
     geoData: geoData,
     gltfUrl: gltfAsset.getInfo().url,

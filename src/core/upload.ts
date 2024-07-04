@@ -72,7 +72,7 @@ export const upload = async ({
 
     if (graphExists) shouldUpload = false
   }
-  if (shouldUpload) {
+  if (shouldUpload || true) {
     log(`Dataset uploaden naar TriplyDB`)
 
     /* TODO We have already done this --- other upload steps should probably also be moved to their respective creation steps
@@ -88,6 +88,5 @@ export const upload = async ({
 
     log(`Klaar met uploaden naar TriplyDB`)
   } else {
-    log(`Dataset upload overgeslagen`)
   }
 }

@@ -5,3 +5,4 @@ pystache
 numpy==1.26.4
 shapely
 argparse
+geopandas
