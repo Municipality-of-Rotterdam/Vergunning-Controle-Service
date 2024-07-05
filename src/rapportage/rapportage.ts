@@ -56,6 +56,7 @@ export const rapportage = async ({
 
   const props = {
     datasetName,
+    datasetUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}`,
     footprintUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}/browser?resource=${encodeURIComponent(gebouwSubject.toString())}`,
     gebouw: validationPointer.out(rpt('building')).value.toString(),
     geoData: geoData,

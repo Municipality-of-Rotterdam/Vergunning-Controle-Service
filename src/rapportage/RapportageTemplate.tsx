@@ -6,6 +6,7 @@ import Provenance from '@core/Provenance.js'
 
 export type RapportageProps = {
   datasetName: string
+  datasetUrl: string
   footprintUrl: string
   gebouw: string
   polygon: any
@@ -120,7 +121,7 @@ function Controle(controle: any, provenance: Provenance) {
 }
 
 export default function (
-  { gebouw, polygon, geoData, gltfUrl, footprintUrl, datasetName, gltfDownload }: RapportageProps,
+  { gebouw, polygon, geoData, gltfUrl, footprintUrl, datasetName, datasetUrl, gltfDownload }: RapportageProps,
   validationPointer: GrapoiPointer,
   provenance: Provenance,
   idsControle: GrapoiPointer,
@@ -175,11 +176,23 @@ export default function (
       </head>
       <body className="p-5">
         <img src="https://www.rotterdam.nl/images/logo-base.svg" style={{ float: 'right' }} />
-        <h1>Vergunningscontrolerapport {datasetName}</h1>
+        <h1>
+          Vergunningscontrolerapport <a href={datasetUrl}>{datasetName}</a>
+        </h1>
         <dl>
           <dt>Revision</dt>
           <dd>
             <pre>{gitRev.value}</pre>
+          </dd>
+          <dt>Voetafdruk</dt>
+          <dd>
+            <a href={footprintUrl}>{footprintUrl}</a>
+          </dd>
+          <dt>3D model met bestemmingsvlakken</dt>
+          <dd>
+            <a href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/">
+              https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/
+            </a>
           </dd>
           <dt>Downloads</dt>
           <dd>
@@ -194,16 +207,6 @@ export default function (
                 <a href={f.value.toString()}>⬇ IDS-controle ({f.value.toString().split('fileName=')[1]})</a>
               </div>
             ))}
-          </dd>
-          <dt>Voetprint</dt>
-          <dd>
-            <a href={footprintUrl}>{footprintUrl}</a>
-          </dd>
-          <dt>3D model met bestemmingsvlakken</dt>
-          <dd>
-            <a href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/">
-              https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/
-            </a>
           </dd>
         </dl>
 
