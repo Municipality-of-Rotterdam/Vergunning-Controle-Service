@@ -11,6 +11,7 @@ export type RapportageProps = {
   polygon: any
   geoData: any
   gltfUrl: string
+  gltfDownload: string
 }
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
@@ -119,7 +120,7 @@ function Controle(controle: any, provenance: Provenance) {
 }
 
 export default function (
-  { gebouw, polygon, geoData, gltfUrl, footprintUrl, datasetName }: RapportageProps,
+  { gebouw, polygon, geoData, gltfUrl, footprintUrl, datasetName, gltfDownload }: RapportageProps,
   validationPointer: GrapoiPointer,
   provenance: Provenance,
   idsControle: GrapoiPointer,
@@ -176,6 +177,9 @@ export default function (
         <dl>
           <dt>Downloads</dt>
           <dd>
+            <div>
+              <a href={gltfDownload}>⬇ 3D-model ({gltfDownload.split('fileName=')[1]})</a>
+            </div>
             <div>
               <a href={ifc.value.toString()}>⬇ IFC-bestand</a>
             </div>

@@ -20,6 +20,7 @@ export const rapportage = async ({
   provenance,
   gebouwSubject,
   idsControle,
+  assetBaseUrl,
 }: Pick<
   StepContext,
   | 'validationPointer'
@@ -31,6 +32,7 @@ export const rapportage = async ({
   | 'provenance'
   | 'gebouwSubject'
   | 'idsControle'
+  | 'assetBaseUrl'
 >) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
@@ -58,6 +60,7 @@ export const rapportage = async ({
     gebouw: validationPointer.out(rpt('building')).value.toString(),
     geoData: geoData,
     gltfUrl: gltfAsset.getInfo().url,
+    gltfDownload: `${assetBaseUrl}3dmodel.gtlf`,
     polygon: {
       type: 'Feature',
       geometry: {
