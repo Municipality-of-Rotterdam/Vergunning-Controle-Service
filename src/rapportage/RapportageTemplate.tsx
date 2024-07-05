@@ -174,15 +174,14 @@ export default function (
       <body className="p-5">
         <h1>Vergunningscontrolerapport {datasetName}</h1>
         <dl>
-          <dt>IFC-bestand</dt>
+          <dt>Downloads</dt>
           <dd>
-            <a href={ifc.value.toString()}>{ifc.value}</a>
-          </dd>
-          <dt>IDS-controle</dt>
-          <dd>
+            <div>
+              <a href={ifc.value.toString()}>⬇ IFC-bestand</a>
+            </div>
             {idsFiles.map((f) => (
               <div key={f.value}>
-                <a href={f.value.toString()}>{f.value.toString()}</a>
+                <a href={f.value.toString()}>⬇ IDS-controle ({f.value.toString().split('fileName=')[1]})</a>
               </div>
             ))}
           </dd>
