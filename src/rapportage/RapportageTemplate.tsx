@@ -173,6 +173,7 @@ export default function (
         ></script>
       </head>
       <body className="p-5">
+        <img src="https://www.rotterdam.nl/images/logo-base.svg" style={{ float: 'right' }} />
         <h1>Vergunningscontrolerapport {datasetName}</h1>
         <dl>
           <dt>Downloads</dt>
