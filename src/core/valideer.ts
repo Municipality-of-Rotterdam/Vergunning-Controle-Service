@@ -56,10 +56,13 @@ export const valideer = async ({
     const bp: GrapoiPointer = grapoi({ dataset: report, factory, term: factory.blankNode() })
     if (data && 'bestemmingsplan' in data) {
       const bestemmingsplan: any = data.bestemmingsplan
+      let url: string = bestemmingsplan['heeftOnderdelen'].filter((o: any) => o['type'] == 'toelichting')[0][
+        'externeReferenties'
+      ][0]
       bp.addOut(rdf('type'), rpt('Bestemmingsplan'))
       bp.addOut(rdfs('label'), bestemmingsplan.id)
       bp.addOut(skos('prefLabel'), bestemmingsplan.naam)
-      bp.addOut(rdfs('seeAlso'), factory.literal(bestemmingsplan['verwijzingNaarVaststellingsbesluit'], xsd('anyUri')))
+      bp.addOut(rdfs('seeAlso'), factory.literal(url, xsd('anyUri')))
     }
 
     for (const controle of checkGroup.controles) {
