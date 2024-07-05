@@ -9,6 +9,7 @@ export type RapportageProps = {
   datasetUrl: string
   footprintUrl: string
   gebouw: string
+  gebouwAddress: string
   polygon: any
   geoData: any
   gltfUrl: string
@@ -121,7 +122,17 @@ function Controle(controle: any, provenance: Provenance) {
 }
 
 export default function (
-  { gebouw, polygon, geoData, gltfUrl, footprintUrl, datasetName, datasetUrl, gltfDownload }: RapportageProps,
+  {
+    gebouw,
+    polygon,
+    geoData,
+    gltfUrl,
+    footprintUrl,
+    datasetName,
+    datasetUrl,
+    gltfDownload,
+    gebouwAddress,
+  }: RapportageProps,
   validationPointer: GrapoiPointer,
   provenance: Provenance,
   idsControle: GrapoiPointer,
@@ -184,6 +195,8 @@ export default function (
           <dd>
             <pre>{gitRev.value}</pre>
           </dd>
+          <dt>Adres</dt>
+          <dd>{gebouwAddress}</dd>
           <dt>Voetafdruk</dt>
           <dd>
             <a href={footprintUrl}>{footprintUrl}</a>

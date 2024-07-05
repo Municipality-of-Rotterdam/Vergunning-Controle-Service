@@ -19,8 +19,10 @@ export const rapportage = async ({
   geoData,
   provenance,
   gebouwSubject,
+  gebouwAddress,
   idsControle,
   assetBaseUrl,
+  gebouwDataset,
 }: Pick<
   StepContext,
   | 'validationPointer'
@@ -31,8 +33,10 @@ export const rapportage = async ({
   | 'geoData'
   | 'provenance'
   | 'gebouwSubject'
+  | 'gebouwAddress'
   | 'idsControle'
   | 'assetBaseUrl'
+  | 'gebouwDataset'
 >) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getAccount(account)
@@ -56,6 +60,7 @@ export const rapportage = async ({
 
   const props = {
     datasetName,
+    gebouwAddress,
     datasetUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}`,
     footprintUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}/browser?resource=${encodeURIComponent(gebouwSubject.toString())}`,
     gebouw: validationPointer.out(rpt('building')).value.toString(),

@@ -70,22 +70,47 @@ export const maakLinkedData = async ({
     provenance.done(linkedData)
   }
 
+  async function request(url: string, query: string): Promise<any> {
+    return fetch(url, {
+      body: JSON.stringify({
+        query: query,
+      }),
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        Accepts: 'application/sparql-results+json, application/n-triples',
+        Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
+      },
+    }).then((response) => response.json())
+  }
+
   // Determine the subject of the building
   const sparqlUrl = `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
-  const response = await fetch(sparqlUrl, {
-    body: JSON.stringify({
-      query: `SELECT ?subject WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?subject a <${ifc('IfcBuilding').value}> } }`,
-    }),
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      Accepts: 'application/sparql-results+json, application/n-triples',
-      Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
-    },
-  }).then((response) => response.json())
-  const gebouwSubject = response.length == 1 ? response[0]['subject'] : null
+  const responseGebouw = await request(
+    sparqlUrl,
+    `SELECT ?subject WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?subject a <${ifc('IfcBuilding').value}> } }`,
+  )
+  const gebouwSubject = responseGebouw.length == 1 ? responseGebouw[0]['subject'] : null
   if (!gebouwSubject)
-    throw new Error(`Kon het subject van het gebouw niet vinden; response was ${JSON.stringify(response)}`)
+    throw new Error(`Kon het subject van het gebouw niet vinden; response was ${JSON.stringify(responseGebouw)}`)
 
-  return { dataset, gebouwSubject: gebouwSubject as Quad_Subject }
+  // Determine the address of the building
+  const responseAddress = await request(
+    sparqlUrl,
+    `prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
+prefix express: <https://w3id.org/express#>
+prefix list: <https://w3id.org/list#>
+
+select ?address where {
+  <${gebouwSubject}> ifc:buildingAddress_IfcBuilding ?addressNode.
+  ?addressNode ifc:addressLines_IfcPostalAddress ?list.
+  ?list list:hasContents ?line.
+  ?line express:hasString ?address.
+}`,
+  )
+  const gebouwAddress = responseAddress.length == 1 ? responseAddress[0]['address'] : null
+  if (!gebouwAddress)
+    throw new Error(`Kon het adres van het gebouw niet vinden; response was ${JSON.stringify(responseAddress)}`)
+
+  return { dataset, gebouwSubject: gebouwSubject as Quad_Subject, gebouwAddress: gebouwAddress }
 }

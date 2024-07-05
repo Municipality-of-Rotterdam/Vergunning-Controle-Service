@@ -29,6 +29,7 @@ export type StepContext = {
   // maakLinkedData
   gebouwDataset: TriplyStore
   gebouwSubject: Quad_Subject
+  gebouwAddress: string
 
   // verrijk
   verrijkingenDataset: TriplyStore
