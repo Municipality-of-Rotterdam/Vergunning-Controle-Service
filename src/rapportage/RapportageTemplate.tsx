@@ -127,6 +127,7 @@ export default function (
 ) {
   const controles = validationPointer.out(rpt('controle'))
   const ifc = validationPointer.out(rpt('ifc'))
+  const gitRev = validationPointer.out(rpt('gitRevision'))
   const idsFiles = idsControle.out(rdfs('seeAlso'))
 
   return (
@@ -176,6 +177,10 @@ export default function (
         <img src="https://www.rotterdam.nl/images/logo-base.svg" style={{ float: 'right' }} />
         <h1>Vergunningscontrolerapport {datasetName}</h1>
         <dl>
+          <dt>Revision</dt>
+          <dd>
+            <pre>{gitRev.value}</pre>
+          </dd>
           <dt>Downloads</dt>
           <dd>
             <div>
