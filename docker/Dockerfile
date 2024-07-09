@@ -44,7 +44,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
 # Verify Node installation
 RUN node --version
 
-RUN apt-get install -y unzip
+RUN apt-get install -y unzip git
 
 # Clean up
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
