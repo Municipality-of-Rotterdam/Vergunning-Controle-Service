@@ -13,13 +13,13 @@ import { createLogger } from '@helpers/logger.js'
 import App from '@triply/triplydb'
 import Asset from '@triply/triplydb/Asset.js'
 import Dataset from '@triply/triplydb/Dataset.js'
+import { Activity } from '@core/Activity.js'
 
 const log = createLogger('init', import.meta)
 
-// TODO: depends on token
-export const baseIRI = 'https://demo.triplydb.com/rotterdam/'
-
-export const init = async () => {
+export const init = new Activity({ name: 'Initialisation' }, async (_: any) => {
+  // TODO: depends on token
+  const baseIRI = 'https://demo.triplydb.com/rotterdam/'
   dotenv.config()
 
   for (const variable of ['TRIPLYDB_TOKEN', 'RP_API_TOKEN'])
@@ -130,4 +130,4 @@ export const init = async () => {
     outputsDir,
     ruleIds,
   }
-}
+})

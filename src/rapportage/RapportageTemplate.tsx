@@ -2,7 +2,7 @@ import grapoi from 'grapoi'
 import { readFile } from 'fs/promises'
 import { rpt, rdfs, prov, dct, skos } from '@helpers/namespaces.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
-import Provenance from '@core/Provenance.js'
+import { Store as TriplyStore } from '@triplydb/data-factory'
 
 export type RapportageProps = {
   datasetName: string
@@ -29,8 +29,7 @@ function Bestemmingsplan(source: GrapoiPointer) {
   )
 }
 
-function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
-  const provenancePointer = grapoi({ dataset: provenance, term: node.term })
+function ProvenanceHtml(provenancePointer: GrapoiPointer) {
   const parts = provenancePointer.out(dct('hasPart'))
   const startTime = provenancePointer.out(prov('startedAtTime')).value
   const endTime = provenancePointer.out(prov('endedAtTime')).value
@@ -40,8 +39,8 @@ function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
   const prefLabel = provenancePointer.out(skos('prefLabel')).value
   const description = provenancePointer.out(dct('description')).value
   return (
-    <details key={node.value}>
-      <summary>{prefLabel ?? node.value}</summary>
+    <details key={provenancePointer.value}>
+      <summary>{prefLabel ?? provenancePointer.value}</summary>
       <dl>
         {description && (
           <>
@@ -65,7 +64,7 @@ function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
           <>
             <dt>API-verzoek</dt>
             <dd>
-              <a href={apiCall}>{apiCall}</a>
+              <a href={typeof apiCall == 'number' ? 'about:blank' : apiCall}>{apiCall}</a>
             </dd>
           </>
         )}
@@ -81,23 +80,24 @@ function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
           <>
             <dt>SPARQL query</dt>
             <dd>
-              <a href={sparqlUrl}>{sparqlUrl}</a>
+              <a href={typeof sparqlUrl == 'number' ? 'about:blank' : sparqlUrl}>{sparqlUrl}</a>
             </dd>
           </>
         )}
       </dl>
-      {parts.map((part: GrapoiPointer) => ProvenanceHtml(provenance, part))}
+      {parts.map((part: GrapoiPointer) => ProvenanceHtml(part))}
     </details>
   )
 }
 
-function Controle(controle: any, provenance: Provenance) {
+function Controle(controle: any, provenanceDataset: TriplyStore) {
   const label = controle.out(rdfs('label')).value
   const validated = controle.out(rpt('passed')).value === 'true'
   const message = controle.out(rpt('message')).value
   const verwijzing = controle.out(rpt('verwijzing')).value
   const description = controle.out(dct('description')).value
   const provenanceNode = controle.out(prov('wasGeneratedBy'))
+  const provenanceNodeInProvenance = grapoi({ dataset: provenanceDataset, term: provenanceNode.term })
   const source = controle.out(dct('source'))
   return (
     <div key={label}>
@@ -115,7 +115,7 @@ function Controle(controle: any, provenance: Provenance) {
         <dt>Verwijzing</dt>
         <dd>{verwijzing}</dd>
         <dt>Provenance</dt>
-        <dd className="provenance">{ProvenanceHtml(provenance, provenanceNode)}</dd>
+        <dd className="provenance">{ProvenanceHtml(provenanceNodeInProvenance)}</dd>
       </dl>
     </div>
   )
@@ -134,7 +134,7 @@ export default function (
     gebouwAddress,
   }: RapportageProps,
   validationPointer: GrapoiPointer,
-  provenance: Provenance,
+  provenanceDataset: TriplyStore,
   idsControle: GrapoiPointer,
 ) {
   const controles = validationPointer.out(rpt('controle'))
@@ -225,7 +225,7 @@ export default function (
 
         {/* TODO restore this when time is ripe <div style={{ height: 880 }} id="cesiumContainer"></div> */}
 
-        {controles.map((controle: GrapoiPointer) => Controle(controle, provenance))}
+        {controles.map((controle: GrapoiPointer) => Controle(controle, provenanceDataset))}
 
         <script type="module" dangerouslySetInnerHTML={{ __html: inlineScript }}></script>
       </body>

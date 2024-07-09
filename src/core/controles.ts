@@ -7,29 +7,31 @@ import { BaseControle } from '@core/BaseControle.js'
 import { BaseGroep } from '@core/BaseGroep.js'
 import { StepContext } from '@core/executeSteps.js'
 
-import Provenance from './Provenance.js'
+import { Activity } from './Activity.js'
 
 /**
  * Imports all the checks, processes them and creates a SHACL shape.
  */
-export const controles = async (context: StepContext) => {
-  const { ruleIds } = context
-  // context.provenance = new Provenance(`${context.baseIRI}${context.datasetName}`)
-  const checkGroups = await getCheckGroups()
+export const controles = new Activity(
+  { name: 'Controles importeren', description: 'Importeer de controles en bereid ze voor' },
+  async (context: StepContext, provenance: GrapoiPointer) => {
+    const { ruleIds } = context
+    const checkGroups = await getCheckGroups()
 
-  for (const group of checkGroups) {
-    const groupRuleIds = group.controles.map((controle) => controle.id)
-    if (ruleIds.length && ruleIds.some((ruleId: number) => !groupRuleIds.includes(ruleId))) continue
+    for (const group of checkGroups) {
+      const groupRuleIds = group.controles.map((controle) => controle.id)
+      if (ruleIds.length && ruleIds.some((ruleId: number) => !groupRuleIds.includes(ruleId))) continue
 
-    await group.runPrepare(context)
+      await group.runPrepare(context, provenance)
 
-    for (const check of group.controles) {
-      await check.runPrepare(context)
+      for (const check of group.controles) {
+        await check.runPrepare(context, provenance)
+      }
     }
-  }
 
-  return { checkGroups, provenance: context.provenance }
-}
+    return { checkGroups }
+  },
+)
 
 export const getCheckGroups = async () => {
   const groupFolders = (await readdir('./src/controles', { withFileTypes: true }))
