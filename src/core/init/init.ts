@@ -6,6 +6,7 @@ import { mkdir, writeFile } from 'fs/promises'
 import { rimraf } from 'rimraf'
 
 import { ensureJava } from '@core/init/ensureJava.js'
+import { ensureGit } from '@core/init/ensureGit.js'
 import { ensurePython } from '@core/init/ensurePython.js'
 import { installPythonDependencies } from '@core/init/installPythonDependencies.js'
 import { getAccount } from '@helpers/getAccount.js'
@@ -54,6 +55,7 @@ export const init = async () => {
 
   await ensurePython()
   await ensureJava()
+  await ensureGit()
   await installPythonDependencies()
 
   const clean = args.clean
