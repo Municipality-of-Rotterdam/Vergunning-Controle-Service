@@ -37,10 +37,15 @@ export const valideer = async ({
   reportPointer.addOut(rdf('type'), rpt('ValidateRapport'))
   reportPointer.addOut(rpt('building'), factory.namedNode(`${baseIRI}${datasetName}/gebouw`))
 
-  exec('git rev-parse HEAD', (error, stdout, _) => {
-    reportPointer.addOut(rpt('gitRevision'), stdout)
-    if (error) throw error
-  })
+  // In the CI, git is not found --- somehow even when it is added to the Dockerfile
+  if (process.env['CI_COMMIT_SHA']) {
+    reportPointer.addOut(rpt('gitRevision'), process.env['CI_COMMIT_SHA'])
+  } else {
+    exec('git rev-parse HEAD', (error, stdout, _) => {
+      reportPointer.addOut(rpt('gitRevision'), stdout)
+      if (error) throw error
+    })
+  }
   reportPointer.addOut(rpt('ifc'), factory.literal(`${ifcAssetBaseUrl}${args.ifc}`, xsd('anyURI')))
 
   const { apiUrl } = await triply.getInfo()
