@@ -12,12 +12,12 @@ const executeCommand = createExecutor('idsControle', import.meta, 'idsControle')
 const log = createLogger('idsControle', import.meta)
 
 export const idsControle = new Activity(
-  { name: 'IDS controle', description: 'IDS controle door https://pypi.org/project/ifctester/' },
+  { name: 'IDS Controle', description: 'IDS controle door https://pypi.org/project/ifctester/' },
   async (context: StepContext, provenance: GrapoiPointer) => {
     const pythonScript = path.join('src', 'tools', 'validate_IFC.py')
     const idsReportHtml = path.join(context.outputsDir, 'IDSValidationReport.html')
     const idsReportBcf = path.join(context.outputsDir, 'IDSValidationReport.bcf')
-    log('Uitvoeren van IDS controle', 'IDS controle')
+    log('Uitvoeren van IDS controle', 'IDS Controle')
     try {
       await executeCommand(
         `python3 ${pythonScript} "${context.inputIfc}" "${context.inputIds}" -r "${idsReportHtml}" -b "${idsReportBcf}"`,

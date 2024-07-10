@@ -17,9 +17,7 @@ import { Activity } from '@core/Activity.js'
 
 const log = createLogger('init', import.meta)
 
-export const init = new Activity({ name: 'Initialisation' }, async (_: any) => {
-  // TODO: depends on token
-  const baseIRI = 'https://demo.triplydb.com/rotterdam/'
+export const init = new Activity({ name: 'Init' }, async (_: any) => {
   dotenv.config()
 
   for (const variable of ['TRIPLYDB_TOKEN', 'RP_API_TOKEN'])
@@ -114,6 +112,7 @@ export const init = new Activity({ name: 'Initialisation' }, async (_: any) => {
   const assetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/${datasetName}/assets/download?fileName=`
   const inputIfc = import.meta.resolve(`../../../input/ifc/${args.ifc}`).replace('file://', '')
   const ifcIdentifier = crypto.createHash('md5').update(inputIfc).digest('hex')
+  const baseIRI = `${consoleUrl}/${userName}/${datasetName}/`
 
   return {
     account,

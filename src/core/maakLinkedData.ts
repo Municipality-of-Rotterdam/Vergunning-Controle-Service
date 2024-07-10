@@ -14,8 +14,11 @@ import type { GrapoiPointer } from '@helpers/grapoi.js'
 const executeCommand = createExecutor('linked-data', import.meta, 'Linked data')
 const log = createLogger('linked-data', import.meta, 'Linked data')
 
-export const ifcConversion = new Activity(
-  { name: 'IfcConversion', description: 'Conversie van linked data met het met het IFC naar LBD tool, en upload' },
+export const linkedData = new Activity(
+  {
+    name: 'Linked Data',
+    description: 'Conversie van het IFC bestand naar linked data met het IFCtoLBD tool, en upload naar TriplyDB',
+  },
   async (
     {
       account,
@@ -37,7 +40,7 @@ export const ifcConversion = new Activity(
     if (args.clean) {
       // TODO: ... of als de dataset nog niet bestaat
       if (args.clean || !existsSync(storeCache)) {
-        log('Conversie van linked data met het met het IFC naar LBD tool')
+        log('Conversie van het IFC bestand naar linked data met het IFCtoLBD tool')
 
         try {
           await executeCommand(
@@ -60,12 +63,12 @@ export const ifcConversion = new Activity(
           `${outputsDir}gebouw_element_properties.ttl`,
         ],
         {
-          defaultGraphName: `${baseIRI}${datasetName}/graph/gebouw`,
+          defaultGraphName: `${baseIRI}graph/gebouw`,
           overwriteAll: true,
         },
       )
 
-      provenance.addOut(rdfs('seeAlso'), factory.namedNode(`${consoleUrl}/${account ?? user.slug}/${datasetName}`))
+      provenance.addOut(rdfs('seeAlso'), factory.namedNode(`${baseIRI}`))
     }
 
     async function request(url: string, query: string): Promise<any> {
@@ -86,7 +89,7 @@ export const ifcConversion = new Activity(
     const sparqlUrl = `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
     const responseGebouw = await request(
       sparqlUrl,
-      `SELECT ?subject WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?subject a <${ifc('IfcBuilding').value}> } }`,
+      `SELECT ?subject WHERE { GRAPH <${baseIRI}graph/gebouw> { ?subject a <${ifc('IfcBuilding').value}> } }`,
     )
     const gebouwSubject = responseGebouw.length == 1 ? responseGebouw[0]['subject'] : null
     if (!gebouwSubject)
