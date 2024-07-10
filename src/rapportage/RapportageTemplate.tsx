@@ -2,15 +2,18 @@ import grapoi from 'grapoi'
 import { readFile } from 'fs/promises'
 import { rpt, rdfs, prov, dct, skos } from '@helpers/namespaces.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
-import Provenance from '@core/Provenance.js'
+import { Store as TriplyStore } from '@triplydb/data-factory'
 
 export type RapportageProps = {
   datasetName: string
+  datasetUrl: string
   footprintUrl: string
   gebouw: string
+  gebouwAddress: string
   polygon: any
   geoData: any
   gltfUrl: string
+  gltfDownload: string
 }
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
@@ -26,8 +29,7 @@ function Bestemmingsplan(source: GrapoiPointer) {
   )
 }
 
-function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
-  const provenancePointer = grapoi({ dataset: provenance, term: node.term })
+function ProvenanceHtml(provenancePointer: GrapoiPointer) {
   const parts = provenancePointer.out(dct('hasPart'))
   const startTime = provenancePointer.out(prov('startedAtTime')).value
   const endTime = provenancePointer.out(prov('endedAtTime')).value
@@ -37,8 +39,8 @@ function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
   const prefLabel = provenancePointer.out(skos('prefLabel')).value
   const description = provenancePointer.out(dct('description')).value
   return (
-    <details key={node.value}>
-      <summary>{prefLabel ?? node.value}</summary>
+    <details key={provenancePointer.value}>
+      <summary>{prefLabel ?? provenancePointer.value}</summary>
       <dl>
         {description && (
           <>
@@ -62,7 +64,7 @@ function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
           <>
             <dt>API-verzoek</dt>
             <dd>
-              <a href={apiCall}>{apiCall}</a>
+              <a href={typeof apiCall == 'number' ? 'about:blank' : apiCall}>{apiCall}</a>
             </dd>
           </>
         )}
@@ -78,23 +80,24 @@ function ProvenanceHtml(provenance: Provenance, node: GrapoiPointer) {
           <>
             <dt>SPARQL query</dt>
             <dd>
-              <a href={sparqlUrl}>{sparqlUrl}</a>
+              <a href={typeof sparqlUrl == 'number' ? 'about:blank' : sparqlUrl}>{sparqlUrl}</a>
             </dd>
           </>
         )}
       </dl>
-      {parts.map((part: GrapoiPointer) => ProvenanceHtml(provenance, part))}
+      {parts.map((part: GrapoiPointer) => ProvenanceHtml(part))}
     </details>
   )
 }
 
-function Controle(controle: any, provenance: Provenance) {
+function Controle(controle: any, provenanceDataset: TriplyStore) {
   const label = controle.out(rdfs('label')).value
   const validated = controle.out(rpt('passed')).value === 'true'
   const message = controle.out(rpt('message')).value
   const verwijzing = controle.out(rpt('verwijzing')).value
   const description = controle.out(dct('description')).value
   const provenanceNode = controle.out(prov('wasGeneratedBy'))
+  const provenanceNodeInProvenance = grapoi({ dataset: provenanceDataset, term: provenanceNode.term })
   const source = controle.out(dct('source'))
   return (
     <div key={label}>
@@ -112,20 +115,31 @@ function Controle(controle: any, provenance: Provenance) {
         <dt>Verwijzing</dt>
         <dd>{verwijzing}</dd>
         <dt>Provenance</dt>
-        <dd className="provenance">{ProvenanceHtml(provenance, provenanceNode)}</dd>
+        <dd className="provenance">{ProvenanceHtml(provenanceNodeInProvenance)}</dd>
       </dl>
     </div>
   )
 }
 
 export default function (
-  { gebouw, polygon, geoData, gltfUrl, footprintUrl, datasetName }: RapportageProps,
+  {
+    gebouw,
+    polygon,
+    geoData,
+    gltfUrl,
+    footprintUrl,
+    datasetName,
+    datasetUrl,
+    gltfDownload,
+    gebouwAddress,
+  }: RapportageProps,
   validationPointer: GrapoiPointer,
-  provenance: Provenance,
+  provenanceDataset: TriplyStore,
   idsControle: GrapoiPointer,
 ) {
   const controles = validationPointer.out(rpt('controle'))
   const ifc = validationPointer.out(rpt('ifc'))
+  const gitRev = validationPointer.out(rpt('gitRevision'))
   const idsFiles = idsControle.out(rdfs('seeAlso'))
 
   return (
@@ -172,21 +186,18 @@ export default function (
         ></script>
       </head>
       <body className="p-5">
-        <h1>Vergunningscontrolerapport {datasetName}</h1>
+        <img src="https://www.rotterdam.nl/images/logo-base.svg" style={{ float: 'right' }} />
+        <h1>
+          Vergunningscontrolerapport <a href={datasetUrl}>{datasetName}</a>
+        </h1>
         <dl>
-          <dt>IFC-bestand</dt>
+          <dt>Revision</dt>
           <dd>
-            <a href={ifc.value.toString()}>{ifc.value}</a>
+            <pre>{gitRev.value}</pre>
           </dd>
-          <dt>IDS-controle</dt>
-          <dd>
-            {idsFiles.map((f) => (
-              <div key={f.value}>
-                <a href={f.value.toString()}>{f.value.toString()}</a>
-              </div>
-            ))}
-          </dd>
-          <dt>Voetprint</dt>
+          <dt>Adres</dt>
+          <dd>{gebouwAddress}</dd>
+          <dt>Voetafdruk</dt>
           <dd>
             <a href={footprintUrl}>{footprintUrl}</a>
           </dd>
@@ -196,11 +207,25 @@ export default function (
               https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/
             </a>
           </dd>
+          <dt>Downloads</dt>
+          <dd>
+            <div>
+              <a href={gltfDownload}>⬇ 3D-model ({gltfDownload.split('fileName=')[1]})</a>
+            </div>
+            <div>
+              <a href={ifc.value.toString()}>⬇ IFC-bestand</a>
+            </div>
+            {idsFiles.map((f) => (
+              <div key={f.value}>
+                <a href={f.value.toString()}>⬇ IDS-controle ({f.value.toString().split('fileName=')[1]})</a>
+              </div>
+            ))}
+          </dd>
         </dl>
 
         {/* TODO restore this when time is ripe <div style={{ height: 880 }} id="cesiumContainer"></div> */}
 
-        {controles.map((controle: GrapoiPointer) => Controle(controle, provenance))}
+        {controles.map((controle: GrapoiPointer) => Controle(controle, provenanceDataset))}
 
         <script type="module" dangerouslySetInnerHTML={{ __html: inlineScript }}></script>
       </body>

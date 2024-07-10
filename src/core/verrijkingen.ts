@@ -3,13 +3,14 @@ import { readdir } from 'fs/promises'
 import { StepContext } from '@core/executeSteps.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 import { GeoData } from '@verrijkingen/geoReference.js'
+import { Activity } from './Activity.js'
 
 export type Verrijkingen = {
   voetprintCoordinates: number[][]
   geoData: GeoData
 }
 
-export const verrijk = async (context: StepContext): Promise<Verrijkingen> => {
+export const verrijk = new Activity({ name: 'Verrijkingen' }, async (context: StepContext): Promise<Verrijkingen> => {
   context.verrijkingenDataset = new TriplyStore()
 
   const verrijkingen = (await readdir('./src/verrijkingen')).sort()
@@ -28,4 +29,4 @@ export const verrijk = async (context: StepContext): Promise<Verrijkingen> => {
   }
 
   return output as Verrijkingen
-}
+})

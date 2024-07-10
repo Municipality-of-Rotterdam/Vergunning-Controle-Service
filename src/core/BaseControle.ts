@@ -1,9 +1,11 @@
 import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
 
-import { Activity } from './Provenance.js'
+import { rpt } from '@core/helpers/namespaces.js'
+import { GrapoiPointer } from '@core/helpers/grapoi.js'
 import { BaseGroep } from './BaseGroep.js'
 import { StepContext } from './executeSteps.js'
+import { start, finish } from './helpers/provenance.js'
 
 const log = createLogger('checks', import.meta)
 
@@ -18,7 +20,7 @@ export abstract class BaseControle<T, G extends {}> {
     this.id = parseInt(filename.split('.')[0])
   }
 
-  public activity?: Activity
+  public activity?: GrapoiPointer
 
   public groep?: BaseGroep<G>
 
@@ -36,7 +38,7 @@ export abstract class BaseControle<T, G extends {}> {
    * These outputs must be returned in an object. This object must have the type SparqlInputs.
    * You can log after each return value from the API.
    */
-  abstract voorbereiding(context: StepContext): Promise<T>
+  abstract voorbereiding(context: StepContext, provenance: GrapoiPointer): Promise<T>
   abstract sparql(inputs: T): string // TODO should this not be pulled from TriplyDB?
 
   apiResponse?: any
@@ -62,17 +64,19 @@ export abstract class BaseControle<T, G extends {}> {
     log(message, `Controle: "${this.id}. ${this.naam}"`)
   }
 
-  async runPrepare(context: StepContext) {
+  async runPrepare(context: StepContext, provenance: GrapoiPointer) {
     headerLogBig(`Controle: "${this.naam}": Voorbereiding`)
 
-    this.activity = context.provenance.activity({ label: this.naam, partOf: this.groep?.activity })
-    const voorbereiding = context.provenance.activity({ label: `Voorbereiding ${this.naam}`, partOf: this.activity })
-    this.sparqlInputs = await this.voorbereiding(context)
+    if (this.groep?.activity) this.activity = start(this.groep.activity, { name: this.naam })
+    else throw new Error('must have a groep at this point')
+    const voorbereiding = start(this.activity, { name: `Voorbereiding ${this.naam}` })
+    this.sparqlInputs = await this.voorbereiding(context, voorbereiding)
 
     if (this.apiResponse) {
-      context.provenance.addApiResponse(voorbereiding, this.apiResponse)
+      voorbereiding.addOut(rpt('apiResponse'), JSON.stringify(this.apiResponse))
+      voorbereiding.addOut(rpt('apiCall'), this.apiResponse['_links']['self']['href'])
     }
-    context.provenance.done(voorbereiding)
+    finish(voorbereiding)
     if (this.sparqlInputs) {
       this.log(this.sparqlInputs)
     }
