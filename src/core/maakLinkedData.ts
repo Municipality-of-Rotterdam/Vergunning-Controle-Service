@@ -3,7 +3,7 @@ import { existsSync } from 'fs'
 import { StepContext } from '@core/executeSteps.js'
 import { createExecutor } from '@helpers/executeCommand.js'
 import { createLogger } from '@helpers/logger.js'
-import { ifc, rdfs } from '@helpers/namespaces.js'
+import { ifc, rdfs, xsd } from '@helpers/namespaces.js'
 import { Quad_Subject } from '@rdfjs/types'
 import App from '@triply/triplydb'
 import factory from '@rdfjs/data-model'
@@ -68,7 +68,7 @@ export const linkedData = new Activity(
         },
       )
 
-      provenance.addOut(rdfs('seeAlso'), factory.namedNode(`${baseIRI}`))
+      provenance.addOut(rdfs('seeAlso'), factory.literal(`${baseIRI}`, xsd('anyURI')))
     }
 
     async function request(url: string, query: string): Promise<any> {

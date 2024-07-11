@@ -49,7 +49,7 @@ export const valideer = new Activity(
     const reportPointer: GrapoiPointer = grapoi({ dataset: report, factory, term: factory.blankNode() })
 
     reportPointer.addOut(rdf('type'), rpt('ValidateRapport'))
-    reportPointer.addOut(rpt('building'), factory.namedNode(`${baseIRI}${datasetName}/gebouw`))
+    reportPointer.addOut(rpt('building'), factory.literal(`${baseIRI}${datasetName}/gebouw`, xsd('anyURI')))
 
     // In the CI, git is not found --- somehow even when it is added to the Dockerfile
     if (process.env['CI_COMMIT_SHA']) {
