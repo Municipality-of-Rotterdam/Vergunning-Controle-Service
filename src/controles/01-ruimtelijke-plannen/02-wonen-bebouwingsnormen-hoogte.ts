@@ -51,12 +51,14 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
       prefix express: <https://w3id.org/express#>
 
       select ?this ((max(?floorNumber) + 1) as ?aantalVerdiepingen) where {
+      graph ?g {
         ?this a ifc:IfcBuilding.
         [] ifc:relatedObjects_IfcRelAggregates ?storey;
           ifc:relatingObject_IfcRelAggregates ?this.
         ?storey ifc:name_IfcRoot/express:hasString ?positiveFloorLabel.
         filter(regex(?positiveFloorLabel, "^(0*[1-9][0-9]*) .*verdieping$"))
         bind(xsd:integer(substr(?positiveFloorLabel, 1, 2)) as ?floorNumber)
+      }
       }
       group by ?this ?max
       having ((max(?floorNumber) + 1) > ${max})

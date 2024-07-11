@@ -93,7 +93,9 @@ export const linkedData = new Activity(
     )
     const gebouwSubject = responseGebouw.length == 1 ? responseGebouw[0]['subject'] : null
     if (!gebouwSubject)
-      throw new Error(`Kon het subject van het gebouw niet vinden; response was ${JSON.stringify(responseGebouw)}`)
+      throw new Error(
+        `Kon het subject van het gebouw niet vinden in ${baseIRI}graph/gebouw; response was ${JSON.stringify(responseGebouw)}`,
+      )
 
     // Determine the address of the building
     const responseAddress = await request(
@@ -103,10 +105,12 @@ prefix express: <https://w3id.org/express#>
 prefix list: <https://w3id.org/list#>
 
 select ?address where {
-  <${gebouwSubject}> ifc:buildingAddress_IfcBuilding ?addressNode.
-  ?addressNode ifc:addressLines_IfcPostalAddress ?list.
-  ?list list:hasContents ?line.
-  ?line express:hasString ?address.
+  graph <${baseIRI}graph/gebouw> {
+    <${gebouwSubject}> ifc:buildingAddress_IfcBuilding ?addressNode.
+    ?addressNode ifc:addressLines_IfcPostalAddress ?list.
+    ?list list:hasContents ?line.
+    ?line express:hasString ?address.
+  }
 }`,
     )
     const gebouwAddress = responseAddress.length == 1 ? responseAddress[0]['address'] : null

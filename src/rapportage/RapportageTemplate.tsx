@@ -14,6 +14,7 @@ export type RapportageProps = {
   geoData: any
   gltfUrl: string
   gltfDownload: string
+  elongation: number
 }
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
@@ -26,6 +27,72 @@ function Bestemmingsplan(source: GrapoiPointer) {
     <a href={url.value.toString()}>
       {naam.value} ({id.value})
     </a>
+  )
+}
+
+function Elongation(elongation: number) {
+  return (
+    <div id="elongation">
+      <h2>Welstand</h2>
+      <dl>
+        <dt>Langwerpigheid</dt>
+        <dd>{elongation}</dd>
+      </dl>
+      <details>
+        <summary>Uitleg</summary>
+        <p>
+          De langwerpigheid van de voetafdruk van het gebouw wordt uitgedrukt in het getal L. L wordt bepaald aan de
+          hand van de verhouding tussen oppervlakte en omtrek van de voetafdruk, en is onafhankelijk van de vorm van de
+          voetafdruk. Hieronder een overzicht van waarden voor L voor rechthoeken met oplopende langwerpigheid:
+        </p>
+        <table>
+          <tr>
+            <td></td>
+            <td>L=1</td>
+          </tr>
+        </table>
+        <table>
+          <tr>
+            <td></td>
+            <td></td>
+            <td>L=0,9428</td>
+          </tr>
+        </table>
+        <table>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>L=0,8660</td>
+          </tr>
+        </table>
+        <table>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>L=0,7454</td>
+          </tr>
+        </table>
+        <table>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>L=0,5750</td>
+          </tr>
+        </table>
+      </details>
+    </div>
   )
 }
 
@@ -132,6 +199,7 @@ export default function (
     datasetUrl,
     gltfDownload,
     gebouwAddress,
+    elongation,
   }: RapportageProps,
   validationPointer: GrapoiPointer,
   provenanceDataset: TriplyStore,
@@ -184,6 +252,20 @@ export default function (
             ),
           }}
         ></script>
+        <style>{`
+table {
+  border-collapse: collapse;
+  margin: 5px 0;
+}
+td {
+  width: 40px;
+  height: 40px;
+  border: 2px solid black;
+}
+td:last-child {
+border: none
+}
+`}</style>
       </head>
       <body className="p-5">
         <img src="https://www.rotterdam.nl/images/logo-base.svg" style={{ float: 'right' }} />
@@ -226,6 +308,9 @@ export default function (
         {/* TODO restore this when time is ripe <div style={{ height: 880 }} id="cesiumContainer"></div> */}
 
         {controles.map((controle: GrapoiPointer) => Controle(controle, provenanceDataset))}
+
+        <hr />
+        {Elongation(elongation)}
 
         <script type="module" dangerouslySetInnerHTML={{ __html: inlineScript }}></script>
       </body>

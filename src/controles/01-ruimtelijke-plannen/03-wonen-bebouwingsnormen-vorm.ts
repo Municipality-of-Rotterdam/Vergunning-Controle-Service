@@ -73,6 +73,7 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{},
       prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 
       select ?roof ?rooftype where {
+      graph ?g {
 
         ?this a ifc:IfcBuilding.
 
@@ -85,6 +86,7 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{},
         ?roof ifc:predefinedType_IfcRoof ?rooftype .
 
         filter (?rooftype != <${bouwaanduiding.value}>)
+      }
       }
     `
     return query

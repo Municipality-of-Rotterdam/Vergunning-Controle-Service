@@ -46,7 +46,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
       # Aanname: een IfcSpace heeft 1 Gebruiksfunctie
 
       select distinct ?space ?spacelabel ?functie where {
-
+        graph ?g {
         ?this a ifc:IfcBuilding.
 
         [] ifc:relatingObject_IfcRelAggregates ?this;
@@ -68,6 +68,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
                                 ifc:name_IfcProperty/express:hasString "Gebruiksfunctie" .
 
         filter(lcase(str(?functie)) != "${gebruiksfunctie.toLowerCase()}")
+        }
       }
     `
   }

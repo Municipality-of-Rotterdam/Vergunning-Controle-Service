@@ -1,9 +1,13 @@
+import grapoi from 'grapoi'
 import fs from 'fs/promises'
 import N3 from 'n3'
 import { Quad } from 'n3'
 import { createExecutor } from '@helpers/executeCommand.js'
 import { createLogger } from '@helpers/logger.js'
 import { StepContext } from '@root/core/executeSteps.js'
+import { qudt } from '@core/helpers/namespaces.js'
+import factory from '@rdfjs/data-model'
+import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 
 const executeCommand = createExecutor('verrijking', import.meta, 'voetprint')
 
@@ -24,22 +28,26 @@ export default async function Voetprint({
   log(`Data extract gemaakt`, 'Voetprint')
 
   let polygon = await fs.readFile(filePath, 'utf-8')
-
-  // const quad = factory.quad(
-  //   gebouwSubject,
-  //   geo('asWKT'),
-  //   factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${polygon}`, geo('wktLiteral')),
-  // )
   const parser = new N3.Parser()
-  parser.parse(polygon, (error, quad, prefixes) => {
-    if (quad) {
-      verrijkingenDataset.add(quad as any)
-    }
-    if (error) {
-      throw error
-    }
+  const quads = parser.parse(polygon)
+  for (const quad of quads) {
+    if (quad) verrijkingenDataset.add(quad as any)
+  }
+
+  const elongationNode = factory.namedNode(`${gebouwSubject}/footprint/elongation`)
+  const pointer: GrapoiPointer = grapoi({
+    dataset: verrijkingenDataset,
+    term: elongationNode,
   })
-  log(`Aantal quads in verrijkingenDataset: ${verrijkingenDataset.size}`)
+  const elongation = pointer.out(qudt('numericValue')).value
+  log(`Elongation: ${elongation}`)
+
+  // for (const quad of pointer.out()) {
+  //   log(quad)
+  // }
+  if (!elongation) {
+    throw new Error(`could not find elongation for ${elongationNode.value}`)
+  }
 
   log(`De voetprint is toegevoegd aan de verrijkingen linked data graaf`, 'Voetprint')
 
@@ -57,5 +65,6 @@ export default async function Voetprint({
 
   return {
     voetprintCoordinates,
+    elongation,
   }
 }

@@ -70,7 +70,6 @@ export const valideer = new Activity(
 
       headerLogBig(`Groep: "${checkGroup.naam}": Uitvoering`, 'yellowBright')
 
-      // TODO oh no
       const data = checkGroup.data
       const bp: GrapoiPointer = grapoi({ dataset: report, factory, term: factory.blankNode() })
       if (data && 'bestemmingsplan' in data) {
