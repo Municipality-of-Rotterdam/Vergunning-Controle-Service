@@ -17,117 +17,121 @@ import { Activity } from '@core/Activity.js'
 
 const log = createLogger('init', import.meta)
 
-export const init = new Activity({ name: 'Initialisation' }, async (_: any) => {
-  // TODO: depends on token
-  const baseIRI = 'https://demo.triplydb.com/rotterdam/'
-  dotenv.config()
+export const init = new Activity(
+  { name: 'Init', description: 'Initialisatiefase van het Vergunningscontroleservice' },
+  async (_: any) => {
+    dotenv.config()
 
-  for (const variable of ['TRIPLYDB_TOKEN', 'RP_API_TOKEN'])
-    if (!process.env[variable]) throw new Error(`Missing variable ${variable}`)
+    for (const variable of ['TRIPLYDB_TOKEN', 'RP_API_TOKEN'])
+      if (!process.env[variable]) throw new Error(`Missing variable ${variable}`)
 
-  const args = argsParser(process.argv)
+    const args = argsParser(process.argv)
 
-  const datasetName = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
-  const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
-  const account = getAccount()
-  const user = await triply.getAccount(account)
+    const datasetName = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
+    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
+    const account = getAccount()
+    const user = await triply.getAccount(account)
 
-  let dataset: Dataset
-  try {
-    dataset = await user.getDataset(datasetName)
-  } catch (error) {
-    dataset = await user.addDataset(datasetName)
-  }
-  if (!dataset) throw new Error(`Kon de dataset ${datasetName} niet aanmaken in TriplyDB`)
+    let dataset: Dataset
+    try {
+      dataset = await user.getDataset(datasetName)
+    } catch (error) {
+      dataset = await user.addDataset(datasetName)
+    }
+    if (!dataset) throw new Error(`Kon de dataset ${datasetName} niet aanmaken in TriplyDB`)
 
-  let vcsDataset: Dataset
-  try {
-    vcsDataset = await user.getDataset('vcs')
-  } catch (error) {
-    throw new Error(`Kon de dataset 'vcs' van gebruiker ${(await user.getInfo()).accountName} niet vinden in TriplyDB`)
-  }
+    let vcsDataset: Dataset
+    try {
+      vcsDataset = await user.getDataset('vcs')
+    } catch (error) {
+      throw new Error(
+        `Kon de dataset 'vcs' van gebruiker ${(await user.getInfo()).accountName} niet vinden in TriplyDB`,
+      )
+    }
 
-  const datasetInfo = await dataset.getInfo()
-  const graphPrefix = datasetInfo.prefixes.find((item) => item.prefixLabel === 'graph')!
-  log(account, 'Account')
-  log(graphPrefix.iri.replace('/graphs/', ''), 'Dataset')
+    const datasetInfo = await dataset.getInfo()
+    const graphPrefix = datasetInfo.prefixes.find((item) => item.prefixLabel === 'graph')!
+    log(account, 'Account')
+    log(graphPrefix.iri.replace('/graphs/', ''), 'Dataset')
 
-  await ensurePython()
-  await ensureJava()
-  await installPythonDependencies()
+    await ensurePython()
+    await ensureJava()
+    await installPythonDependencies()
 
-  const clean = args.clean
+    const clean = args.clean
 
-  const ruleIds = args.controles
-    ? (args.controles?.toString() ?? '').split(',').map((number: string) => parseInt(number))
-    : []
+    const ruleIds = args.controles
+      ? (args.controles?.toString() ?? '').split(',').map((number: string) => parseInt(number))
+      : []
 
-  if (!args.ifc) throw new Error('No IFC filename was provided')
-  if (!args.ids) throw new Error('No IDS filename was provided')
+    if (!args.ifc) throw new Error('No IFC filename was provided')
+    if (!args.ids) throw new Error('No IDS filename was provided')
 
-  log(args, 'Script argumenten')
+    log(args, 'Script argumenten')
 
-  const inputIds = import.meta.resolve(`../../../input/${args.ids}`).replace('file://', '')
-  const idsIdentifier = crypto.createHash('md5').update(inputIds).digest('hex')
+    const inputIds = import.meta.resolve(`../../../input/${args.ids}`).replace('file://', '')
+    const idsIdentifier = crypto.createHash('md5').update(inputIds).digest('hex')
 
-  const outputsDir = import.meta
-    .resolve(`../../../outputs/${datasetName}/`)
-    .replace('file://', '')
-    .replace('/index.js', '')
-  log(outputsDir, 'Resultaten folder')
+    const outputsDir = import.meta
+      .resolve(`../../../outputs/${datasetName}/`)
+      .replace('file://', '')
+      .replace('/index.js', '')
+    log(outputsDir, 'Resultaten folder')
 
-  if (clean) {
-    await rimraf(outputsDir)
-    log(outputsDir, 'Resultaten folder opgeschoond')
-  }
-  if (!existsSync(outputsDir)) {
-    await mkdir(outputsDir)
-    log(outputsDir, 'Resultaten folder aangemaakt')
-  }
+    if (clean) {
+      await rimraf(outputsDir)
+      log(outputsDir, 'Resultaten folder opgeschoond')
+    }
+    if (!existsSync(outputsDir)) {
+      await mkdir(outputsDir)
+      log(outputsDir, 'Resultaten folder aangemaakt')
+    }
 
-  const ifcDir = import.meta.resolve(`../../../input/ifc/`).replace('file://', '').replace('/index.js', '')
+    const ifcDir = import.meta.resolve(`../../../input/ifc/`).replace('file://', '').replace('/index.js', '')
 
-  if (clean) {
-    await rimraf(ifcDir)
-    log(ifcDir, 'Input IFC folder opgeschoond')
-  }
-  if (!existsSync(ifcDir)) {
-    await mkdir(ifcDir)
-    log(ifcDir, 'Input IFC folder aangemaakt')
-  }
+    if (clean) {
+      await rimraf(ifcDir)
+      log(ifcDir, 'Input IFC folder opgeschoond')
+    }
+    if (!existsSync(ifcDir)) {
+      await mkdir(ifcDir)
+      log(ifcDir, 'Input IFC folder aangemaakt')
+    }
 
-  const ifcOutput = `${ifcDir}/${args.ifc}`
+    const ifcOutput = `${ifcDir}/${args.ifc}`
 
-  let ifcAsset: Asset
-  try {
-    ifcAsset = await vcsDataset.getAsset(args.ifc)
-  } catch (error) {
-    throw new Error(`Kon het IFC asset niet vinden in TriplyDB`)
-  }
+    let ifcAsset: Asset
+    try {
+      ifcAsset = await vcsDataset.getAsset(args.ifc)
+    } catch (error) {
+      throw new Error(`Kon het IFC asset niet vinden in TriplyDB`)
+    }
 
-  // write asset to input ifc directory
-  await writeFile(ifcOutput, await ifcAsset.toStream(), 'utf8')
+    // write asset to input ifc directory
+    await writeFile(ifcOutput, await ifcAsset.toStream(), 'utf8')
 
-  const consoleUrl = (await triply.getInfo()).consoleUrl
-  const userName = (await user.getInfo()).accountName
-  const ifcAssetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/vcs/assets/download?fileName=`
-  const assetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/${datasetName}/assets/download?fileName=`
-  const inputIfc = import.meta.resolve(`../../../input/ifc/${args.ifc}`).replace('file://', '')
-  const ifcIdentifier = crypto.createHash('md5').update(inputIfc).digest('hex')
+    const consoleUrl = (await triply.getInfo()).consoleUrl
+    const userName = (await user.getInfo()).accountName
+    const ifcAssetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/vcs/assets/download?fileName=`
+    const assetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/${datasetName}/assets/download?fileName=`
+    const inputIfc = import.meta.resolve(`../../../input/ifc/${args.ifc}`).replace('file://', '')
+    const ifcIdentifier = crypto.createHash('md5').update(inputIfc).digest('hex')
+    const baseIRI = `${consoleUrl}/${userName}/${datasetName}/`
 
-  return {
-    account,
-    args,
-    assetBaseUrl,
-    baseIRI,
-    consoleUrl,
-    datasetName,
-    idsIdentifier,
-    ifcAssetBaseUrl,
-    ifcIdentifier,
-    inputIds,
-    inputIfc,
-    outputsDir,
-    ruleIds,
-  }
-})
+    return {
+      account,
+      args,
+      assetBaseUrl,
+      baseIRI,
+      consoleUrl,
+      datasetName,
+      idsIdentifier,
+      ifcAssetBaseUrl,
+      ifcIdentifier,
+      inputIds,
+      inputIfc,
+      outputsDir,
+      ruleIds,
+    }
+  },
+)

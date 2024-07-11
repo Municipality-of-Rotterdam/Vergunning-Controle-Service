@@ -36,4 +36,4 @@ export default async function JouwVerrijking({
 ```
 
 - Het bestand wordt automatisch toevoegt.
-- tag (van het return object) is nu ook te gebruiken in de rapportage of andere methodes die de context krijgen.
+- tag (van het return object) is nu ook te gebruiken in het rapport of andere methodes die de context krijgen.

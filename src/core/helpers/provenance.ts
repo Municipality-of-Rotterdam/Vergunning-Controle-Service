@@ -6,6 +6,7 @@ import { GrapoiPointer } from './grapoi.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 
 export function start(p: GrapoiPointer, { name, description }: { name: string; description?: string }): GrapoiPointer {
+  // TODO: This should not be hard-coded as they have other IRIs in Rotterdam. Use the baseIRI instead. The baseIRI also contains the dataset name which is crucial, because otherwise we are creating the same instance(s) for the same dataset.
   const label = name ? `https://demo.triplydb.com/rotterdam/${name.replace(/\W/g, '')}` : null
   const provenanceNode = label ? factory.namedNode(label) : factory.blankNode
 

@@ -4,23 +4,25 @@ import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
 import App from '@triply/triplydb'
 import { Activity } from './Activity.js'
+import { GrapoiPointer } from './helpers/grapoi.js'
+import { rdfs, xsd } from './helpers/namespaces.js'
+import factory from '@rdfjs/data-model'
 
 const log = createLogger('upload', import.meta, 'Upload')
 
 export const upload = new Activity(
-  { name: 'Upload' },
-  async ({
-    outputsDir,
-    gebouwDataset,
-    datasetName,
-    args,
-    baseIRI,
-    account,
-    verrijkingenDataset,
-  }: Pick<
-    StepContext,
-    'outputsDir' | 'gebouwDataset' | 'args' | 'datasetName' | 'account' | 'baseIRI' | 'verrijkingenDataset'
-  >) => {
+  { name: 'Upload', description: 'Upload assets' },
+  async (
+    {
+      outputsDir,
+      datasetName,
+      args,
+      baseIRI,
+      account,
+      verrijkingenDataset,
+    }: Pick<StepContext, 'outputsDir' | 'args' | 'datasetName' | 'account' | 'baseIRI' | 'verrijkingenDataset'>,
+    provenance: GrapoiPointer,
+  ) => {
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const user = await triply.getAccount(account)
     const dataset = await user.getDataset(datasetName)
@@ -54,6 +56,9 @@ export const upload = new Activity(
       }
     }
 
+    provenance.addOut(rdfs('seeAlso'), factory.literal(`${baseIRI}assets`, xsd('anyUri')))
+
+    // TODO: move to verrijkingen.ts
     const { apiUrl } = await triply.getInfo()
 
     let shouldUpload = true
@@ -61,7 +66,7 @@ export const upload = new Activity(
     if (!args.clean) {
       const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
         body: JSON.stringify({
-          query: `ASK WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?s ?p ?o } }`,
+          query: `ASK WHERE { GRAPH <${baseIRI}graph/gebouw> { ?s ?p ?o } }`,
         }),
         method: 'POST',
         headers: {
@@ -75,17 +80,12 @@ export const upload = new Activity(
 
       if (graphExists) shouldUpload = false
     }
-    if (shouldUpload || true) {
-      log(`Dataset uploaden naar TriplyDB`)
 
-      /* TODO We have already done this --- other upload steps should probably also be moved to their respective creation steps
-    await dataset.importFromStore(gebouwDataset as any, {
-      defaultGraphName: `${baseIRI}${datasetName}/graph/gebouw`,
-      overwriteAll: true,
-    })*/
+    if (shouldUpload || true) {
+      log(`Graph verrijkingen naar TriplyDB`)
 
       await dataset.importFromStore(verrijkingenDataset as any, {
-        defaultGraphName: `${baseIRI}${datasetName}/graph/verrijkingen`,
+        defaultGraphName: `${baseIRI}graph/verrijkingen`,
         overwriteAll: true,
       })
 
