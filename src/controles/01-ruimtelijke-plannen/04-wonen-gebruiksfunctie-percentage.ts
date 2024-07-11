@@ -62,6 +62,7 @@ select ?result ?success where {
     #to find a gebruiksdoel
     {
       select (count(?space)*100 as ?totalK) where {
+      graph ?g {
         ?this a ifc:IfcBuilding.
 
         [] ifc:relatingObject_IfcRelAggregates ?this;
@@ -84,12 +85,14 @@ select ?result ?success where {
         # filter(?func!="01")
         filter(regex(str(?func), "kantoor", 'i'))
       }
+      }
       limit 1
     }
   }
 
   {
     select (count(?space) as ?totalW) where {
+    graph ?g {
       ?this a ifc:IfcBuilding.
 
       [] ifc:relatingObject_IfcRelAggregates ?this;
@@ -114,10 +117,12 @@ select ?result ?success where {
         filter(regex(str(?func), "functie", 'i'))
       }
     }
+    }
   }
   bind((xsd:decimal(concat(substr(str(?totalK / ?totalW), 1, strlen(strbefore(str(?totalK / ?totalW), ".")) + 3)))) as ?result)
   bind(IF(?result < 30, true, false) AS ?success)
-}
+  }
+
   `
   }
 

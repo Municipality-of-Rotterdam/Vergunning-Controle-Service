@@ -99,8 +99,6 @@ export const valideer = new Activity(
         let success: boolean
         if (controle.isToepasbaar(controle.sparqlInputs)) {
           const query = controle.sparql(controle.sparqlInputs)
-          log(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`)
-          log(query)
           const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
             body: JSON.stringify({ query }),
             method: 'POST',
