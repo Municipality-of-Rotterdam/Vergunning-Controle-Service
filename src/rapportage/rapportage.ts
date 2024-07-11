@@ -14,7 +14,7 @@ import factory from '@rdfjs/data-model'
 const log = createLogger('rapport', import.meta)
 
 export const rapport = new Activity(
-  { name: 'Rapport' },
+  { name: 'VCS Rapport', description: 'Creatie en upload van VCS Rapport' },
   async (
     {
       validationPointer,
@@ -51,17 +51,9 @@ export const rapport = new Activity(
     if (!dataset) throw new Error(`Kon de dataset ${datasetName} niet vinden in TriplyDB`)
 
     const gltfAsset = await dataset.getAsset('gebouw.gltf')
-    const model = await fetch(gltfAsset.getInfo().url, {
-      headers: {
-        'content-type': 'application/json',
-        Accepts: 'application/sparql-results+json, application/n-triples',
-        Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
-      },
-    })
-    const blob = await model.blob()
-    const buffer = Buffer.from(await blob.arrayBuffer())
-    const urlBase64Encoded = buffer.toString('base64url')
-
+    // const blob = await model.blob()
+    // const buffer = Buffer.from(await blob.arrayBuffer())
+    // const urlBase64Encoded = buffer.toString('base64url')
     log('Genereren van het vcs rapport', 'VCS rapport')
 
     // TODO: Remove hard-coded IRI
@@ -96,6 +88,7 @@ export const rapport = new Activity(
     await dataset.uploadAsset(`${outputsDir}/vcs-rapport.html`, fileId)
     log('Klaar met upload van het vcs rapport', 'VCS rapport')
 
+    log('Adding seeAlso for VCS report')
     provenance.addOut(rdfs('seeAlso'), factory.literal(`${assetBaseUrl}vcs-rapport.html`, xsd('anyURI')))
   },
 )

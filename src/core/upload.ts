@@ -5,13 +5,13 @@ import { createLogger } from '@helpers/logger.js'
 import App from '@triply/triplydb'
 import { Activity } from './Activity.js'
 import { GrapoiPointer } from './helpers/grapoi.js'
-import { rdfs } from './helpers/namespaces.js'
+import { rdfs, xsd } from './helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 
 const log = createLogger('upload', import.meta, 'Upload')
 
 export const upload = new Activity(
-  { name: 'Upload' },
+  { name: 'Upload', description: 'Upload assets' },
   async (
     {
       outputsDir,
@@ -56,10 +56,9 @@ export const upload = new Activity(
       }
     }
 
-    provenance.addOut(rdfs('seeAlso'), factory.namedNode(`${baseIRI}assets`))
+    provenance.addOut(rdfs('seeAlso'), factory.literal(`${baseIRI}assets`, xsd('anyUri')))
 
     // TODO: move to verrijkingen.ts
-
     const { apiUrl } = await triply.getInfo()
 
     let shouldUpload = true
