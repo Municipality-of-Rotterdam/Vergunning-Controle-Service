@@ -28,6 +28,7 @@ export const rapport = new Activity(
       idsControle,
       assetBaseUrl,
       provenanceDataset,
+      elongation,
     }: Pick<
       StepContext,
       | 'validationPointer'
@@ -41,6 +42,7 @@ export const rapport = new Activity(
       | 'idsControle'
       | 'assetBaseUrl'
       | 'provenanceDataset'
+      | 'elongation'
     >,
     provenance: GrapoiPointer,
   ) => {
@@ -68,6 +70,7 @@ export const rapport = new Activity(
     const props = {
       datasetName,
       gebouwAddress,
+      elongation,
       datasetUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}`,
       footprintUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}/browser?resource=${encodeURIComponent(gebouwSubject.toString())}`,
       gebouw: validationPointer.out(rpt('building')).value.toString(),

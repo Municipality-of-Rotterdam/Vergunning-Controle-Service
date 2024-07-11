@@ -8,6 +8,7 @@ import { Activity } from './Activity.js'
 export type Verrijkingen = {
   voetprintCoordinates: number[][]
   geoData: GeoData
+  elongation: number
 }
 
 export const verrijk = new Activity({ name: 'Verrijkingen' }, async (context: StepContext): Promise<Verrijkingen> => {

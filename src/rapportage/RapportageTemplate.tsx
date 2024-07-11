@@ -14,6 +14,7 @@ export type RapportageProps = {
   geoData: any
   gltfUrl: string
   gltfDownload: string
+  elongation: number
 }
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
@@ -27,6 +28,10 @@ function Bestemmingsplan(source: GrapoiPointer) {
       {naam.value} ({id.value})
     </a>
   )
+}
+
+function Elongation(elongation: number) {
+  return <>{elongation}</>
 }
 
 function ProvenanceHtml(provenancePointer: GrapoiPointer) {
@@ -132,6 +137,7 @@ export default function (
     datasetUrl,
     gltfDownload,
     gebouwAddress,
+    elongation,
   }: RapportageProps,
   validationPointer: GrapoiPointer,
   provenanceDataset: TriplyStore,
@@ -224,6 +230,8 @@ export default function (
         </dl>
 
         {/* TODO restore this when time is ripe <div style={{ height: 880 }} id="cesiumContainer"></div> */}
+
+        {Elongation(elongation)}
 
         {controles.map((controle: GrapoiPointer) => Controle(controle, provenanceDataset))}
 

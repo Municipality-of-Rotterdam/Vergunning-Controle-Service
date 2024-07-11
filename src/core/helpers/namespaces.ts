@@ -10,6 +10,7 @@ export const skos = namespace('http://www.w3.org/2004/02/skos/core#')
 export const dct = namespace('http://purl.org/dc/terms/')
 export const sh = namespace('http://www.w3.org/ns/shacl#')
 export const xsd = namespace('http://www.w3.org/2001/XMLSchema#')
+export const qudt = namespace('http://qudt.org/schema/qudt/')
 
 // TODO: This should not be hard-coded but needs to depend on the TriplyDB instance
 export const rpt = namespace('https://demo.triplydb.com/rotterdam/rpt/')
