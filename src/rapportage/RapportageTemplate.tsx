@@ -33,8 +33,15 @@ function Bestemmingsplan(source: GrapoiPointer) {
 function Elongation(elongation: number) {
   return (
     <div id="elongation">
-      <h2>Welstand</h2>
+      <h2>Welstand: Stempel en strokenbouw – ruimtelijke inpassing</h2>
       <dl>
+        <dt>Beschrijving</dt>
+        <dd>
+          Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of
+          een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)
+        </dd>
+        <dt>Resultaat</dt>
+        <dd>De voetafdruk van het gebouw ligt in het welstandsgebied "stempel- en strokenbouw".</dd>
         <dt>Langwerpigheid</dt>
         <dd>{elongation}</dd>
       </dl>

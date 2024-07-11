@@ -66,6 +66,6 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
   }
 
   bericht({ max }: SparqlInputs): string {
-    return `Gebouw {?this} heeft in totaal {?aantalVerdiepingen} bouwlagen. Dit mag maximaal ${max} zijn.`
+    return `Gebouw {?this} heeft in totaal {?aantalVerdiepingen} bouwlagen. In dit gebied geldt een maximum bouwhoogte van ${max}.`
   }
 }
