@@ -4,6 +4,7 @@ import ifcopenshell
 import ifcopenshell.geom
 import ifcopenshell.util.shape
 import numpy as np
+import math
 import shapely
 import matplotlib.pyplot as pp
 import geopandas as gpd
@@ -14,20 +15,20 @@ Based on an IFC file and a collection of IFC elements, calculate the following:
    The footprint can be a polygon or a multipolygon (the latter in case the IFC model describes spatially separate buildings)
 2) The perimeter of the footprint in metres.
 3) The area of the footprint in square metres.
+4) A measure of elongation of the footprint.
 
 Output:
-RDF code in Turtle format for the footprint, the perimeter, the area and the IfcMapConversion parameters
+RDF code in Turtle format for the footprint, the perimeter, the area, the elongation and the IfcMapConversion parameters
 
 Assumptions:
 1) The IFC file contains an IfcMapConversion element, with easting and northing values based on RD (espg:28992)
 and height based on NAP.
-2) lenght, area and volume in the IFC model are based on metre (not millimetre)
 
 References:
 1) For ifcopenshell geometry processing, see https://docs.ifcopenshell.org/ifcopenshell-python/geometry_processing.html
 
 Example:
-footprint.py '/home/frans/Projects/VCS Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc' https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcRoof,IfcSlab
+footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcRoof,IfcSlab
 """
 
 def main(file, building_iri, ifc_classes):
@@ -83,19 +84,22 @@ def main(file, building_iri, ifc_classes):
         exit(3)
 
     #plot(footprint,'footprint')
+    
+    #compute a measure for elongation
+    elongation = round(math.sqrt(footprint.area)/(footprint.length/4),4)
 
     ttl = f'''
-prefix geo: <http://www.opengis.net/ont/geosparql#>
-prefix sf: <http://www.opengis.net/ont/sf#>
-prefix skos: <http://www.w3.org/2004/02/skos/core#>
-prefix xsd: <http://www.w3.org/2001/XMLSchema#>
-prefix qudt: <http://qudt.org/schema/qudt/>
-prefix unit: <http://qudt.org/vocab/unit/> 
-prefix ex: <http://www.example.org/>
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix sf: <http://www.opengis.net/ont/sf#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix unit: <http://qudt.org/vocab/unit/>  .
+@prefix ssn: <http://www.w3.org/ns/ssn/> . # SSN is misused here, but it offers hasProperty, which is used as a substitute for dedicated VCS semantics
 
-<{building_iri}> geo:hasGeometry <{building_iri}/CRS_origin>.
-<{building_iri}> geo:hasGeometry <{building_iri}/footprint>.
-<{building_iri}> ex:hasRotation <{building_iri}/CRS_rotation>.
+<{building_iri}> geo:hasGeometry <{building_iri}/CRS_origin> .
+<{building_iri}> geo:hasGeometry <{building_iri}/footprint> .
+<{building_iri}> ssn:hasProperty <{building_iri}/CRS_rotation> .
 
 <{building_iri}/CRS_origin>
     a sf:Point ;
@@ -118,8 +122,17 @@ prefix ex: <http://www.example.org/>
     geo:coordinateDimension "2"^^xsd:integer ;
     geo:hasMetricPerimeterLength "{round(footprint.length)}"^^xsd:double ;
     geo:hasMetricArea "{round(footprint.area, 3)}"^^xsd:double ;
+    ssn:hasProperty <{building_iri}/footprint/elongation> ;
     skos:prefLabel "2D footprint of the building"@en, "2D-voetafdruk van het gebouw"@nl
-.'''
+.
+
+<{building_iri}/footprint/elongation>
+    a qudt:Quantity, ssn:Property ; 
+    qudt:numericValue "{elongation}"^^xsd:decimal ; 
+    skos:prefLabel "A measure for elongation of the footprint"@en, "Een maat voor de langgerektheid van de voetafdruk"@nl 
+.
+
+'''
 
     print (ttl)
     #print('\nfootprint WKT (CRS epsg:28992):',footprint)
