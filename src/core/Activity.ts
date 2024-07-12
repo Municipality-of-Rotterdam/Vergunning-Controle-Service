@@ -95,7 +95,7 @@ type Request = {
   body?: string
 }
 
-export class APIActivity extends ActivityA<undefined, Response> {
+export abstract class APIActivity<S, T> extends ActivityA<S, T> {
   public url: string
   public headers: Headers
   public body?: string
@@ -112,12 +112,11 @@ export class APIActivity extends ActivityA<undefined, Response> {
       this.url += '?' + p
     }
   }
-  async run(): Promise<Response> {
-    this.startProvenance()
-    const response = this.send()
-    this.endProvenance()
-    return response
-  }
+  // async run(): Promise<Response> {
+  //   const response = this.send()
+  //   this.endProvenance()
+  //   return response
+  // }
 
   protected async send(): Promise<Response> {
     const requestOptions: RequestInit = this.body
@@ -136,16 +135,16 @@ export class APIActivity extends ActivityA<undefined, Response> {
   }
 }
 
-export class WFSActivity extends APIActivity {
+export abstract class WFSActivity<S, T> extends APIActivity<S, T> {
   constructor(info: ActivityInfo, request: Request) {
     super(info, request)
     this.headers.append('Content-Type', 'application/xml')
   }
 }
 
-export class WelstandWFSActivity extends WFSActivity {
-  public extract: (xml: any) => {}
-  constructor(info: ActivityInfo, body: string, extract: (xml: any) => {}) {
+export class WelstandWFSActivity<S, T> extends WFSActivity<S, T> {
+  public extract: (xml: any) => T
+  constructor(info: ActivityInfo, body: string, extract: (xml: any) => T) {
     super(info, {
       host: 'https://diensten.rotterdam.nl/',
       path: 'arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer',
@@ -156,11 +155,13 @@ export class WelstandWFSActivity extends WFSActivity {
     })
     this.extract = extract
   }
-  async run() {
+  async run(): Promise<T> {
+    this.startProvenance()
     const response = await this.send()
     const data = await response.text()
     const parser = new XMLParser()
-    const obj = parser.parse(data)
-    return this.extract(obj)
+    const obj = this.extract(parser.parse(data))
+    this.endProvenance()
+    return obj
   }
 }

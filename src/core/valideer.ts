@@ -153,6 +153,7 @@ export const valideer = new Activity(
           c.addOut(dct('source'), bp)
 
           // TODO temporary solution for reporting information that doesn't come from SPARQL query
+          //@ts-ignore
           const elongation = controle.sparqlInputs.elongation
           if (elongation) c.addOut(rpt('elongation'), factory.literal(elongation))
         })
