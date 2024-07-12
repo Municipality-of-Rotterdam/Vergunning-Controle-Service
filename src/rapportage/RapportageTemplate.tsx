@@ -192,12 +192,10 @@ function Controle(controle: any, provenanceDataset: TriplyStore) {
         </dd>
         <dt>Bestemmingsplan</dt>
         <dd>{Bestemmingsplan(source)}</dd>
-        <dt>Verwijzing</dt>
-        <dd>{verwijzing}</dd>
-        {elongation ? (
+        {verwijzing ? (
           <>
-            <dt>Langwerpigheid</dt>
-            <dd></dd>
+            <dt>Verwijzing</dt>
+            <dd>{verwijzing}</dd>
           </>
         ) : (
           ''
