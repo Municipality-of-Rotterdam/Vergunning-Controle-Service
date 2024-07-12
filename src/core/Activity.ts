@@ -10,30 +10,50 @@ type ActivityInfo = {
   description?: string
 }
 
-export class Activity<S extends {}, T extends {}> {
-  constructor(
-    { name, description }: ActivityInfo,
-    action: (ctx: S, provenance: GrapoiPointer) => Promise<void | T>,
-    children?: Activity<S, T>[],
-  ) {
+export abstract class ActivityA<S, T> {
+  public name: string
+  public description?: string
+  public provenance?: GrapoiPointer
+  abstract run(input: S): Promise<T>
+  constructor({ name, description }: ActivityInfo) {
     this.name = name
     this.description = description
+  }
+  startProvenance() {
+    if (!this.provenance) throw new Error('Have not set provenance pointer')
+    const pointer = this.provenance
+    pointer.addOut(rdf('type'), prov('Activity'))
+    pointer.addOut(skos('prefLabel'), factory.literal(this.name))
+    if (this.description) pointer.addOut(dct('description'), factory.literal(this.description))
+    pointer.addOut(prov('startedAtTime'), factory.literal(new Date().toISOString(), xsd('dateTime')))
+  }
+  endProvenance() {
+    if (!this.provenance) throw new Error('Have not set provenance pointer')
+    const pointer = this.provenance
+    pointer.addOut(prov('endedAtTime'), factory.literal(new Date().toISOString(), xsd('dateTime')))
+  }
+}
+
+export class Activity<S extends {}, T extends {}> extends ActivityA<S, T> {
+  constructor(
+    { name, description }: ActivityInfo,
+    action: (ctx: S, provenance: GrapoiPointer) => Promise<T>,
+    children?: Activity<S, T>[],
+  ) {
+    super({ name, description })
     this.action = action
     this.children = children ?? []
   }
-  public name: string
-  public description?: string
-  public action: (ctx: S, provenance: GrapoiPointer) => Promise<void | T>
-  public provenance?: GrapoiPointer
+  public action: (ctx: S, provenance: GrapoiPointer) => Promise<T>
   public parent?: Activity<any, any>
 
   public children: Activity<S, T>[]
-  async run(ctx: S): Promise<void | T> {
+  async run(ctx: S): Promise<T> {
     headerLog(this.name)
     const label = this.name ? `https://demo.triplydb.com/rotterdam/${this.name.replace(/\W/g, '')}` : null
     const provenanceNode = label ? factory.namedNode(label) : factory.blankNode
 
-    /* @ts-ignore TODO. forgive me */
+    /* @ts-ignore TODO */
     const db = ctx.provenanceDataset
     if (!db) throw new Error('should have a database at this point')
 
@@ -45,12 +65,7 @@ export class Activity<S extends {}, T extends {}> {
       this.parent.provenance.addOut(dct('hasPart'), provenanceNode)
     }
     this.provenance = provenance = grapoi({ dataset: db, factory, term: provenanceNode })
-
-    provenance.addOut(rdf('type'), prov('Activity'))
-    provenance.addOut(skos('prefLabel'), factory.literal(this.name))
-    if (this.description) provenance.addOut(dct('description'), factory.literal(this.description))
-    provenance.addOut(prov('startedAtTime'), factory.literal(new Date().toISOString(), xsd('dateTime')))
-
+    this.startProvenance()
     this.prepare()
     const mainResult = await this.action(ctx, provenance)
     if (mainResult) {
@@ -64,8 +79,7 @@ export class Activity<S extends {}, T extends {}> {
       }
     }
     this.finish()
-    provenance.addOut(prov('endedAtTime'), factory.literal(new Date().toISOString(), xsd('dateTime')))
-
+    this.endProvenance()
     return ctx as unknown as T
   }
   prepare() {}
