@@ -41,9 +41,9 @@ function Elongation(elongation: number) {
           een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)
         </dd>
         <dt>Resultaat</dt>
-        <dd>De voetafdruk van het gebouw ligt in het welstandsgebied "stempel- en strokenbouw".</dd>
+        <dd>De voetafdruk van het gebouw ligt in welstandsgebied 77, type "stempel- en strokenbouw".</dd>
         <dt>Langwerpigheid</dt>
-        <dd>{elongation.toString().replace(/[.]/, ',')}</dd>
+        <dd>L = {elongation.toString().replace(/[.]/, ',')}</dd>
       </dl>
       <details>
         <summary>Uitleg</summary>
