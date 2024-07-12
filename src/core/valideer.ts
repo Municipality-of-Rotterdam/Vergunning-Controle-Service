@@ -97,8 +97,12 @@ export const valideer = new Activity(
 
         let message: string
         let success: boolean
-        if (controle.isToepasbaar(controle.sparqlInputs)) {
-          const query = controle.sparql(controle.sparqlInputs)
+        const query = controle.sparql(controle.sparqlInputs)
+        if (!query) {
+          message = controle.berichtGeslaagd(controle.sparqlInputs)
+          success = true
+          log(message, controle.naam)
+        } else if (controle.isToepasbaar(controle.sparqlInputs)) {
           const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
             body: JSON.stringify({ query }),
             method: 'POST',
@@ -147,6 +151,11 @@ export const valideer = new Activity(
           c.addOut(rpt('message'), factory.literal(message))
           c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
           c.addOut(dct('source'), bp)
+
+          // TODO temporary solution for reporting information that doesn't come from SPARQL query
+          try {
+            c.addOut(rpt('elongation'), factory.literal(controle.sparqlInputs.elongation))
+          } catch {}
         })
       }
 

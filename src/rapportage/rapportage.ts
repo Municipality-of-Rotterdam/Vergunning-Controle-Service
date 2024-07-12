@@ -93,5 +93,6 @@ export const rapport = new Activity(
 
     log('Adding seeAlso for VCS report')
     provenance.addOut(rdfs('seeAlso'), factory.literal(`${assetBaseUrl}vcs-rapport.html`, xsd('anyURI')))
+    return {}
   },
 )

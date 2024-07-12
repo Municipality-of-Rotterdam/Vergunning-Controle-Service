@@ -23,28 +23,21 @@ function Bestemmingsplan(source: GrapoiPointer) {
   const naam = source.out(skos('prefLabel'))
   const id = source.out(rdfs('label'))
   const url = source.out(rdfs('seeAlso'))
-  return (
-    <a href={url.value.toString()}>
-      {naam.value} ({id.value})
-    </a>
-  )
+  if (url && url.value) {
+    return (
+      <a href={url.value.toString()}>
+        {naam.value} ({id.value})
+      </a>
+    )
+  } else {
+    return 'n.v.t.'
+  }
 }
 
 function Elongation(elongation: number) {
   return (
-    <div id="elongation">
-      <h2>Welstand: Stempel en strokenbouw – ruimtelijke inpassing</h2>
-      <dl>
-        <dt>Beschrijving</dt>
-        <dd>
-          Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of
-          een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)
-        </dd>
-        <dt>Resultaat</dt>
-        <dd>De voetafdruk van het gebouw ligt in welstandsgebied 77, type "stempel- en strokenbouw".</dd>
-        <dt>Langwerpigheid</dt>
-        <dd>L = {elongation.toString().replace(/[.]/, ',')}</dd>
-      </dl>
+    <>
+      L = {elongation.toString().replace(/[.]/, ',')}
       <details>
         <summary>Uitleg</summary>
         <p>
@@ -113,7 +106,7 @@ function Elongation(elongation: number) {
           </table>
         </div>
       </details>
-    </div>
+    </>
   )
 }
 
@@ -183,6 +176,7 @@ function Controle(controle: any, provenanceDataset: TriplyStore) {
   const validated = controle.out(rpt('passed')).value === 'true'
   const message = controle.out(rpt('message')).value
   const verwijzing = controle.out(rpt('verwijzing')).value
+  const elongation = controle.out(rpt('elongation')).value
   const description = controle.out(dct('description')).value
   const provenanceNode = controle.out(prov('wasGeneratedBy'))
   const provenanceNodeInProvenance = grapoi({ dataset: provenanceDataset, term: provenanceNode.term })
@@ -202,6 +196,14 @@ function Controle(controle: any, provenanceDataset: TriplyStore) {
         <dd>{Bestemmingsplan(source)}</dd>
         <dt>Verwijzing</dt>
         <dd>{verwijzing}</dd>
+        {elongation ? (
+          <>
+            <dt>Langwerpigheid</dt>
+            <dd>{Elongation(elongation as number)}</dd>
+          </>
+        ) : (
+          ''
+        )}
         <dt>Provenance</dt>
         <dd className="provenance">{ProvenanceHtml(provenanceNodeInProvenance)}</dd>
       </dl>
@@ -337,9 +339,6 @@ export default function (
         {/* TODO restore this when time is ripe <div style={{ height: 880 }} id="cesiumContainer"></div> */}
 
         {controles.map((controle: GrapoiPointer) => Controle(controle, provenanceDataset))}
-
-        <hr />
-        {Elongation(elongation)}
 
         <script type="module" dangerouslySetInnerHTML={{ __html: inlineScript }}></script>
       </body>

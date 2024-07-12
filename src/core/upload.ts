@@ -92,5 +92,6 @@ export const upload = new Activity(
       log(`Klaar met uploaden naar TriplyDB`)
     } else {
     }
+    return {}
   },
 )
