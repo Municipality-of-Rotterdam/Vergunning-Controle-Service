@@ -43,7 +43,7 @@ function Elongation(elongation: number) {
         <dt>Resultaat</dt>
         <dd>De voetafdruk van het gebouw ligt in het welstandsgebied "stempel- en strokenbouw".</dd>
         <dt>Langwerpigheid</dt>
-        <dd>{elongation}</dd>
+        <dd>{elongation.toLocaleString('nl-NL')}</dd>
       </dl>
       <details>
         <summary>Uitleg</summary>
