@@ -43,7 +43,7 @@ function Elongation(elongation: number) {
         <dt>Resultaat</dt>
         <dd>De voetafdruk van het gebouw ligt in het welstandsgebied "stempel- en strokenbouw".</dd>
         <dt>Langwerpigheid</dt>
-        <dd>{elongation.toLocaleString('nl-NL')}</dd>
+        <dd>{elongation.toString().replace(/[.]/, ',')}</dd>
       </dl>
       <details>
         <summary>Uitleg</summary>
@@ -56,9 +56,9 @@ function Elongation(elongation: number) {
           <table>
             <tr>
               <td></td>
+              <td>L=1</td>
             </tr>
           </table>
-          <p>L=1</p>
         </div>
 
         <div className="elongation-example">
@@ -66,20 +66,9 @@ function Elongation(elongation: number) {
             <tr>
               <td></td>
               <td></td>
+              <td>L=0,9428</td>
             </tr>
           </table>
-          <p>L=0,9428</p>
-        </div>
-
-        <div className="elongation-example">
-          <table>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-          </table>
-          <p>L=0,8660</p>
         </div>
 
         <div className="elongation-example">
@@ -88,11 +77,9 @@ function Elongation(elongation: number) {
               <td></td>
               <td></td>
               <td></td>
-              <td></td>
-              <td></td>
+              <td>L=0,8660</td>
             </tr>
           </table>
-          <p>L=0,7454</p>
         </div>
 
         <div className="elongation-example">
@@ -103,14 +90,27 @@ function Elongation(elongation: number) {
               <td></td>
               <td></td>
               <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
+              <td>L=0,7454</td>
             </tr>
           </table>
-          <p>L=0,5750</p>
+        </div>
+
+        <div className="elongation-example">
+          <table>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>L=0,5750</td>
+            </tr>
+          </table>
         </div>
       </details>
     </div>
@@ -274,25 +274,25 @@ export default function (
           }}
         ></script>
         <style>{`
-div.elongation-example {
-  clear: both;
-}
-.elongation-example p {
-  vertical-align: center;
-  line-height: 100%;
-  display: inline-block;
-  padding-left: 10px;
-}
 .elongation-example table {
   border-collapse: collapse;
-  float: left;
   margin: 5px 3px;
-  border: 2px solid black;
 }
 .elongation-example td {
   width: 35px;
   height: 35px;
-  border: 1px dashed grey;
+  border-left: 1px dashed grey;
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
+}
+.elongation-example td:first-child {
+  border-left: 2px solid black;
+}
+.elongation-example td:last-child {
+  border-left: 2px solid black;
+  border-top: none;
+  border-bottom: none;
+  padding-left: 10px;
 }
 `}</style>
       </head>
