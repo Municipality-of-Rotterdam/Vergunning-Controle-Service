@@ -52,52 +52,66 @@ function Elongation(elongation: number) {
           hand van de verhouding tussen oppervlakte en omtrek van de voetafdruk, en is onafhankelijk van de vorm van de
           voetafdruk. Hieronder een overzicht van waarden voor L voor rechthoeken met oplopende langwerpigheid:
         </p>
-        <table>
-          <tr>
-            <td></td>
-            <td>L=1</td>
-          </tr>
-        </table>
-        <table>
-          <tr>
-            <td></td>
-            <td></td>
-            <td>L=0,9428</td>
-          </tr>
-        </table>
-        <table>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td>L=0,8660</td>
-          </tr>
-        </table>
-        <table>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td>L=0,7454</td>
-          </tr>
-        </table>
-        <table>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td>L=0,5750</td>
-          </tr>
-        </table>
+        <div className="elongation-example">
+          <table>
+            <tr>
+              <td></td>
+            </tr>
+          </table>
+          <p>L=1</p>
+        </div>
+
+        <div className="elongation-example">
+          <table>
+            <tr>
+              <td></td>
+              <td></td>
+            </tr>
+          </table>
+          <p>L=0,9428</p>
+        </div>
+
+        <div className="elongation-example">
+          <table>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </table>
+          <p>L=0,8660</p>
+        </div>
+
+        <div className="elongation-example">
+          <table>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </table>
+          <p>L=0,7454</p>
+        </div>
+
+        <div className="elongation-example">
+          <table>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </table>
+          <p>L=0,5750</p>
+        </div>
       </details>
     </div>
   )
@@ -260,17 +274,25 @@ export default function (
           }}
         ></script>
         <style>{`
-table {
-  border-collapse: collapse;
-  margin: 5px 0;
+div.elongation-example {
+  clear: both;
 }
-td {
-  width: 40px;
-  height: 40px;
+.elongation-example p {
+  vertical-align: center;
+  line-height: 100%;
+  display: inline-block;
+  padding-left: 10px;
+}
+.elongation-example table {
+  border-collapse: collapse;
+  float: left;
+  margin: 5px 3px;
   border: 2px solid black;
 }
-td:last-child {
-border: none
+.elongation-example td {
+  width: 35px;
+  height: 35px;
+  border: 1px dashed grey;
 }
 `}</style>
       </head>
