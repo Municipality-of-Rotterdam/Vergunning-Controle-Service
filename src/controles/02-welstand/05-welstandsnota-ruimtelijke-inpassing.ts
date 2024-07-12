@@ -1,10 +1,9 @@
 import { BaseControle } from '@core/BaseControle.js'
 import { StepContext } from '@root/core/executeSteps.js'
-import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
 import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
-import { Activity } from '@core/Activity.js'
+import { WelstandWFSActivity } from '@core/Activity.js'
 
-type SparqlInputs = { elongation: number }
+type SparqlInputs = { elongation: number; welstandgebied: string; welstandgebied_id: number }
 
 /** Given: Een IFC-model positioneert na georeferentie geheel binnen Welstandsgebied “stempel en
 Strokenbouw”
@@ -19,7 +18,38 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
   public verwijzing = ``
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
-    return { elongation: context.elongation }
+    // TODO: This is of course actually an "uitvoering", but that's why the BaseControle/BaseGroup needs to be refactored
+    const wfs = new WelstandWFSActivity(
+      {
+        name: 'Welstand WFS request',
+      },
+      `<?xml version="1.0" encoding="UTF-8"?>
+<GetFeature xmlns:gml="http://www.opengis.net/gml/3.2" xmlns="http://www.opengis.net/wfs/2.0" xmlns:fes="http://www.opengis.net/fes/2.0" service="WFS" version="2.0.0">
+   <Query xmlns:Welstandskaart_tijdelijk_VCS="https://vnrpwapp426.rotterdam.local:6443/arcgis/admin/services/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer" typeNames="Welstandskaart_tijdelijk_VCS:Gebiedstypen">
+     <fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0">
+       <fes:Contains>
+        <fes:ValueReference>shape</fes:ValueReference>
+         <gml:Polygon srsName="urn:ogc:def:crs:EPSG::28992" gml:id="footprint">
+           <gml:exterior>
+             <gml:LinearRing>
+<gml:posList srsDimension="2">84165 431938 84172 431938 84172 431943 84165 431943 84165 431938</gml:posList>
+            </gml:LinearRing>
+          </gml:exterior>
+        </gml:Polygon>
+      </fes:Contains>
+    </fes:Filter>
+  </Query>
+</GetFeature>`,
+      (response: any) => {
+        const o = response['wfs:FeatureCollection']['wfs:member']['Welstandskaart_tijdelijk_VCS:Gebiedstypen']
+        return {
+          FID: o['Welstandskaart_tijdelijk_VCS:FID'],
+          GEB_TYPE: o['Welstandskaart_tijdelijk_VCS:GEB_TYPE'],
+        }
+      },
+    )
+    const response = await wfs.run()
+    return { elongation: context.elongation, welstandgebied_id: response.FID, welstandgebied: response.GEB_TYPE }
   }
 
   sparqlUrl = 'undefined'
@@ -27,8 +57,7 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
     return ''
   }
 
-  bericht(): string {
-    // TODO: Hardcoded because normally this would be done in a SPARQL query.
-    return `De voetafdruk van het gebouw ligt in welstandsgebied 77, type "stempel- en strokenbouw".`
+  bericht({ welstandgebied, welstandgebied_id, elongation }: SparqlInputs): string {
+    return `De voetafdruk van het gebouw ligt in welstandsgebied ${welstandgebied_id}, type "${welstandgebied}". De langwerpigheid van het gebouw is L = ${elongation.toString().replace('.', ',')}.`
   }
 }

@@ -2,6 +2,7 @@ import grapoi from 'grapoi'
 import { GrapoiPointer } from './helpers/grapoi.js'
 import { dct, prov, skos, xsd, rdf, rdfs, rpt } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
+import { XMLParser } from 'fast-xml-parser'
 
 import { headerLog } from '@helpers/headerLog.js'
 
@@ -19,7 +20,7 @@ export abstract class ActivityA<S, T> {
     this.name = name
     this.description = description
   }
-  startProvenance() {
+  protected startProvenance() {
     if (!this.provenance) throw new Error('Have not set provenance pointer')
     const pointer = this.provenance
     pointer.addOut(rdf('type'), prov('Activity'))
@@ -27,7 +28,7 @@ export abstract class ActivityA<S, T> {
     if (this.description) pointer.addOut(dct('description'), factory.literal(this.description))
     pointer.addOut(prov('startedAtTime'), factory.literal(new Date().toISOString(), xsd('dateTime')))
   }
-  endProvenance() {
+  protected endProvenance() {
     if (!this.provenance) throw new Error('Have not set provenance pointer')
     const pointer = this.provenance
     pointer.addOut(prov('endedAtTime'), factory.literal(new Date().toISOString(), xsd('dateTime')))
@@ -84,4 +85,82 @@ export class Activity<S extends {}, T extends {}> extends ActivityA<S, T> {
   }
   prepare() {}
   finish() {}
+}
+
+type Request = {
+  host: string
+  path: string
+  headers: Record<string, string>
+  params?: Record<string, string | number | boolean>
+  body?: string
+}
+
+export class APIActivity extends ActivityA<undefined, Response> {
+  public url: string
+  public headers: Headers
+  public body?: string
+  constructor(info: ActivityInfo, { host, path, headers, params, body }: Request) {
+    super(info)
+    this.url = host + path
+    this.headers = new Headers()
+    this.body = body
+    for (const [k, v] of Object.entries(headers)) this.headers.append(k, v)
+    if (params) {
+      const p = Object.entries(params)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('&')
+      this.url += '?' + p
+    }
+  }
+  async run(): Promise<Response> {
+    this.startProvenance()
+    const response = this.send()
+    this.endProvenance()
+    return response
+  }
+
+  protected async send(): Promise<Response> {
+    const requestOptions: RequestInit = this.body
+      ? {
+          method: 'POST',
+          headers: this.headers,
+          body: this.body,
+        }
+      : { method: 'GET', headers: this.headers }
+
+    try {
+      return await fetch(this.url, requestOptions)
+    } catch (error) {
+      throw new Error(`API request failed: ${error instanceof Error ? error.message : error}`)
+    }
+  }
+}
+
+export class WFSActivity extends APIActivity {
+  constructor(info: ActivityInfo, request: Request) {
+    super(info, request)
+    this.headers.append('Content-Type', 'application/xml')
+  }
+}
+
+export class WelstandWFSActivity extends WFSActivity {
+  public extract: (xml: any) => {}
+  constructor(info: ActivityInfo, body: string, extract: (xml: any) => {}) {
+    super(info, {
+      host: 'https://diensten.rotterdam.nl/',
+      path: 'arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer',
+      headers: {
+        'Content-Type': 'application/xml',
+      },
+      body,
+    })
+    this.extract = extract
+  }
+  async run() {
+    const response = await this.send()
+    const data = await response.text()
+    const parser = new XMLParser()
+    const obj = parser.parse(data)
+    return this.extract(obj)
+  }
 }

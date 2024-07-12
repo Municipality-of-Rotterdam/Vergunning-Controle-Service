@@ -34,79 +34,76 @@ function Bestemmingsplan(source: GrapoiPointer) {
   }
 }
 
-function Elongation(elongation: number) {
+function ElongationExplanation() {
   return (
-    <>
-      L = {elongation.toString().replace(/[.]/, ',')}
-      <details>
-        <summary>Uitleg</summary>
-        <p>
-          De langwerpigheid van de voetafdruk van het gebouw wordt uitgedrukt in het getal L. L wordt bepaald aan de
-          hand van de verhouding tussen oppervlakte en omtrek van de voetafdruk, en is onafhankelijk van de vorm van de
-          voetafdruk. Hieronder een overzicht van waarden voor L voor rechthoeken met oplopende langwerpigheid:
-        </p>
-        <div className="elongation-example">
-          <table>
-            <tr>
-              <td></td>
-              <td>L=1</td>
-            </tr>
-          </table>
-        </div>
+    <details>
+      <summary>Uitleg</summary>
+      <p>
+        De langwerpigheid van de voetafdruk van het gebouw wordt uitgedrukt in het getal L. L wordt bepaald aan de hand
+        van de verhouding tussen oppervlakte en omtrek van de voetafdruk, en is onafhankelijk van de vorm van de
+        voetafdruk. Hieronder een overzicht van waarden voor L voor rechthoeken met oplopende langwerpigheid:
+      </p>
+      <div className="elongation-example">
+        <table>
+          <tr>
+            <td></td>
+            <td>L=1</td>
+          </tr>
+        </table>
+      </div>
 
-        <div className="elongation-example">
-          <table>
-            <tr>
-              <td></td>
-              <td></td>
-              <td>L=0,9428</td>
-            </tr>
-          </table>
-        </div>
+      <div className="elongation-example">
+        <table>
+          <tr>
+            <td></td>
+            <td></td>
+            <td>L=0,9428</td>
+          </tr>
+        </table>
+      </div>
 
-        <div className="elongation-example">
-          <table>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>L=0,8660</td>
-            </tr>
-          </table>
-        </div>
+      <div className="elongation-example">
+        <table>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>L=0,8660</td>
+          </tr>
+        </table>
+      </div>
 
-        <div className="elongation-example">
-          <table>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>L=0,7454</td>
-            </tr>
-          </table>
-        </div>
+      <div className="elongation-example">
+        <table>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>L=0,7454</td>
+          </tr>
+        </table>
+      </div>
 
-        <div className="elongation-example">
-          <table>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>L=0,5750</td>
-            </tr>
-          </table>
-        </div>
-      </details>
-    </>
+      <div className="elongation-example">
+        <table>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>L=0,5750</td>
+          </tr>
+        </table>
+      </div>
+    </details>
   )
 }
 
@@ -191,6 +188,7 @@ function Controle(controle: any, provenanceDataset: TriplyStore) {
         <dt>Resultaat</dt>
         <dd className="result">
           {validated ? <strong>✅</strong> : <strong>❌</strong>} {message}
+          {elongation ? ElongationExplanation() : ''}
         </dd>
         <dt>Bestemmingsplan</dt>
         <dd>{Bestemmingsplan(source)}</dd>
@@ -199,7 +197,7 @@ function Controle(controle: any, provenanceDataset: TriplyStore) {
         {elongation ? (
           <>
             <dt>Langwerpigheid</dt>
-            <dd>{Elongation(elongation as number)}</dd>
+            <dd></dd>
           </>
         ) : (
           ''
