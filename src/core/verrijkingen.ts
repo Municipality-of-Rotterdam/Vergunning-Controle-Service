@@ -10,7 +10,6 @@ import factory from '@rdfjs/data-model'
 
 export type Verrijkingen = {
   voetprintCoordinates: number[][]
-  // geoData: GeoData
   elongation: number
 }
 

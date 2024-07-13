@@ -5,16 +5,15 @@ import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 
 export type RapportageProps = {
+  baseIRI: string
   datasetName: string
-  datasetUrl: string
+  elongation: number
   footprintUrl: string
   gebouw: string
   gebouwAddress: string
-  polygon: any
-  // geoData: any
-  gltfUrl: string
   gltfDownload: string
-  elongation: number
+  gltfUrl: string
+  polygon: any
 }
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
@@ -211,11 +210,10 @@ export default function (
   {
     gebouw,
     polygon,
-    // geoData,
     gltfUrl,
     footprintUrl,
     datasetName,
-    datasetUrl,
+    baseIRI,
     gltfDownload,
     gebouwAddress,
     elongation,
@@ -263,7 +261,6 @@ export default function (
             __html: JSON.stringify(
               {
                 polygon,
-                // geoData,
                 gltfUrl,
               },
               null,
@@ -297,7 +294,7 @@ export default function (
       <body className="p-5">
         <img src="https://www.rotterdam.nl/images/logo-base.svg" style={{ float: 'right' }} />
         <h1>
-          Vergunningscontrolerapport <a href={datasetUrl}>{datasetName}</a>
+          Vergunningscontrolerapport <a href={baseIRI}>{datasetName}</a>
         </h1>
         <dl>
           <dt>Revision</dt>
@@ -312,8 +309,8 @@ export default function (
           </dd>
           <dt>3D model met bestemmingsvlakken</dt>
           <dd>
-            <a href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/">
-              https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map/
+            <a href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map">
+              https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map
             </a>
           </dd>
           <dt>Downloads</dt>
@@ -322,11 +319,11 @@ export default function (
               <a href={gltfDownload}>⬇ 3D-model ({gltfDownload.split('fileName=')[1]})</a>
             </div>
             <div>
-              <a href={ifc.value.toString()}>⬇ IFC-bestand</a>
+              <a href={ifc.value.toString()}>⬇ IFC-bestand ({gltfDownload.split('fileName=')[1]})</a>
             </div>
-            {idsFiles.map((f) => (
-              <div key={f.value}>
-                <a href={f.value.toString()}>⬇ IDS-controle ({f.value.toString().split('fileName=')[1]})</a>
+            {idsFiles.map((file) => (
+              <div key={file.value}>
+                <a href={file.value.toString()}>⬇ IDS-controle ({file.value.toString().split('fileName=')[1]})</a>
               </div>
             ))}
           </dd>

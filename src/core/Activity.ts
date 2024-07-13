@@ -157,14 +157,10 @@ export class WelstandWFSActivity<S, T> extends WFSActivity<S, T> {
   }
 
   async run(): Promise<T> {
-    // TODO
-    // this.startProvenance()
     const response = await this.send()
     const data = await response.text()
     const parser = new XMLParser()
     const obj = this.extract(parser.parse(data))
-    // TODO
-    // this.endProvenance()
     return obj
   }
 }

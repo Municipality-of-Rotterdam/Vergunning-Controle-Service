@@ -40,7 +40,7 @@ export default async function Voetprint({
     term: elongationNode,
   })
   const elongation = pointer.out(qudt('numericValue')).value
-  log(`Elongation: ${elongation}`)
+  log(`Elongation: ${elongation}`, 'Elongation')
 
   if (!elongation) {
     throw new Error(`could not find elongation for ${elongationNode.value}`)

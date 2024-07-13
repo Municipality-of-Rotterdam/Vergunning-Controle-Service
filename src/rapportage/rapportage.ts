@@ -22,13 +22,13 @@ export const rapport = new Activity(
       datasetName,
       account,
       voetprintCoordinates,
-      // geoData,
       gebouwSubject,
       gebouwAddress,
       idsControle,
       assetBaseUrl,
       provenanceDataset,
       elongation,
+      baseIRI,
     }: Pick<
       StepContext,
       | 'validationPointer'
@@ -42,6 +42,7 @@ export const rapport = new Activity(
       | 'assetBaseUrl'
       | 'provenanceDataset'
       | 'elongation'
+      | 'baseIRI'
     >,
     provenance: GrapoiPointer,
   ) => {
@@ -57,15 +58,14 @@ export const rapport = new Activity(
     // const urlBase64Encoded = buffer.toString('base64url')
     log('Genereren van het vcs rapport', 'VCS rapport')
 
-    // TODO: Remove hard-coded IRI
+    // TODO: Remove hard-coded URL
     const props = {
       datasetName,
       gebouwAddress,
       elongation,
-      datasetUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}`,
-      footprintUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}/browser?resource=${encodeURIComponent(gebouwSubject.toString())}`,
+      baseIRI,
+      footprintUrl: `${gebouwSubject.toString()}/footprint`,
       gebouw: validationPointer.out(rpt('building')).value.toString(),
-      // geoData: geoData,
       gltfUrl: gltfAsset.getInfo().url,
       gltfDownload: `${assetBaseUrl}3dmodel.gtlf`,
       polygon: {
