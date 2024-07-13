@@ -2,7 +2,7 @@ import { readdir } from 'fs/promises'
 
 import { StepContext } from '@core/executeSteps.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
-import { GeoData } from '@verrijkingen/geoReference.js'
+// import { GeoData } from '@verrijkingen/geoReference.js'
 import { Activity } from './Activity.js'
 import { GrapoiPointer } from './helpers/grapoi.js'
 import { rdfs, xsd } from './helpers/namespaces.js'
@@ -10,7 +10,7 @@ import factory from '@rdfjs/data-model'
 
 export type Verrijkingen = {
   voetprintCoordinates: number[][]
-  geoData: GeoData
+  // geoData: GeoData
   elongation: number
 }
 

@@ -22,7 +22,7 @@ export const rapport = new Activity(
       datasetName,
       account,
       voetprintCoordinates,
-      geoData,
+      // geoData,
       gebouwSubject,
       gebouwAddress,
       idsControle,
@@ -36,7 +36,6 @@ export const rapport = new Activity(
       | 'datasetName'
       | 'account'
       | 'voetprintCoordinates'
-      | 'geoData'
       | 'gebouwSubject'
       | 'gebouwAddress'
       | 'idsControle'
@@ -66,7 +65,7 @@ export const rapport = new Activity(
       datasetUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}`,
       footprintUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}/browser?resource=${encodeURIComponent(gebouwSubject.toString())}`,
       gebouw: validationPointer.out(rpt('building')).value.toString(),
-      geoData: geoData,
+      // geoData: geoData,
       gltfUrl: gltfAsset.getInfo().url,
       gltfDownload: `${assetBaseUrl}3dmodel.gtlf`,
       polygon: {
@@ -91,7 +90,6 @@ export const rapport = new Activity(
     await dataset.uploadAsset(`${outputsDir}/vcs-rapport.html`, fileId)
     log('Klaar met upload van het vcs rapport', 'VCS rapport')
 
-    log('Adding seeAlso for VCS report')
     provenance.addOut(rdfs('seeAlso'), factory.literal(`${assetBaseUrl}vcs-rapport.html`, xsd('anyURI')))
     return {}
   },

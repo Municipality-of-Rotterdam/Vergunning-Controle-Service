@@ -11,7 +11,7 @@ export type RapportageProps = {
   gebouw: string
   gebouwAddress: string
   polygon: any
-  geoData: any
+  // geoData: any
   gltfUrl: string
   gltfDownload: string
   elongation: number
@@ -211,7 +211,7 @@ export default function (
   {
     gebouw,
     polygon,
-    geoData,
+    // geoData,
     gltfUrl,
     footprintUrl,
     datasetName,
@@ -263,7 +263,7 @@ export default function (
             __html: JSON.stringify(
               {
                 polygon,
-                geoData,
+                // geoData,
                 gltfUrl,
               },
               null,
