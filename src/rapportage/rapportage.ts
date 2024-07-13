@@ -52,13 +52,12 @@ export const rapport = new Activity(
 
     if (!dataset) throw new Error(`Kon de dataset ${datasetName} niet vinden in TriplyDB`)
 
-    const gltfAsset = await dataset.getAsset('gebouw.gltf')
+    const gltfAsset = await dataset.getAsset('3Dgebouw.gltf')
     // const blob = await model.blob()
     // const buffer = Buffer.from(await blob.arrayBuffer())
     // const urlBase64Encoded = buffer.toString('base64url')
-    log('Genereren van het vcs rapport', 'VCS rapport')
+    log('Genereren van het VCS rapport', 'VCS rapport')
 
-    // TODO: Remove hard-coded URL
     const props = {
       datasetName,
       gebouwAddress,
@@ -66,8 +65,8 @@ export const rapport = new Activity(
       baseIRI,
       footprintUrl: `${gebouwSubject.toString()}/footprint`,
       gebouw: validationPointer.out(rpt('building')).value.toString(),
-      gltfUrl: gltfAsset.getInfo().url,
-      gltfDownload: `${assetBaseUrl}3dmodel.gtlf`,
+      gltfDownload: `${assetBaseUrl}3Dgebouw.gltf`,
+      glbDownload: `${assetBaseUrl}3Dgebouw.glb`,
       polygon: {
         type: 'Feature',
         geometry: {
@@ -88,7 +87,7 @@ export const rapport = new Activity(
 
     log('Upload VCS rapport', 'VCS rapport')
     await dataset.uploadAsset(`${outputsDir}/vcs-rapport.html`, fileId)
-    log('Klaar met upload van het vcs rapport', 'VCS rapport')
+    log('Klaar met upload van het VCS rapport', 'VCS rapport')
 
     provenance.addOut(rdfs('seeAlso'), factory.literal(`${assetBaseUrl}vcs-rapport.html`, xsd('anyURI')))
     return {}

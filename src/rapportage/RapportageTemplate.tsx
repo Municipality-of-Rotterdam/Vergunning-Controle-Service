@@ -3,6 +3,9 @@ import { readFile } from 'fs/promises'
 import { rpt, rdfs, prov, dct, skos } from '@helpers/namespaces.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
+import { key } from '@triplyetl/etl/generic'
+import { a } from '@triplyetl/etl/vocab'
+import React from 'react'
 
 export type RapportageProps = {
   baseIRI: string
@@ -12,7 +15,7 @@ export type RapportageProps = {
   gebouw: string
   gebouwAddress: string
   gltfDownload: string
-  gltfUrl: string
+  glbDownload: string
   polygon: any
 }
 
@@ -186,7 +189,7 @@ function Controle(controle: any, provenanceDataset: TriplyStore) {
         <dd>{description}</dd>
         <dt>Resultaat</dt>
         <dd className="result">
-          {validated ? <strong>✅</strong> : <strong>❌</strong>} {message}
+          {validated ? <strong>✅</strong> : <strong>❌</strong>} <span dangerouslySetInnerHTML={{ __html: message }} />
           {elongation ? ElongationExplanation() : ''}
         </dd>
         <dt>Bestemmingsplan</dt>
@@ -210,11 +213,11 @@ export default function (
   {
     gebouw,
     polygon,
-    gltfUrl,
     footprintUrl,
     datasetName,
     baseIRI,
     gltfDownload,
+    glbDownload,
     gebouwAddress,
     elongation,
   }: RapportageProps,
@@ -261,7 +264,6 @@ export default function (
             __html: JSON.stringify(
               {
                 polygon,
-                gltfUrl,
               },
               null,
               2,
@@ -293,9 +295,7 @@ export default function (
       </head>
       <body className="p-5">
         <img src="https://www.rotterdam.nl/images/logo-base.svg" style={{ float: 'right' }} />
-        <h1>
-          Vergunningscontrolerapport <a href={baseIRI}>{datasetName}</a>
-        </h1>
+        <h1>Vergunningscontrolerapport</h1>
         <dl>
           <dt>Revision</dt>
           <dd>
@@ -303,28 +303,48 @@ export default function (
           </dd>
           <dt>Adres</dt>
           <dd>{gebouwAddress}</dd>
+          <dt>Dataset</dt>
+          <dd>
+            <a href={baseIRI} target="_blank">
+              {baseIRI}
+            </a>
+          </dd>
           <dt>Voetafdruk</dt>
           <dd>
-            <a href={footprintUrl}>{footprintUrl}</a>
+            <a href={footprintUrl} target="_blank">
+              {footprintUrl}
+            </a>
           </dd>
           <dt>3D model met bestemmingsvlakken</dt>
           <dd>
-            <a href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map">
+            <a
+              href="https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map"
+              target="_blank"
+            >
               https://demo.triplydb.com/rotterdam/-/queries/3D-Visualisation-with-background-map
             </a>
           </dd>
           <dt>Downloads</dt>
           <dd>
             <div>
-              <a href={gltfDownload}>⬇ 3D-model ({gltfDownload.split('fileName=')[1]})</a>
+              Alle assets:{' '}
+              <a href={baseIRI + '/Assets'} target="_blank">
+                {baseIRI}Assets
+              </a>
             </div>
             <div>
-              <a href={ifc.value.toString()}>⬇ IFC-bestand ({gltfDownload.split('fileName=')[1]})</a>
+              ⬇ 3D-model: <a href={gltfDownload}>{gltfDownload.split('fileName=')[1]}</a>{' '}
+              <a href={glbDownload}>{glbDownload.split('fileName=')[1]}</a>
             </div>
+            <div>
+              ⬇ IFC-bestand: <a href={ifc.value.toString()}>{ifc.value.toString().split('fileName=')[1]}</a>
+            </div>
+            ⬇ IDS-controle:
             {idsFiles.map((file) => (
-              <div key={file.value}>
-                <a href={file.value.toString()}>⬇ IDS-controle ({file.value.toString().split('fileName=')[1]})</a>
-              </div>
+              <React.Fragment key={file.value}>
+                {' '}
+                <a href={file.value.toString()}>{file.value.toString().split('fileName=')[1]}</a>
+              </React.Fragment>
             ))}
           </dd>
         </dl>

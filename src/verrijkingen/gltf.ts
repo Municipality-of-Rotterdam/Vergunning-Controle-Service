@@ -8,10 +8,9 @@ import { createLogger } from '@helpers/logger.js'
 import { StepContext } from '@root/core/executeSteps.js'
 
 const { glbToGltf } = gltfPipeline
-
 const executeCommand = createExecutor('verrijking', import.meta, 'gltf')
-
 const log = createLogger('verrijking', import.meta)
+const gebouwFileName = '3Dgebouw'
 
 export default async function Gltf({
   outputsDir,
@@ -20,7 +19,7 @@ export default async function Gltf({
 }: Pick<StepContext, 'outputsDir' | 'inputIfc' | 'args'>) {
   const operatingSystem = getOperatingSystem()
   const ifConvertPath = `./src/tools/ifc-convert/${operatingSystem}/IfcConvert`
-  const glbOutput = `${outputsDir}/gebouw.glb`
+  const glbOutput = `${outputsDir}/${gebouwFileName}.glb`
 
   if (!existsSync(glbOutput) || args.clean) {
     log(`.glb extract maken`, '3D model')
@@ -29,7 +28,7 @@ export default async function Gltf({
       await unlink(glbOutput)
     } catch {}
 
-    const command = `${ifConvertPath} "${inputIfc}" "${outputsDir}/gebouw.glb"`
+    const command = `${ifConvertPath} "${inputIfc}" "${outputsDir}/${gebouwFileName}.glb"`
     await executeCommand(command)
 
     log(`.glb extract gemaakt`, '3D model')
@@ -37,7 +36,7 @@ export default async function Gltf({
     log(`.glb van cache`, '3D model')
   }
 
-  const gltfOutput = `${outputsDir}/gebouw.gltf`
+  const gltfOutput = `${outputsDir}/${gebouwFileName}.gltf`
 
   if (!existsSync(gltfOutput) || args.clean) {
     log(`.gltf extract maken`, '3D model')
