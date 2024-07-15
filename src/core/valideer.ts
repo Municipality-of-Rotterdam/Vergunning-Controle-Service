@@ -4,7 +4,7 @@ import { exec } from 'child_process'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rdf, rdfs, rpt, xsd, prov, dct, skos } from '@helpers/namespaces.js'
+import { rdf, rdfs, rpt, xsd, prov, dct, skos, geo, sf } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import App from '@triply/triplydb'
 import { Store as TriplyStore } from '@triplydb/data-factory'
@@ -14,6 +14,7 @@ import { start, finish } from './helpers/provenance.js'
 import { headerLogBig } from './helpers/headerLog.js'
 
 import type { GrapoiPointer } from '@helpers/grapoi.js'
+import { geojsonToWKT } from '@terraformer/wkt'
 const log = createLogger('checks', import.meta)
 
 export const valideer = new Activity(
@@ -142,6 +143,7 @@ export const valideer = new Activity(
         finish(uitvoering)
 
         if (controle.activity) finish(controle.activity)
+
         reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
           c.addOut(rdf('type'), rpt('Controle'))
           c.addOut(rdfs('label'), controle.naam)
@@ -151,6 +153,30 @@ export const valideer = new Activity(
           c.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
           c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
           c.addOut(dct('source'), bp)
+
+          // If there is a geoJSON property on the controle data, we add it
+          // TODO pending refactoring
+          if (controle.sparqlInputs && controle.sparqlInputs.hasOwnProperty('geoJSON')) {
+            /*@ts-ignore */
+            const geoJSON = controle.sparqlInputs.geoJSON
+            const wkt = geojsonToWKT(geoJSON)
+            const footprintPtr: GrapoiPointer = grapoi({
+              dataset: report,
+              factory,
+              term: factory.namedNode(
+                `${baseIRI}${datasetName}/Controle${controle.naam.replaceAll(/\W/g, '')}Footprint`,
+              ),
+            })
+            c.addOut(rpt('footprint'), footprintPtr)
+            footprintPtr.addOut(geo('coordinateDimension'), factory.literal('2', xsd('integer')))
+            footprintPtr.addOut(rdf('type'), sf(geoJSON.type))
+            footprintPtr.addOut(
+              geo('asWKT'),
+              factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${wkt}`, geo('wktLiteral')),
+            )
+            //  (f: GrapoiPointer) => {
+            // })
+          }
 
           // TODO temporary solution for reporting information that doesn't come from SPARQL query
           //@ts-ignore
