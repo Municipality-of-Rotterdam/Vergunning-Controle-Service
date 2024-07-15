@@ -2,6 +2,9 @@ import { BaseControle } from '@core/BaseControle.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
 import { WelstandWFSActivity } from '@core/Activity.js'
+import { geojsonToWKT } from '@terraformer/wkt'
+import { MultiPolygon, Position } from 'geojson'
+// import { geojsonToWkt } from '@triplyetl/etl/ratt'
 
 type SparqlInputs = { elongation: number; welstandgebied: string; welstandgebied_id: number; surface: any }
 
@@ -44,17 +47,30 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
       (response: any) => {
         const gebiedstypen =
           response['wfs:FeatureCollection']['wfs:member']['Welstandskaart_tijdelijk_VCS:Gebiedstypen']
+
+        // Extract Polygons from the API call
+        // TODO this assumes that we always get multisurfaces and that we get only a single Gebiedstype
         const shapesXML = gebiedstypen['Welstandskaart_tijdelijk_VCS:Shape']['gml:MultiSurface']['gml:surfaceMember']
-        const shapes: number[][] = []
+        const coords: Position[][][] = []
         for (const shapeXML of shapesXML) {
           const str = shapeXML['gml:Polygon']['gml:exterior']['gml:LinearRing']['gml:posList']
-          shapes.push(str.split(' ').map((x: string) => parseFloat(x)))
+          const numbers = str.split(' ').map((x: string) => parseFloat(x))
+
+          const coordsPolygon: Position[][] = []
+          for (let i = 0; i < numbers.length - 1; i += 2) {
+            coordsPolygon.push([numbers[i], numbers[i + 1]])
+          }
+          coordsPolygon.push([numbers[0], numbers[1]])
+          coords.push(coordsPolygon)
         }
+
+        const geoJSON: MultiPolygon = { type: 'MultiPolygon', coordinates: [coords] }
+        const wkt = geojsonToWKT(geoJSON)
 
         return {
           FID: gebiedstypen['Welstandskaart_tijdelijk_VCS:FID'],
           GEB_TYPE: gebiedstypen['Welstandskaart_tijdelijk_VCS:GEB_TYPE'],
-          SURFACE: shapes,
+          SURFACE: JSON.stringify(wkt),
         }
       },
     )
