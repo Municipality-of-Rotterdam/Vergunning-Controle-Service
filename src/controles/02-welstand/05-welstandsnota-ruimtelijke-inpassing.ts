@@ -3,7 +3,7 @@ import { StepContext } from '@root/core/executeSteps.js'
 import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
 import { WelstandWFSActivity } from '@core/Activity.js'
 
-type SparqlInputs = { elongation: number; welstandgebied: string; welstandgebied_id: number }
+type SparqlInputs = { elongation: number; welstandgebied: string; welstandgebied_id: number; surface: any }
 
 /** Given: Een IFC-model positioneert na georeferentie geheel binnen Welstandsgebied “stempel en
 Strokenbouw”
@@ -42,15 +42,29 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
   </Query>
 </GetFeature>`,
       (response: any) => {
-        const o = response['wfs:FeatureCollection']['wfs:member']['Welstandskaart_tijdelijk_VCS:Gebiedstypen']
+        const gebiedstypen =
+          response['wfs:FeatureCollection']['wfs:member']['Welstandskaart_tijdelijk_VCS:Gebiedstypen']
+        const shapesXML = gebiedstypen['Welstandskaart_tijdelijk_VCS:Shape']['gml:MultiSurface']['gml:surfaceMember']
+        const shapes: number[][] = []
+        for (const shapeXML of shapesXML) {
+          const str = shapeXML['gml:Polygon']['gml:exterior']['gml:LinearRing']['gml:posList']
+          shapes.push(str.split(' ').map((x: string) => parseFloat(x)))
+        }
+
         return {
-          FID: o['Welstandskaart_tijdelijk_VCS:FID'],
-          GEB_TYPE: o['Welstandskaart_tijdelijk_VCS:GEB_TYPE'],
+          FID: gebiedstypen['Welstandskaart_tijdelijk_VCS:FID'],
+          GEB_TYPE: gebiedstypen['Welstandskaart_tijdelijk_VCS:GEB_TYPE'],
+          SURFACE: shapes,
         }
       },
     )
     const response = await wfs.run()
-    return { elongation: context.elongation, welstandgebied_id: response.FID, welstandgebied: response.GEB_TYPE }
+    return {
+      elongation: context.elongation,
+      welstandgebied_id: response.FID,
+      welstandgebied: response.GEB_TYPE,
+      surface: response.SURFACE,
+    }
   }
 
   sparqlUrl = 'undefined'
