@@ -6,6 +6,8 @@ import { Store as TriplyStore } from '@triplydb/data-factory'
 import { key } from '@triplyetl/etl/generic'
 import { a } from '@triplyetl/etl/vocab'
 import React from 'react'
+// import { Marker, Popup, MapContainer, TileLayer } from 'react-leaflet'
+// import { useMap } from 'react-leaflet/hooks'
 
 export type RapportageProps = {
   baseIRI: string
@@ -184,6 +186,20 @@ function Controle(controle: any, provenanceDataset: TriplyStore) {
     <div key={label}>
       <hr />
       <h3 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h3>
+      <div id={`map_${label}`} style={{ height: '180px' }}></div>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `var map = L.map('map_${label}').setView([51.505, -0.09], 13);
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+L.marker([51.5, -0.09]).addTo(map)
+    .bindPopup('A pretty CSS popup.<br> Easily customizable.')
+    .openPopup();`,
+        }}
+      ></script>
       <dl>
         <dt>Beschrijving</dt>
         <dd>{description}</dd>
@@ -242,11 +258,17 @@ export default function (
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossOrigin="anonymous"
         />
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet-src.js"></script>
-
-        <script src="https://unpkg.com/proj4@2.5.0/dist/proj4-src.js"></script>
-        <script src="https://unpkg.com/proj4leaflet@1.0.1"></script>
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossOrigin=""
+        />
+        <script
+          src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossOrigin=""
+        ></script>
 
         <script src="https://cesium.com/downloads/cesiumjs/releases/1.118/Build/Cesium/Cesium.js"></script>
 
