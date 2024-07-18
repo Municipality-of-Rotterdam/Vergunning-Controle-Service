@@ -92,7 +92,11 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<Spa
   }
 
   bericht({ bouwaanduiding }: SparqlInputs): string {
-    return `Daken moeten het daktype <a href=${bouwaanduiding.value} target="_blank">${bouwaanduiding.value}</a> hebben.`
+    const bouwaanduidingText = bouwaanduiding.value.replace(
+      'https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#',
+      'ifc:',
+    )
+    return `Daken moeten het daktype <a href=${bouwaanduiding.value} target="_blank">${bouwaanduidingText}</a> hebben.`
   }
   berichtGefaald(invoer: SparqlInputs): string {
     return `Dak <a href={?roof} target="_blank">{?roof}</a> heeft het daktype "{?rooftype}". ${this.bericht(invoer)}`

@@ -46,22 +46,20 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/2-Wonen-bebouwingsnormen-hoogte'
   sparql = ({ max }: SparqlInputs) => {
     return `
-      prefix xsd: <http://www.w3.org/2001/XMLSchema#>
-      prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
       prefix express: <https://w3id.org/express#>
+      prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 
-      select ?this ((max(?floorNumber) + 1) as ?aantalVerdiepingen) where {
-      graph ?g {
-        ?this a ifc:IfcBuilding.
-        [] ifc:relatedObjects_IfcRelAggregates ?storey;
-          ifc:relatingObject_IfcRelAggregates ?this.
-        ?storey ifc:name_IfcRoot/express:hasString ?positiveFloorLabel.
-        filter(regex(?positiveFloorLabel, "^(0*[1-9][0-9]*) .*verdieping$"))
-        bind(xsd:integer(substr(?positiveFloorLabel, 1, 2)) as ?floorNumber)
-      }
+      select ?this ((count(?floor)) as ?aantalVerdiepingen) where {
+        graph ?g {
+          ?this a ifc:IfcBuilding.
+          [] ifc:relatingObject_IfcRelAggregates ?this;
+            ifc:relatedObjects_IfcRelAggregates ?storey.
+          ?storey ifc:name_IfcRoot/express:hasString ?floor.
+          filter(regex(?floor, "^00 begane grond|^(0*[1-9][0-9]*) .*verdieping$")) .
+        }
       }
       group by ?this ?max
-      having ((max(?floorNumber) + 1) > ${max})
+      having ((count(?floor)) > ${max})
     `
   }
 
