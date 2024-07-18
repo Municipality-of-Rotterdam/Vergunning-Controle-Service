@@ -2,6 +2,7 @@ import namespace from '@rdfjs/namespace'
 
 export const express = namespace('https://w3id.org/express#')
 export const geo = namespace('http://www.opengis.net/ont/geosparql#')
+export const sf = namespace('http://www.opengis.net/ont/sf#')
 export const ifc = namespace('https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#')
 export const rdf = namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
 export const rdfs = namespace('http://www.w3.org/2000/01/rdf-schema#')

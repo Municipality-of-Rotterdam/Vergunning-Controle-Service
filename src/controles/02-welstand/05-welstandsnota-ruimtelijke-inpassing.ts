@@ -2,8 +2,9 @@ import { BaseControle } from '@core/BaseControle.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
 import { WelstandWFSActivity } from '@core/Activity.js'
+import { GeoJSON, MultiPolygon, Polygon, Position } from 'geojson'
 
-type SparqlInputs = { elongation: number; welstandgebied: string; welstandgebied_id: number }
+type SparqlInputs = { elongation: number; welstandgebied: string; welstandgebied_id: number; geoJSON: GeoJSON }
 
 /** Given: Een IFC-model positioneert na georeferentie geheel binnen Welstandsgebied “stempel en
 Strokenbouw”
@@ -42,15 +43,41 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
   </Query>
 </GetFeature>`,
       (response: any) => {
-        const o = response['wfs:FeatureCollection']['wfs:member']['Welstandskaart_tijdelijk_VCS:Gebiedstypen']
+        const gebiedstypen =
+          response['wfs:FeatureCollection']['wfs:member']['Welstandskaart_tijdelijk_VCS:Gebiedstypen']
+
+        // Extract Polygons from the API call
+        // TODO this assumes that we always get multisurfaces and that we get only a single Gebiedstype
+        const shapesXML = gebiedstypen['Welstandskaart_tijdelijk_VCS:Shape']['gml:MultiSurface']['gml:surfaceMember']
+        const coords: Position[][] = []
+        for (const shapeXML of shapesXML) {
+          const str = shapeXML['gml:Polygon']['gml:exterior']['gml:LinearRing']['gml:posList']
+          const numbers: number[] = str.split(' ').map((x: string) => parseFloat(x))
+
+          const coordsPolygon: Position[] = []
+          for (let i = 0; i < numbers.length - 1; i += 2) {
+            coordsPolygon.push([numbers[i], numbers[i + 1]])
+          }
+          coordsPolygon.push([numbers[0], numbers[1]])
+          coords.push(coordsPolygon)
+        }
+        const geoJSON: MultiPolygon = { type: 'MultiPolygon', coordinates: [coords] }
+        // const geoJSON: Polygon = { type: 'Polygon', coordinates: [coords[0]] }
+
         return {
-          FID: o['Welstandskaart_tijdelijk_VCS:FID'],
-          GEB_TYPE: o['Welstandskaart_tijdelijk_VCS:GEB_TYPE'],
+          fid: gebiedstypen['Welstandskaart_tijdelijk_VCS:FID'],
+          geb_type: gebiedstypen['Welstandskaart_tijdelijk_VCS:GEB_TYPE'],
+          surface: geoJSON,
         }
       },
     )
     const response = await wfs.run()
-    return { elongation: context.elongation, welstandgebied_id: response.FID, welstandgebied: response.GEB_TYPE }
+    return {
+      elongation: context.elongation,
+      welstandgebied_id: response.fid,
+      welstandgebied: response.geb_type,
+      geoJSON: response.surface,
+    }
   }
 
   sparqlUrl = 'undefined'
