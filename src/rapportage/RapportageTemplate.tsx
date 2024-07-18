@@ -296,13 +296,14 @@ export default function (
   const ifc = validationPointer.out(rpt('ifc'))
   const gitRev = validationPointer.out(rpt('gitRevision'))
   const idsFiles = idsControle.out(rdfs('seeAlso'))
+  const date = new Date().toISOString().split('T')[0]
 
   return (
     <html lang="en">
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{`Vergunningscontrolerapport ${datasetName}`}</title>
+        <title>{`Vergunningscontrolerapport ${datasetName} van ${date}`}</title>
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet"
@@ -368,7 +369,7 @@ export default function (
       </head>
       <body className="p-5">
         <img src="https://www.rotterdam.nl/images/logo-base.svg" style={{ float: 'right' }} />
-        <h1>Vergunningscontrolerapport</h1>
+        <h1>Vergunningscontrolerapport van {date}</h1>
         <dl>
           <dt>Revision</dt>
           <dd>
