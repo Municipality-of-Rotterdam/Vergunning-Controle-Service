@@ -68,7 +68,7 @@ export abstract class BaseControle<T, G extends {}> {
     if (!url) throw new Error('must have url')
     const sparql = this.sparql(inputs)
     const activity = new SparqlActivity({ name: `SPARQL query ${this.naam}`, body: sparql, url })
-    const response = await activity.run()
+    const response = await activity.run(null)
     const result = response[0] ?? null
     const success = result ? result.success ?? false : true
     let message = success ? this.berichtGeslaagd(inputs) : this.berichtGefaald(inputs)

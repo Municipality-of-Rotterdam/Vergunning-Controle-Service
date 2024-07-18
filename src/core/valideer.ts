@@ -28,19 +28,11 @@ export const valideer = new Activity(
       checkGroups,
       datasetName,
       ruleIds,
-      provenanceDataset,
     }: Pick<
       StepContext,
-      | 'account'
-      | 'args'
-      | 'ifcAssetBaseUrl'
-      | 'baseIRI'
-      | 'checkGroups'
-      | 'datasetName'
-      | 'ruleIds'
-      | 'provenanceDataset'
+      'account' | 'args' | 'ifcAssetBaseUrl' | 'baseIRI' | 'checkGroups' | 'datasetName' | 'ruleIds'
     >,
-    provenancePointer: GrapoiPointer, // TODO: of course this one must be used but there's no time
+    thisActivity: Activity<any, any>,
   ) => {
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const user = await triply.getAccount(account)
@@ -143,8 +135,6 @@ export const valideer = new Activity(
               geo('asWKT'),
               factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${wkt}`, geo('wktLiteral')),
             )
-            //  (f: GrapoiPointer) => {
-            // })
           }
 
           // TODO temporary solution for reporting information that doesn't come from SPARQL query
@@ -158,7 +148,7 @@ export const valideer = new Activity(
     }
 
     log('Uploaden van het provenance log naar TriplyDB', 'Upload')
-    await dataset.importFromStore(provenanceDataset as any, {
+    await dataset.importFromStore(thisActivity.provenanceGraph as any, {
       defaultGraphName: `${baseIRI}graph/provenance-log`,
       overwriteAll: true,
     })

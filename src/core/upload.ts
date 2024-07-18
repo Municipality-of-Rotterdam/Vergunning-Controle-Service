@@ -21,7 +21,7 @@ export const upload = new Activity(
       account,
       verrijkingenDataset,
     }: Pick<StepContext, 'outputsDir' | 'args' | 'datasetName' | 'account' | 'baseIRI' | 'verrijkingenDataset'>,
-    provenance: GrapoiPointer,
+    thisActivity: Activity<any, any>,
   ) => {
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const user = await triply.getAccount(account)
@@ -56,7 +56,7 @@ export const upload = new Activity(
       }
     }
 
-    provenance.addOut(rdfs('seeAlso'), factory.literal(`${baseIRI}assets`, xsd('anyUri')))
+    thisActivity.provenance?.addOut(rdfs('seeAlso'), factory.literal(`${baseIRI}assets`, xsd('anyUri')))
 
     // TODO: move to verrijkingen.ts
     const { apiUrl } = await triply.getInfo()

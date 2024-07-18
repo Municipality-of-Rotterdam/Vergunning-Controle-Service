@@ -26,7 +26,6 @@ export const rapport = new Activity(
       gebouwAddress,
       idsControle,
       assetBaseUrl,
-      provenanceDataset,
       elongation,
       baseIRI,
     }: Pick<
@@ -40,11 +39,10 @@ export const rapport = new Activity(
       | 'gebouwAddress'
       | 'idsControle'
       | 'assetBaseUrl'
-      | 'provenanceDataset'
       | 'elongation'
       | 'baseIRI'
     >,
-    provenance: GrapoiPointer,
+    thisActivity: Activity<any, any>,
   ) => {
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const user = await triply.getAccount(account)
@@ -75,8 +73,9 @@ export const rapport = new Activity(
         },
       },
     }
-
-    const html = renderToStaticMarkup(RapportageTemplate(props, validationPointer, provenanceDataset, idsControle))
+    const provenance = thisActivity.provenanceGraph
+    if (!provenance) throw new Error()
+    const html = renderToStaticMarkup(RapportageTemplate(props, validationPointer, provenance, idsControle))
     await writeFile(`${outputsDir}/vcs-rapport.html`, html)
     const fileId = `vcs-rapport.html`
 
@@ -89,7 +88,7 @@ export const rapport = new Activity(
     await dataset.uploadAsset(`${outputsDir}/vcs-rapport.html`, fileId)
     log('Klaar met upload van het VCS rapport', 'VCS rapport')
 
-    provenance.addOut(rdfs('seeAlso'), factory.literal(`${assetBaseUrl}vcs-rapport.html`, xsd('anyURI')))
+    thisActivity.provenance?.addOut(rdfs('seeAlso'), factory.literal(`${assetBaseUrl}vcs-rapport.html`, xsd('anyURI')))
     return {}
   },
 )

@@ -19,7 +19,7 @@ export const verrijk = new Activity(
     description:
       'Verrijking met de voetprint van het gebouw en georeferentie (basispunt en rotatie) in linked data, en een 3D model',
   },
-  async (context: StepContext, provenance: GrapoiPointer): Promise<Verrijkingen> => {
+  async (context: StepContext, thisActivity: Activity<any, any>): Promise<Verrijkingen> => {
     context.verrijkingenDataset = new TriplyStore()
     const verrijkingen = (await readdir('./src/verrijkingen')).sort()
 
@@ -36,7 +36,7 @@ export const verrijk = new Activity(
       if (additionalOutput) Object.assign(output, additionalOutput)
     }
 
-    provenance.addOut(rdfs('seeAlso'), factory.literal(`${context.baseIRI}`, xsd('anyURI')))
+    thisActivity.provenance?.addOut(rdfs('seeAlso'), factory.literal(`${context.baseIRI}`, xsd('anyURI')))
 
     return output as Verrijkingen
   },

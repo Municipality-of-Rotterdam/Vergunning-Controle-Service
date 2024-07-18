@@ -6,16 +6,18 @@ import { valideer } from '@core/valideer.js'
 import { idsControle } from '@core/ids.js'
 import { verrijk } from '@core/verrijkingen.js'
 import { rapport } from '@root/rapportage/rapportage.js'
-import { useDebugValue } from 'react'
-import { Activity } from '@core/Activity.js'
+import { ActivityGroup } from '@core/Activity.js'
 import { StepContext } from '@core/executeSteps.js'
-import { Store as TriplyStore } from '@triplydb/data-factory'
 
-await new Activity(
-  { name: 'Vergunningscontroleservice' },
-  async (ctx: any) => {
-    //return init.perform({})
-    return ctx
-  },
-  [init, idsControle, linkedData, verrijk, upload, controles, valideer, rapport],
-).run({ provenanceDataset: new TriplyStore() } as StepContext)
+const pipeline = new ActivityGroup({ name: 'Vergunningscontroleservice' }, [
+  init,
+  idsControle,
+  linkedData,
+  verrijk,
+  upload,
+  controles,
+  valideer,
+  rapport,
+])
+
+await pipeline.run({} as StepContext)
