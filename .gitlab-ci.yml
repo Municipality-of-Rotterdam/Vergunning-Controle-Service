@@ -10,8 +10,7 @@ stages:
   - release
   # 0: Only install, lint and build, gets triggered on push and merge-requests:
   - preflight
-  # 1: Run all regular ETL's:
-  - run-etls
+  - run-application
 
 image: ${CI_REGISTRY_IMAGE}:24.05.23
 
@@ -28,10 +27,8 @@ release-docker:
     - docker push ${CI_REGISTRY_IMAGE}:24.07.02
 
 main:
-  stage: run-etls
+  stage: run-application
   interruptible: true
-  # WARNING: by setting 'allow_failure' to 'true' scripts that fail
-  # will not stop the ETL from continuing with other stages/scripts.
   allow_failure: false
   script:
     - npm install
