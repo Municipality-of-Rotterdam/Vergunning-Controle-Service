@@ -68,7 +68,7 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
         }
       },
     })
-    const response = await wfs.run()
+    const response = await wfs.run(null)
     return {
       elongation: context.elongation,
       welstandgebied_id: response.fid,

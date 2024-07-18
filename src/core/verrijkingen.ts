@@ -7,9 +7,10 @@ import { Activity } from './Activity.js'
 import { GrapoiPointer } from './helpers/grapoi.js'
 import { rdfs, xsd } from './helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
+import { Polygon } from 'geojson'
 
 export type Verrijkingen = {
-  voetprintCoordinates: number[][]
+  footprint: Polygon
   elongation: number
 }
 

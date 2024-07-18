@@ -53,15 +53,20 @@ export default async function Voetprint({
    * TODO remove this when we have better test data.
    */
   polygon = `POLYGON ((84116 431825, 84121 431825, 84121 431829, 84116 431829, 84116 431825))`
-  const voetprintCoordinates = polygon
-    .split('((')
-    .pop()!
-    .replace('))', '')
-    .split(',')
-    .map((pair) => pair.trim().split(' ').map(parseFloat))
+  const footprint = {
+    type: 'Polygon',
+    coordinates: [
+      polygon
+        .split('((')
+        .pop()!
+        .replace('))', '')
+        .split(',')
+        .map((pair) => pair.trim().split(' ').map(parseFloat)),
+    ],
+  }
 
   return {
-    voetprintCoordinates,
+    footprint,
     elongation,
   }
 }

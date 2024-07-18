@@ -21,7 +21,7 @@ export const rapport = new Activity(
       outputsDir,
       datasetName,
       account,
-      voetprintCoordinates,
+      footprint,
       gebouwSubject,
       gebouwAddress,
       idsControle,
@@ -34,7 +34,7 @@ export const rapport = new Activity(
       | 'outputsDir'
       | 'datasetName'
       | 'account'
-      | 'voetprintCoordinates'
+      | 'footprint'
       | 'gebouwSubject'
       | 'gebouwAddress'
       | 'idsControle'
@@ -65,11 +65,20 @@ export const rapport = new Activity(
       gebouw: validationPointer.out(rpt('building')).value.toString(),
       gltfDownload: `${assetBaseUrl}3Dgebouw.gltf`,
       glbDownload: `${assetBaseUrl}3Dgebouw.glb`,
-      polygon: {
+      footprint: {
         type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [voetprintCoordinates],
+        geometry: footprint,
+        properties: {
+          name: 'Voetafdruk',
+          show_on_map: true,
+          popupContent: 'Voetafdruk van het gebouw',
+          style: {
+            weight: 2,
+            color: '#999',
+            opacity: 1,
+            fillColor: '#009900',
+            fillOpacity: 0.6,
+          },
         },
       },
     }
