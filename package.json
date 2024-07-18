@@ -21,7 +21,7 @@
     "react-dom": "^18.3.1",
     "rimraf": "^5.0.7"
   },
-  "description": "Triply ETL for GemeenteRotterdam",
+  "description": "Vergunningscontroleservice application for the Municipality of Rotterdam",
   "main": "lib/main.js",
   "private": true,
   "license": "UNLICENSED",
