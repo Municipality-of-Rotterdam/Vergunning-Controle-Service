@@ -95,12 +95,16 @@ type Request = {
   body?: string
 }
 
-export abstract class APIActivity<S, T> extends ActivityA<S, T> {
+type Extractor<T> = {
+  extract: (x: any) => T
+}
+
+export abstract class ApiActivity<S, T> extends ActivityA<S, T> {
   public url: string
   public headers: Headers
   public body?: string
-  constructor(info: ActivityInfo, { host, path, headers, params, body }: Request) {
-    super(info)
+  constructor({ name, description, host, path, headers, params, body }: ActivityInfo & Request) {
+    super({ name, description })
     this.url = host + path
     this.headers = new Headers()
     this.body = body
@@ -135,17 +139,12 @@ export abstract class APIActivity<S, T> extends ActivityA<S, T> {
   }
 }
 
-export abstract class WFSActivity<S, T> extends APIActivity<S, T> {
-  constructor(info: ActivityInfo, request: Request) {
-    super(info, request)
-    this.headers.append('Content-Type', 'application/xml')
-  }
-}
-
-export class WelstandWFSActivity<S, T> extends WFSActivity<S, T> {
+export class WelstandWfsActivity<S, T> extends ApiActivity<S, T> {
   public extract: (xml: any) => T
-  constructor(info: ActivityInfo, body: string, extract: (xml: any) => T) {
-    super(info, {
+  constructor({ name, description, body, extract }: ActivityInfo & Pick<Request, 'body'> & Extractor<T>) {
+    super({
+      name,
+      description,
       host: 'https://diensten.rotterdam.nl/',
       path: 'arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer',
       headers: {
