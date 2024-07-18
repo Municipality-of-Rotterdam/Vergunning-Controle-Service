@@ -89,6 +89,12 @@ export const rapport = new Activity(
     log('Klaar met upload van het VCS rapport', 'VCS rapport')
 
     thisActivity.provenance?.addOut(rdfs('seeAlso'), factory.literal(`${assetBaseUrl}vcs-rapport.html`, xsd('anyURI')))
+
+    log('Uploaden van het provenance log naar TriplyDB', 'Upload')
+    await dataset.importFromStore(thisActivity.provenanceGraph as any, {
+      defaultGraphName: `${baseIRI}graph/provenance-log`,
+      overwriteAll: true,
+    })
     return {}
   },
 )

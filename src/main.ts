@@ -6,7 +6,7 @@ import { valideer } from '@core/valideer.js'
 import { idsControle } from '@core/ids.js'
 import { verrijk } from '@core/verrijkingen.js'
 import { rapport } from '@root/rapportage/rapportage.js'
-import { ActivityGroup } from '@core/Activity.js'
+import { ActivityGroup, Activity } from '@core/Activity.js'
 import { StepContext } from '@core/executeSteps.js'
 
 const pipeline = new ActivityGroup({ name: 'Vergunningscontroleservice' }, [
