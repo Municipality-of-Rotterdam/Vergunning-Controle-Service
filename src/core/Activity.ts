@@ -88,8 +88,7 @@ export class Activity<S extends {}, T extends {}> extends ActivityA<S, T> {
 }
 
 type Request = {
-  host: string
-  path: string
+  url: string
   headers: Record<string, string>
   params?: Record<string, string | number | boolean>
   body?: string
@@ -103,9 +102,9 @@ export abstract class ApiActivity<S, T> extends ActivityA<S, T> {
   public url: string
   public headers: Headers
   public body?: string
-  constructor({ name, description, host, path, headers, params, body }: ActivityInfo & Request) {
+  constructor({ name, description, url, headers, params, body }: ActivityInfo & Request) {
     super({ name, description })
-    this.url = host + path
+    this.url = url
     this.headers = new Headers()
     this.body = body
     for (const [k, v] of Object.entries(headers)) this.headers.append(k, v)
@@ -139,14 +138,36 @@ export abstract class ApiActivity<S, T> extends ActivityA<S, T> {
   }
 }
 
+export class SparqlActivity<S> extends ApiActivity<S, any[]> {
+  constructor({ name, description, url, body }: ActivityInfo & Pick<Request, 'body' | 'url'>) {
+    super({
+      name,
+      description,
+      body: JSON.stringify({ query: body }),
+      url, // `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
+      headers: {
+        Accepts: 'application/sparql-results+json, application/n-triples',
+        'content-type': 'application/json',
+        Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
+      },
+    })
+  }
+  async run() {
+    const response = await this.send()
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+    return response.json() as unknown as any[]
+  }
+}
+
 export class WelstandWfsActivity<S, T> extends ApiActivity<S, T> {
   public extract: (xml: any) => T
   constructor({ name, description, body, extract }: ActivityInfo & Pick<Request, 'body'> & Extractor<T>) {
     super({
       name,
       description,
-      host: 'https://diensten.rotterdam.nl/',
-      path: 'arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer',
+      url: 'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer',
       headers: {
         'Content-Type': 'application/xml',
       },

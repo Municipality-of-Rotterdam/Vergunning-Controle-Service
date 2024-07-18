@@ -2,6 +2,8 @@ import { BaseControle } from '@core/BaseControle.js'
 import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
+import { SparqlActivity } from '@root/core/Activity.js'
+import namespace from '@rdfjs/namespace'
 
 type SparqlInputs = {
   gebruiksfunctie: string
@@ -38,9 +40,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/1-Wonen-bestemmingsomschrijving'
-  sparql({ gebruiksfunctie }: SparqlInputs): string {
-    return `
-      prefix express: <https://w3id.org/express#>
+  sparql = ({ gebruiksfunctie }: SparqlInputs) => `prefix express: <https://w3id.org/express#>
       prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 
       # Aanname: een IfcSpace heeft 1 Gebruiksfunctie
@@ -69,9 +69,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
 
         filter(lcase(str(?functie)) != "${gebruiksfunctie.toLowerCase()}")
         }
-      }
-    `
-  }
+      }`
 
   bericht({ gebruiksfunctie }: SparqlInputs): string {
     return `Ruimte <a href={?space} target="_blank">{?space}</a> met de gebruiksfunctie "{?functie}" mag niet gepositioneerd worden in een bestemmingsomschrijving "${gebruiksfunctie}".`

@@ -77,11 +77,6 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
     }
   }
 
-  sparqlUrl = 'undefined'
-  sparql(): string {
-    return ''
-  }
-
   bericht({ welstandgebied, welstandgebied_id, elongation }: SparqlInputs): string {
     return `De voetafdruk van het gebouw ligt in welstandsgebied ${welstandgebied_id}, type "${welstandgebied}". De langwerpigheid van het gebouw is L = ${elongation.toString().replace('.', ',')}.`
   }

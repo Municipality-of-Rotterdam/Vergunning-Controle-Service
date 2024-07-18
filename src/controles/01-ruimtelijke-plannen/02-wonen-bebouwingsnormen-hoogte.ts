@@ -44,7 +44,7 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/2-Wonen-bebouwingsnormen-hoogte'
-  sparql({ max }: SparqlInputs): string {
+  sparql = ({ max }: SparqlInputs) => {
     return `
       prefix xsd: <http://www.w3.org/2001/XMLSchema#>
       prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>

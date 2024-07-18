@@ -92,52 +92,21 @@ export const valideer = new Activity(
           throw new Error('must have an activity at this point')
         }
 
-        uitvoering.addOut(rpt('sparqlUrl'), factory.literal(controle.sparqlUrl, xsd('anyUri')))
+        if (controle.sparqlUrl) uitvoering.addOut(rpt('sparqlUrl'), factory.literal(controle.sparqlUrl, xsd('anyUri')))
 
         headerLogBig(`Controle: "${controle.naam}": Uitvoering`)
 
-        let message: string
-        let success: boolean
-        const query = controle.sparql(controle.sparqlInputs)
-        if (!query) {
-          message = controle.berichtGeslaagd(controle.sparqlInputs)
-          success = true
+        const { success, message } = await controle.uitvoering(
+          controle.sparqlInputs,
+          `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`,
+        )
+
+        if (success == null) {
           log(message, controle.naam)
-        } else if (controle.isToepasbaar(controle.sparqlInputs)) {
-          const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
-            body: JSON.stringify({ query }),
-            method: 'POST',
-            headers: {
-              'content-type': 'application/json',
-              Accepts: 'application/sparql-results+json, application/n-triples',
-              Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
-            },
-          })
-          if (!response.ok) {
-            throw new Error(response.statusText)
-          }
-          const responseJson = await response.json()
-          const result = responseJson[0] ?? null
-          success = result ? result.success ?? false : true
-          message = success
-            ? controle.berichtGeslaagd(controle.sparqlInputs)
-            : controle.berichtGefaald(controle.sparqlInputs)
-
-          if (result) {
-            for (const [key, value] of Object.entries(result)) {
-              message = message.replaceAll(`{?${key}}`, value as string)
-            }
-          }
-
-          if (success) {
-            log(chalk.greenBright(`✅ ${message}`), controle.naam)
-          } else {
-            log(chalk.redBright(`❌ ${message}`), controle.naam)
-          }
+        } else if (success) {
+          log(chalk.greenBright(`✅ ${message}`), controle.naam)
         } else {
-          message = 'Niet van toepassing'
-          success = true
-          log(message, controle.naam)
+          log(chalk.redBright(`❌ ${message}`), controle.naam)
         }
 
         finish(uitvoering)
@@ -149,7 +118,7 @@ export const valideer = new Activity(
           c.addOut(rdfs('label'), controle.naam)
           c.addOut(dct('description'), factory.literal(controle.tekst, 'nl'))
           c.addOut(rpt('verwijzing'), factory.literal(controle.verwijzing, 'nl'))
-          c.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
+          c.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
           c.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
           c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
           c.addOut(dct('source'), bp)
