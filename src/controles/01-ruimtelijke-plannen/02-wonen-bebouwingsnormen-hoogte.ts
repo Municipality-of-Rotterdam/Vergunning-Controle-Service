@@ -9,11 +9,11 @@ type SparqlInputs = {
 
 export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<SparqlInputs, GroepsData> {
   public naam = 'Bebouwingsnormen: Hoogte'
-  public tekst = `De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven`
+  public tekst = `Toegestane hoogte verdiepingen. De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven`
   public verwijzing = `
 	Hoofdstuk 2 Bestemmingsregels 
 		Artikel 23 Wonen lid 
-			23.2 Bebouwingsnormen
+			23.2.2 Bebouwingsnormen
 				a.`
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
@@ -66,6 +66,6 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
   }
 
   bericht({ max }: SparqlInputs): string {
-    return `<a href={?this} target="_blank">Het gebouw</a> heeft in totaal {?aantalVerdiepingen} bouwlagen. In dit gebied geldt een maximum bouwhoogte van ${max}.`
+    return `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}. <a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen, hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
   }
 }
