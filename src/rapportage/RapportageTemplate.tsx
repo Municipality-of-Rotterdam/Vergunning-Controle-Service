@@ -1,13 +1,12 @@
 import grapoi from 'grapoi'
 import { readFile } from 'fs/promises'
-import { rpt, rdfs, prov, dct, skos } from '@helpers/namespaces.js'
+import { rpt, rdfs, prov, dct, skos, geo } from '@helpers/namespaces.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 import { key } from '@triplyetl/etl/generic'
 import { a } from '@triplyetl/etl/vocab'
 import React from 'react'
-// import { Marker, Popup, MapContainer, TileLayer } from 'react-leaflet'
-// import { useMap } from 'react-leaflet/hooks'
+import { wktToGeoJSON } from '@terraformer/wkt'
 
 export type RapportageProps = {
   baseIRI: string
@@ -172,34 +171,86 @@ function ProvenanceHtml(provenancePointer: GrapoiPointer) {
   )
 }
 
-function Controle(controle: any, provenanceDataset: TriplyStore) {
-  const label = controle.out(rdfs('label')).value
-  const validated = controle.out(rpt('passed')).value === 'true'
-  const message = controle.out(rpt('message')).value
-  const verwijzing = controle.out(rpt('verwijzing')).value
-  const elongation = controle.out(rpt('elongation')).value
-  const description = controle.out(dct('description')).value
-  const provenanceNode = controle.out(prov('wasGeneratedBy'))
+function Map(label: string, wkt: string) {
+  const geoJSON = wktToGeoJSON(wkt.replace(/^<.*>\s/, '').toUpperCase())
+  return (
+    <>
+      <div id={`map_${label}`} style={{ height: '300px', width: '600px', float: 'right' }}></div>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+var RD = new L.Proj.CRS(
+  'EPSG:28992',
+  '+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs',
+  {
+    origin: [-285401.92, 903401.92],
+    resolutions: [
+      3251.206502413005, 1625.6032512065026, 812.8016256032513, 406.40081280162565, 203.20040640081282,
+      101.60020320040641, 50.800101600203206, 25.400050800101603, 12.700025400050801, 6.350012700025401,
+      3.1750063500127004, 1.5875031750063502, 0.7937515875031751, 0.39687579375158755, 0.19843789687579377,
+      0.09921894843789689, 0.04960947421894844,
+    ],
+  },
+)
+
+var welstandsgebied = {
+  "type": "Feature",
+  "properties": {
+      "name": "Welstandsgebied",
+      "show_on_map": true,
+      "popupContent": "Welstandsgebied 77: Stempel & strokenbouw",
+      "style": {
+          weight: 2,
+          color: "#999",
+          opacity: 1,
+          fillColor: "#B0DE5C",
+          fillOpacity: 0.8
+    },
+  },
+  "geometry": ${JSON.stringify(geoJSON)}
+}
+
+const map = L.map('map_${label}').setView([51.8705, 4.35], 13);
+
+const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+
+function onEachFeature(feature, layer) {
+  if (feature.properties && feature.properties.popupContent) {
+    layer.bindPopup(feature.properties.popupContent);
+  }
+}
+
+L.geoJSON([welstandsgebied], {
+  coordsToLatLng: (coords) => RD.unproject(L.point(coords[0], coords[1])),
+  onEachFeature
+}).addTo(map);
+
+`,
+        }}
+      ></script>
+    </>
+  )
+}
+
+function Controle(controleP: any, provenanceDataset: TriplyStore) {
+  const label = controleP.out(rdfs('label')).value
+  const validated = controleP.out(rpt('passed')).value === 'true'
+  const message = controleP.out(rpt('message')).value
+  const verwijzing = controleP.out(rpt('verwijzing')).value
+  const elongation = controleP.out(rpt('elongation')).value
+  const description = controleP.out(dct('description')).value
+  const provenanceNode = controleP.out(prov('wasGeneratedBy'))
   const provenanceNodeInProvenance = grapoi({ dataset: provenanceDataset, term: provenanceNode.term })
-  const source = controle.out(dct('source'))
+  const source = controleP.out(dct('source'))
+  const footprint = controleP.out(rpt('footprint')).out(geo('asWKT')).value
   return (
     <div key={label}>
       <hr />
       <h3 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h3>
-      <div id={`map_${label}`} style={{ height: '180px' }}></div>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `var map = L.map('map_${label}').setView([51.505, -0.09], 13);
-
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
-
-L.marker([51.5, -0.09]).addTo(map)
-    .bindPopup('A pretty CSS popup.<br> Easily customizable.')
-    .openPopup();`,
-        }}
-      ></script>
+      {footprint ? Map(label, footprint) : ''}
       <dl>
         <dt>Beschrijving</dt>
         <dd>{description}</dd>
