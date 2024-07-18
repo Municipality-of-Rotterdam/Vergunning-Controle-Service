@@ -3,6 +3,7 @@ import { GrapoiPointer } from './helpers/grapoi.js'
 import { dct, prov, skos, xsd, rdf, rdfs, rpt } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import { XMLParser } from 'fast-xml-parser'
+import { Store as TriplyStore } from '@triplydb/data-factory'
 
 import { headerLog } from '@helpers/headerLog.js'
 
@@ -14,15 +15,24 @@ type ActivityInfo = {
 export abstract class ActivityA<S, T> {
   public name: string
   public description?: string
+  public provenanceGraph?: TriplyStore
   public provenance?: GrapoiPointer
-  abstract run(input: S): Promise<T>
   constructor({ name, description }: ActivityInfo) {
     this.name = name
     this.description = description
   }
-  protected startProvenance() {
-    if (!this.provenance) throw new Error('Have not set provenance pointer')
-    const pointer = this.provenance
+  protected startProvenance(parent?: ActivityA<any, any>) {
+    if (this.provenance) throw new Error('Provenance was already set')
+    const label = `https://demo.triplydb.com/rotterdam/${this.name.replace(/\W/g, '')}`
+    const provenanceNode = label ? factory.namedNode(label) : factory.blankNode
+    if (parent) {
+      if (!parent.provenance) throw new Error("Parent's provenance was not yet set")
+      parent.provenance.addOut(dct('hasPart'), provenanceNode)
+      this.provenanceGraph = parent.provenanceGraph
+    } else {
+      this.provenanceGraph = new TriplyStore()
+    }
+    const pointer = (this.provenance = grapoi({ dataset: this.provenanceGraph, factory, term: provenanceNode }))
     pointer.addOut(rdf('type'), prov('Activity'))
     pointer.addOut(skos('prefLabel'), factory.literal(this.name))
     if (this.description) pointer.addOut(dct('description'), factory.literal(this.description))
@@ -33,75 +43,63 @@ export abstract class ActivityA<S, T> {
     const pointer = this.provenance
     pointer.addOut(prov('endedAtTime'), factory.literal(new Date().toISOString(), xsd('dateTime')))
   }
+  abstract _run(input: S): Promise<T>
+  async run(input: S, parent?: ActivityA<any, any>): Promise<T> {
+    headerLog(this.name)
+    this.startProvenance(parent)
+    const result = this._run(input)
+    this.endProvenance()
+    return result
+  }
 }
 
 export class Activity<S extends {}, T extends {}> extends ActivityA<S, T> {
-  constructor(
-    { name, description }: ActivityInfo,
-    action: (ctx: S, provenance: GrapoiPointer) => Promise<T>,
-    children?: Activity<S, T>[],
-  ) {
+  public action: (input: S, thisActivity: Activity<S, T>) => Promise<T>
+  constructor({ name, description }: ActivityInfo, action: (input: S, thisActivity: Activity<S, T>) => Promise<T>) {
     super({ name, description })
     this.action = action
-    this.children = children ?? []
   }
-  public action: (ctx: S, provenance: GrapoiPointer) => Promise<T>
-  public parent?: Activity<any, any>
+  async _run(ctx: S) {
+    return this.action(ctx, this)
+  }
+}
 
-  public children: Activity<S, T>[]
-  async run(ctx: S): Promise<T> {
-    headerLog(this.name)
-    const label = this.name ? `https://demo.triplydb.com/rotterdam/${this.name.replace(/\W/g, '')}` : null
-    const provenanceNode = label ? factory.namedNode(label) : factory.blankNode
-
-    /* @ts-ignore TODO */
-    const db = ctx.provenanceDataset
-    if (!db) throw new Error('should have a database at this point')
-
-    let provenance: GrapoiPointer
-    if (this.parent) {
-      if (!this.parent.provenance) {
-        throw new Error('should have provenance at this point')
-      }
-      this.parent.provenance.addOut(dct('hasPart'), provenanceNode)
-    }
-    this.provenance = provenance = grapoi({ dataset: db, factory, term: provenanceNode })
-    this.startProvenance()
-    this.prepare()
-    const mainResult = await this.action(ctx, provenance)
-    if (mainResult) {
-      Object.assign(ctx, mainResult)
-    }
-    for (const child of this.children ?? []) {
-      child.parent = this
-      const childResult = await child.run(ctx)
+export class ActivityGroup extends ActivityA<{}, {}> {
+  constructor(info: ActivityInfo, children: ActivityA<{}, {}>[]) {
+    super(info)
+    this.children = children
+  }
+  public children: ActivityA<{}, {}>[]
+  async _run(ctx: {}): Promise<{}> {
+    for (const child of this.children) {
+      const childResult = await child.run(ctx, this)
       if (childResult) {
         Object.assign(ctx, childResult)
       }
     }
-    this.finish()
     this.endProvenance()
-    return ctx as unknown as T
+    return ctx
   }
-  prepare() {}
-  finish() {}
 }
 
 type Request = {
-  host: string
-  path: string
+  url: string
   headers: Record<string, string>
   params?: Record<string, string | number | boolean>
   body?: string
 }
 
-export abstract class APIActivity<S, T> extends ActivityA<S, T> {
+type Extractor<T> = {
+  extract: (x: any) => T
+}
+
+export abstract class ApiActivity<S, T> extends ActivityA<S, T> {
   public url: string
   public headers: Headers
   public body?: string
-  constructor(info: ActivityInfo, { host, path, headers, params, body }: Request) {
-    super(info)
-    this.url = host + path
+  constructor({ name, description, url, headers, params, body }: ActivityInfo & Request) {
+    super({ name, description })
+    this.url = url
     this.headers = new Headers()
     this.body = body
     for (const [k, v] of Object.entries(headers)) this.headers.append(k, v)
@@ -112,11 +110,6 @@ export abstract class APIActivity<S, T> extends ActivityA<S, T> {
       this.url += '?' + p
     }
   }
-  // async run(): Promise<Response> {
-  //   const response = this.send()
-  //   this.endProvenance()
-  //   return response
-  // }
 
   protected async send(): Promise<Response> {
     const requestOptions: RequestInit = this.body
@@ -135,19 +128,36 @@ export abstract class APIActivity<S, T> extends ActivityA<S, T> {
   }
 }
 
-export abstract class WFSActivity<S, T> extends APIActivity<S, T> {
-  constructor(info: ActivityInfo, request: Request) {
-    super(info, request)
-    this.headers.append('Content-Type', 'application/xml')
+export class SparqlActivity<S> extends ApiActivity<S, any[]> {
+  constructor({ name, description, url, body }: ActivityInfo & Pick<Request, 'body' | 'url'>) {
+    super({
+      name,
+      description,
+      body: JSON.stringify({ query: body }),
+      url, // `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
+      headers: {
+        Accepts: 'application/sparql-results+json, application/n-triples',
+        'content-type': 'application/json',
+        Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
+      },
+    })
+  }
+  async _run() {
+    const response = await this.send()
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+    return response.json() as unknown as any[]
   }
 }
 
-export class WelstandWFSActivity<S, T> extends WFSActivity<S, T> {
+export class WelstandWfsActivity<S, T> extends ApiActivity<S, T> {
   public extract: (xml: any) => T
-  constructor(info: ActivityInfo, body: string, extract: (xml: any) => T) {
-    super(info, {
-      host: 'https://diensten.rotterdam.nl/',
-      path: 'arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer',
+  constructor({ name, description, body, extract }: ActivityInfo & Pick<Request, 'body'> & Extractor<T>) {
+    super({
+      name,
+      description,
+      url: 'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer',
       headers: {
         'Content-Type': 'application/xml',
       },
@@ -156,7 +166,7 @@ export class WelstandWFSActivity<S, T> extends WFSActivity<S, T> {
     this.extract = extract
   }
 
-  async run(): Promise<T> {
+  async _run(): Promise<T> {
     const response = await this.send()
     const data = await response.text()
     const parser = new XMLParser()

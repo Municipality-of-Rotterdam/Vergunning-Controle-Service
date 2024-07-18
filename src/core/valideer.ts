@@ -28,19 +28,11 @@ export const valideer = new Activity(
       checkGroups,
       datasetName,
       ruleIds,
-      provenanceDataset,
     }: Pick<
       StepContext,
-      | 'account'
-      | 'args'
-      | 'ifcAssetBaseUrl'
-      | 'baseIRI'
-      | 'checkGroups'
-      | 'datasetName'
-      | 'ruleIds'
-      | 'provenanceDataset'
+      'account' | 'args' | 'ifcAssetBaseUrl' | 'baseIRI' | 'checkGroups' | 'datasetName' | 'ruleIds'
     >,
-    provenancePointer: GrapoiPointer, // TODO: of course this one must be used but there's no time
+    thisActivity: Activity<any, any>,
   ) => {
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const user = await triply.getAccount(account)
@@ -92,52 +84,21 @@ export const valideer = new Activity(
           throw new Error('must have an activity at this point')
         }
 
-        uitvoering.addOut(rpt('sparqlUrl'), factory.literal(controle.sparqlUrl, xsd('anyUri')))
+        if (controle.sparqlUrl) uitvoering.addOut(rpt('sparqlUrl'), factory.literal(controle.sparqlUrl, xsd('anyUri')))
 
         headerLogBig(`Controle: "${controle.naam}": Uitvoering`)
 
-        let message: string
-        let success: boolean
-        const query = controle.sparql(controle.sparqlInputs)
-        if (!query) {
-          message = controle.berichtGeslaagd(controle.sparqlInputs)
-          success = true
+        const { success, message } = await controle.uitvoering(
+          controle.sparqlInputs,
+          `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`,
+        )
+
+        if (success == null) {
           log(message, controle.naam)
-        } else if (controle.isToepasbaar(controle.sparqlInputs)) {
-          const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
-            body: JSON.stringify({ query }),
-            method: 'POST',
-            headers: {
-              'content-type': 'application/json',
-              Accepts: 'application/sparql-results+json, application/n-triples',
-              Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
-            },
-          })
-          if (!response.ok) {
-            throw new Error(response.statusText)
-          }
-          const responseJson = await response.json()
-          const result = responseJson[0] ?? null
-          success = result ? result.success ?? false : true
-          message = success
-            ? controle.berichtGeslaagd(controle.sparqlInputs)
-            : controle.berichtGefaald(controle.sparqlInputs)
-
-          if (result) {
-            for (const [key, value] of Object.entries(result)) {
-              message = message.replaceAll(`{?${key}}`, value as string)
-            }
-          }
-
-          if (success) {
-            log(chalk.greenBright(`✅ ${message}`), controle.naam)
-          } else {
-            log(chalk.redBright(`❌ ${message}`), controle.naam)
-          }
+        } else if (success) {
+          log(chalk.greenBright(`✅ ${message}`), controle.naam)
         } else {
-          message = 'Niet van toepassing'
-          success = true
-          log(message, controle.naam)
+          log(chalk.redBright(`❌ ${message}`), controle.naam)
         }
 
         finish(uitvoering)
@@ -149,7 +110,7 @@ export const valideer = new Activity(
           c.addOut(rdfs('label'), controle.naam)
           c.addOut(dct('description'), factory.literal(controle.tekst, 'nl'))
           c.addOut(rpt('verwijzing'), factory.literal(controle.verwijzing, 'nl'))
-          c.addOut(rpt('passed'), factory.literal(success.toString(), xsd('boolean')))
+          c.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
           c.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
           c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
           c.addOut(dct('source'), bp)
@@ -174,8 +135,6 @@ export const valideer = new Activity(
               geo('asWKT'),
               factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${wkt}`, geo('wktLiteral')),
             )
-            //  (f: GrapoiPointer) => {
-            // })
           }
 
           // TODO temporary solution for reporting information that doesn't come from SPARQL query
@@ -187,12 +146,6 @@ export const valideer = new Activity(
 
       if (checkGroup.activity) finish(checkGroup.activity)
     }
-
-    log('Uploaden van het provenance log naar TriplyDB', 'Upload')
-    await dataset.importFromStore(provenanceDataset as any, {
-      defaultGraphName: `${baseIRI}graph/provenance-log`,
-      overwriteAll: true,
-    })
 
     log('Uploaden van het validatie rapport naar TriplyDB', 'Upload')
 

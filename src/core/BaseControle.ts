@@ -6,6 +6,7 @@ import { GrapoiPointer } from '@core/helpers/grapoi.js'
 import { BaseGroep } from './BaseGroep.js'
 import { StepContext } from './executeSteps.js'
 import { start, finish } from './helpers/provenance.js'
+import { SparqlActivity } from './Activity.js'
 
 const log = createLogger('checks', import.meta)
 
@@ -39,10 +40,11 @@ export abstract class BaseControle<T, G extends {}> {
    * You can log after each return value from the API.
    */
   abstract voorbereiding(context: StepContext, provenance: GrapoiPointer): Promise<T>
-  abstract sparql(inputs: T): string // TODO should this not be pulled from TriplyDB?
+  // abstract sparql(inputs: T): string // TODO should this not be pulled from TriplyDB?
+  sparql?: (inputs: T) => string
 
   apiResponse?: any
-  abstract sparqlUrl: string
+  sparqlUrl?: string
   abstract tekst: string
   abstract verwijzing: string
 
@@ -59,6 +61,25 @@ export abstract class BaseControle<T, G extends {}> {
   }
 
   public sparqlInputs?: T
+
+  async uitvoering(inputs: T, url?: string): Promise<{ success: boolean | null; message: string }> {
+    if (!this.sparql) return { success: null, message: this.bericht(inputs) }
+    if (!this.isToepasbaar(inputs)) return { success: null, message: 'Niet van toepassing' }
+    if (!url) throw new Error('must have url')
+    const sparql = this.sparql(inputs)
+    const activity = new SparqlActivity({ name: `SPARQL query ${this.naam}`, body: sparql, url })
+    const response = await activity.run(null)
+    const result = response[0] ?? null
+    const success = result ? result.success ?? false : true
+    let message = success ? this.berichtGeslaagd(inputs) : this.berichtGefaald(inputs)
+
+    if (result) {
+      for (const [key, value] of Object.entries(result)) {
+        message = message.replaceAll(`{?${key}}`, value as string)
+      }
+    }
+    return { success, message }
+  }
 
   log(message: any) {
     log(message, `Controle: "${this.id}. ${this.naam}"`)

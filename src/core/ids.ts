@@ -13,7 +13,7 @@ const log = createLogger('idsControle', import.meta)
 
 export const idsControle = new Activity(
   { name: 'IDS Controle', description: 'IDS controle door https://pypi.org/project/ifctester/' },
-  async (context: StepContext, provenance: GrapoiPointer) => {
+  async (context: StepContext, thisActivity: Activity<any, any>) => {
     const pythonScript = path.join('src', 'tools', 'validate_IFC.py')
     const idsReportHtml = path.join(context.outputsDir, 'IDSValidationReport.html')
     const idsReportBcf = path.join(context.outputsDir, 'IDSValidationReport.bcf')
@@ -31,11 +31,14 @@ export const idsControle = new Activity(
         throw e
       }
     }
-    provenance.addOut(
+    thisActivity.provenance?.addOut(
       rdfs('seeAlso'),
       factory.literal(`${context.assetBaseUrl}IDSValidationReport.html`, xsd('anyURI')),
     )
-    provenance.addOut(rdfs('seeAlso'), factory.literal(`${context.assetBaseUrl}IDSValidationReport.bcf`, xsd('anyURI')))
-    return { idsControle: provenance }
+    thisActivity.provenance?.addOut(
+      rdfs('seeAlso'),
+      factory.literal(`${context.assetBaseUrl}IDSValidationReport.bcf`, xsd('anyURI')),
+    )
+    return { idsControle: thisActivity.provenance } // TODO this seems worng
   },
 )

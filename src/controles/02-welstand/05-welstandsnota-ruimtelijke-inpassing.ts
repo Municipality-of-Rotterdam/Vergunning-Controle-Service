@@ -1,8 +1,8 @@
 import { BaseControle } from '@core/BaseControle.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
-import { WelstandWFSActivity } from '@core/Activity.js'
-import { GeoJSON, MultiPolygon, Polygon, Position } from 'geojson'
+import { WelstandWfsActivity } from '@core/Activity.js'
+import { GeoJSON, MultiPolygon, Position } from 'geojson'
 
 type SparqlInputs = { elongation: number; welstandgebied: string; welstandgebied_id: number; geoJSON: GeoJSON }
 
@@ -20,12 +20,10 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
 
   async voorbereiding(context: StepContext): Promise<SparqlInputs> {
     // TODO: This is of course actually an "uitvoering", but that's why the BaseControle/BaseGroup needs to be refactored
-    const wfs = new WelstandWFSActivity(
-      {
-        name: 'Welstand WFS request',
-        description: 'Welstand WFS request',
-      },
-      `<?xml version="1.0" encoding="UTF-8"?>
+    const wfs = new WelstandWfsActivity({
+      name: 'Welstand WFS request',
+      description: 'Welstand WFS request',
+      body: `<?xml version="1.0" encoding="UTF-8"?>
 <GetFeature xmlns:gml="http://www.opengis.net/gml/3.2" xmlns="http://www.opengis.net/wfs/2.0" xmlns:fes="http://www.opengis.net/fes/2.0" service="WFS" version="2.0.0">
    <Query xmlns:Welstandskaart_tijdelijk_VCS="https://vnrpwapp426.rotterdam.local:6443/arcgis/admin/services/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer" typeNames="Welstandskaart_tijdelijk_VCS:Gebiedstypen">
      <fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0">
@@ -42,7 +40,7 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
     </fes:Filter>
   </Query>
 </GetFeature>`,
-      (response: any) => {
+      extract: (response: any) => {
         const gebiedstypen =
           response['wfs:FeatureCollection']['wfs:member']['Welstandskaart_tijdelijk_VCS:Gebiedstypen']
 
@@ -62,7 +60,6 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
           coords.push(coordsPolygon)
         }
         const geoJSON: MultiPolygon = { type: 'MultiPolygon', coordinates: [coords] }
-        // const geoJSON: Polygon = { type: 'Polygon', coordinates: [coords[0]] }
 
         return {
           fid: gebiedstypen['Welstandskaart_tijdelijk_VCS:FID'],
@@ -70,19 +67,14 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
           surface: geoJSON,
         }
       },
-    )
-    const response = await wfs.run()
+    })
+    const response = await wfs.run(null)
     return {
       elongation: context.elongation,
       welstandgebied_id: response.fid,
       welstandgebied: response.geb_type,
       geoJSON: response.surface,
     }
-  }
-
-  sparqlUrl = 'undefined'
-  sparql(): string {
-    return ''
   }
 
   bericht({ welstandgebied, welstandgebied_id, elongation }: SparqlInputs): string {

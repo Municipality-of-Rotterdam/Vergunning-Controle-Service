@@ -21,7 +21,7 @@ export type StepContext = {
   inputIfc: string
   outputsDir: string
   ruleIds: number[]
-  provenanceDataset: TriplyStore
+  //provenanceDataset: TriplyStore
 
   // ids
   idsControle: GrapoiPointer

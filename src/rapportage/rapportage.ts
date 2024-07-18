@@ -21,12 +21,11 @@ export const rapport = new Activity(
       outputsDir,
       datasetName,
       account,
-      voetprintCoordinates,
+      footprint,
       gebouwSubject,
       gebouwAddress,
       idsControle,
       assetBaseUrl,
-      provenanceDataset,
       elongation,
       baseIRI,
     }: Pick<
@@ -35,16 +34,15 @@ export const rapport = new Activity(
       | 'outputsDir'
       | 'datasetName'
       | 'account'
-      | 'voetprintCoordinates'
+      | 'footprint'
       | 'gebouwSubject'
       | 'gebouwAddress'
       | 'idsControle'
       | 'assetBaseUrl'
-      | 'provenanceDataset'
       | 'elongation'
       | 'baseIRI'
     >,
-    provenance: GrapoiPointer,
+    thisActivity: Activity<any, any>,
   ) => {
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const user = await triply.getAccount(account)
@@ -67,16 +65,26 @@ export const rapport = new Activity(
       gebouw: validationPointer.out(rpt('building')).value.toString(),
       gltfDownload: `${assetBaseUrl}3Dgebouw.gltf`,
       glbDownload: `${assetBaseUrl}3Dgebouw.glb`,
-      polygon: {
+      footprint: {
         type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [voetprintCoordinates],
+        geometry: footprint,
+        properties: {
+          name: 'Voetafdruk',
+          show_on_map: true,
+          popupContent: 'Voetafdruk van het gebouw',
+          style: {
+            weight: 2,
+            color: '#999',
+            opacity: 1,
+            fillColor: '#009900',
+            fillOpacity: 0.6,
+          },
         },
       },
     }
-
-    const html = renderToStaticMarkup(RapportageTemplate(props, validationPointer, provenanceDataset, idsControle))
+    const provenance = thisActivity.provenanceGraph
+    if (!provenance) throw new Error()
+    const html = renderToStaticMarkup(RapportageTemplate(props, validationPointer, provenance, idsControle))
     await writeFile(`${outputsDir}/vcs-rapport.html`, html)
     const fileId = `vcs-rapport.html`
 
@@ -89,7 +97,13 @@ export const rapport = new Activity(
     await dataset.uploadAsset(`${outputsDir}/vcs-rapport.html`, fileId)
     log('Klaar met upload van het VCS rapport', 'VCS rapport')
 
-    provenance.addOut(rdfs('seeAlso'), factory.literal(`${assetBaseUrl}vcs-rapport.html`, xsd('anyURI')))
+    thisActivity.provenance?.addOut(rdfs('seeAlso'), factory.literal(`${assetBaseUrl}vcs-rapport.html`, xsd('anyURI')))
+
+    log('Uploaden van het provenance log naar TriplyDB', 'Upload')
+    await dataset.importFromStore(thisActivity.provenanceGraph as any, {
+      defaultGraphName: `${baseIRI}graph/provenance-log`,
+      overwriteAll: true,
+    })
     return {}
   },
 )

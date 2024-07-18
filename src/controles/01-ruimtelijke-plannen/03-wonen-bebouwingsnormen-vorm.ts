@@ -19,7 +19,7 @@ function bouwaanduidingNode(name: string): NamedNode {
   }
 }
 
-export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{}, GroepsData> {
+export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<SparqlInputs, GroepsData> {
   public naam = 'Bebouwingsnormen: Vorm'
   public tekst = `Ter plaatse van de aanduiding "plat dak" dienen woningen plat te worden afgedekt`
   public verwijzing = ` 
@@ -68,8 +68,8 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{},
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/3-Wonen-bebouwingsnormen-vorm/'
-  sparql({ bouwaanduiding }: SparqlInputs): string {
-    const query = `
+  sparql = ({ bouwaanduiding }: SparqlInputs) => {
+    return `
       prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 
       select ?roof ?rooftype where {
@@ -89,7 +89,6 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<{},
       }
       }
     `
-    return query
   }
 
   bericht({ bouwaanduiding }: SparqlInputs): string {

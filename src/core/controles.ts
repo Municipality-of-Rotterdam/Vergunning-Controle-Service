@@ -14,7 +14,7 @@ import { Activity } from './Activity.js'
  */
 export const controles = new Activity(
   { name: 'Controles importeren', description: 'Importeer de controles en bereid ze voor' },
-  async (context: StepContext, provenance: GrapoiPointer) => {
+  async (context: StepContext, thisActivity: Activity<any, any>) => {
     const { ruleIds } = context
     const checkGroups = await getCheckGroups()
 
@@ -22,10 +22,11 @@ export const controles = new Activity(
       const groupRuleIds = group.controles.map((controle) => controle.id)
       if (ruleIds.length && ruleIds.some((ruleId: number) => !groupRuleIds.includes(ruleId))) continue
 
-      await group.runPrepare(context, provenance)
+      if (!thisActivity.provenance) throw new Error()
+      await group.runPrepare(context, thisActivity.provenance)
 
       for (const check of group.controles) {
-        await check.runPrepare(context, provenance)
+        await check.runPrepare(context, thisActivity.provenance)
       }
     }
 

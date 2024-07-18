@@ -51,7 +51,7 @@ export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlIn
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/'
-  sparql(): string {
+  sparql = () => {
     return `
 prefix express: <https://w3id.org/express#>
 prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>

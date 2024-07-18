@@ -29,7 +29,7 @@ export const linkedData = new Activity(
       inputIfc,
       outputsDir,
     }: Pick<StepContext, 'account' | 'args' | 'baseIRI' | 'consoleUrl' | 'datasetName' | 'inputIfc' | 'outputsDir'>,
-    provenance: GrapoiPointer,
+    thisActivity: Activity<any, any>,
   ) => {
     const storeCache = `${outputsDir}gebouw.ttl`
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
@@ -68,7 +68,7 @@ export const linkedData = new Activity(
         },
       )
 
-      provenance.addOut(rdfs('seeAlso'), factory.literal(`${baseIRI}`, xsd('anyURI')))
+      thisActivity.provenance?.addOut(rdfs('seeAlso'), factory.literal(`${baseIRI}`, xsd('anyURI')))
     }
 
     async function request(url: string, query: string): Promise<any> {

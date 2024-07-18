@@ -17,7 +17,7 @@ export type RapportageProps = {
   gebouwAddress: string
   gltfDownload: string
   glbDownload: string
-  polygon: any
+  footprint: any
 }
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
@@ -193,6 +193,8 @@ var RD = new L.Proj.CRS(
   },
 )
 
+var data = JSON.parse(document.getElementById('data').textContent)
+
 var welstandsgebied = {
   "type": "Feature",
   "properties": {
@@ -210,7 +212,9 @@ var welstandsgebied = {
   "geometry": ${JSON.stringify(geoJSON)}
 }
 
-const map = L.map('map_${label}').setView([51.8705, 4.35], 13);
+const coords = data.footprint.geometry.coordinates[0][0]
+const startView = RD.unproject(L.point(coords[0], coords[1]))
+const map = L.map('map_${label}').setView([startView.lat, startView.lng], 20);
 
 const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
@@ -223,7 +227,7 @@ function onEachFeature(feature, layer) {
   }
 }
 
-L.geoJSON([welstandsgebied], {
+L.geoJSON([welstandsgebied, data.footprint], {
   coordsToLatLng: (coords) => RD.unproject(L.point(coords[0], coords[1])),
   onEachFeature
 }).addTo(map);
@@ -279,7 +283,7 @@ function Controle(controleP: any, provenanceDataset: TriplyStore) {
 export default function (
   {
     gebouw,
-    polygon,
+    footprint,
     footprintUrl,
     datasetName,
     baseIRI,
@@ -296,13 +300,14 @@ export default function (
   const ifc = validationPointer.out(rpt('ifc'))
   const gitRev = validationPointer.out(rpt('gitRevision'))
   const idsFiles = idsControle.out(rdfs('seeAlso'))
+  const date = new Date().toISOString().split('T')[0]
 
   return (
     <html lang="en">
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{`Vergunningscontrolerapport ${datasetName}`}</title>
+        <title>{`Vergunningscontrolerapport ${datasetName} van ${date}`}</title>
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet"
@@ -336,7 +341,7 @@ export default function (
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(
               {
-                polygon,
+                footprint,
               },
               null,
               2,
@@ -368,7 +373,7 @@ export default function (
       </head>
       <body className="p-5">
         <img src="https://www.rotterdam.nl/images/logo-base.svg" style={{ float: 'right' }} />
-        <h1>Vergunningscontrolerapport</h1>
+        <h1>Vergunningscontrolerapport van {date}</h1>
         <dl>
           <dt>Revision</dt>
           <dd>

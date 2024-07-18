@@ -8,9 +8,9 @@ export default class GroepRuimtelijkePlannen extends BaseGroep<GroepsData> {
   public naam = 'Ruimtelijke plannen'
 
   async voorbereiding(context: StepContext): Promise<GroepsData> {
-    const coordinates = context.voetprintCoordinates
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const geoShape = { _geo: { contains: { type: 'Polygon', coordinates: [coordinates] } } }
+    const geoShape = { _geo: { contains: context.footprint } }
+    this.log(JSON.stringify(geoShape))
 
     const apiResponse = await ruimtelijkePlannen.plannen(geoShape, { planType: 'bestemmingsplan' })
     this.apiResponse = apiResponse

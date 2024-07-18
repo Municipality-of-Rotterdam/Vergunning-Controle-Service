@@ -7,8 +7,7 @@ export default class GroepWelstand extends BaseGroep<GroepsData> {
   public naam = 'Welstand'
 
   async voorbereiding(context: StepContext): Promise<GroepsData> {
-    const coordinates = context.voetprintCoordinates
-    const geoShape = { _geo: { contains: { type: 'Polygon', coordinates: [coordinates] } } }
+    const geoShape = { _geo: { contains: context.footprint } }
     return { geoShape }
   }
 }
