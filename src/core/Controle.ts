@@ -3,7 +3,6 @@ import { createLogger } from '@helpers/logger.js'
 import { readdir } from 'fs/promises'
 import { PathLike } from 'fs'
 import { join, relative } from 'path'
-import { rpt } from './helpers/namespaces.js'
 
 import { GrapoiPointer } from '@core/helpers/grapoi.js'
 import { SparqlActivity } from './Activity.js'
@@ -84,8 +83,8 @@ export abstract class Controle<Context, Result extends {}> {
     }
 
     if (this.apiResponse) {
-      prep.addOut(rpt('apiResponse'), JSON.stringify(this.apiResponse))
-      prep.addOut(rpt('apiCall'), this.apiResponse['_links']['self']['href'])
+      // prep.addOut(context.rpt('apiResponse'), JSON.stringify(this.apiResponse))
+      // prep.addOut(context.rpt('apiCall'), this.apiResponse['_links']['self']['href'])
     }
     finish(prep)
     // this.log(this.data)

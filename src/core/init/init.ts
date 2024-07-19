@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import { existsSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import { rimraf } from 'rimraf'
+import namespace from '@rdfjs/namespace'
 
 import { ensureJava } from '@core/init/ensureJava.js'
 import { ensurePython } from '@core/init/ensurePython.js'
@@ -28,6 +29,8 @@ export const init = new Activity(
     const args = argsParser(process.argv)
 
     const datasetName = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
+    const idsName = args.ids.replaceAll('.ids', '').replace(/[^a-zA-Z]+/g, '')
+
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const account = getAccount()
     const user = await triply.getAccount(account)
@@ -117,6 +120,7 @@ export const init = new Activity(
     const inputIfc = import.meta.resolve(`../../../input/ifc/${args.ifc}`).replace('file://', '')
     const ifcIdentifier = crypto.createHash('md5').update(inputIfc).digest('hex')
     const baseIRI = `${consoleUrl}/${userName}/${datasetName}/`
+    const rpt = namespace(`${baseIRI}rpt/`)
 
     return {
       account,
@@ -126,12 +130,14 @@ export const init = new Activity(
       consoleUrl,
       datasetName,
       idsIdentifier,
+      idsName,
       ifcAssetBaseUrl,
       ifcIdentifier,
       inputIds,
       inputIfc,
       outputsDir,
       ruleIds,
+      rpt,
     }
   },
 )

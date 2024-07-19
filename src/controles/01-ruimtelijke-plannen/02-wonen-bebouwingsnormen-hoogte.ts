@@ -9,11 +9,11 @@ type Data = {
 
 export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
   public name = 'Bebouwingsnormen: Hoogte'
-  public tekst = `De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven`
+  public tekst = `Toegestane hoogte verdiepingen. De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven`
   public verwijzing = `
 	Hoofdstuk 2 Bestemmingsregels 
 		Artikel 23 Wonen lid 
-			23.2 Bebouwingsnormen
+			23.2.2 Bebouwingsnormen
 				a.`
 
   async _run(context: Controle<StepContext, RPData>): Promise<Data> {
@@ -47,26 +47,24 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/2-Wonen-bebouwingsnormen-hoogte'
   sparql = ({ max }: Data) => {
     return `
-      prefix xsd: <http://www.w3.org/2001/XMLSchema#>
-      prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
       prefix express: <https://w3id.org/express#>
+      prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 
-      select ?this ((max(?floorNumber) + 1) as ?aantalVerdiepingen) where {
-      graph ?g {
-        ?this a ifc:IfcBuilding.
-        [] ifc:relatedObjects_IfcRelAggregates ?storey;
-          ifc:relatingObject_IfcRelAggregates ?this.
-        ?storey ifc:name_IfcRoot/express:hasString ?positiveFloorLabel.
-        filter(regex(?positiveFloorLabel, "^(0*[1-9][0-9]*) .*verdieping$"))
-        bind(xsd:integer(substr(?positiveFloorLabel, 1, 2)) as ?floorNumber)
-      }
+      select ?this ((count(?floor)) as ?aantalVerdiepingen) where {
+        graph ?g {
+          ?this a ifc:IfcBuilding.
+          [] ifc:relatingObject_IfcRelAggregates ?this;
+            ifc:relatedObjects_IfcRelAggregates ?storey.
+          ?storey ifc:name_IfcRoot/express:hasString ?floor.
+          filter(regex(?floor, "^00 begane grond|^(0*[1-9][0-9]*) .*verdieping$")) .
+        }
       }
       group by ?this ?max
-      having ((max(?floorNumber) + 1) > ${max})
+      having ((count(?floor)) > ${max})
     `
   }
 
   bericht({ max }: Data): string {
-    return `<a href={?this} target="_blank">Het gebouw</a> heeft in totaal {?aantalVerdiepingen} bouwlagen. In dit gebied geldt een maximum bouwhoogte van ${max}.`
+    return `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}. <a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen, hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
   }
 }

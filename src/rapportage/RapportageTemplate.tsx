@@ -1,23 +1,23 @@
 import grapoi from 'grapoi'
 import { readFile } from 'fs/promises'
-import { rpt, rdfs, prov, dct, skos, geo } from '@helpers/namespaces.js'
+import { rdfs, prov, dct, skos, geo } from '@helpers/namespaces.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
-import { key } from '@triplyetl/etl/generic'
-import { a } from '@triplyetl/etl/vocab'
 import React from 'react'
 import { wktToGeoJSON } from '@terraformer/wkt'
+import { NamespaceBuilder } from '@rdfjs/namespace'
 
 export type RapportageProps = {
   baseIRI: string
   datasetName: string
   elongation: number
+  footprint: any
   footprintUrl: string
   gebouw: string
   gebouwAddress: string
-  gltfDownload: string
   glbDownload: string
-  footprint: any
+  gltfDownload: string
+  rpt: NamespaceBuilder
 }
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
@@ -110,7 +110,7 @@ function ElongationExplanation() {
   )
 }
 
-function ProvenanceHtml(provenancePointer: GrapoiPointer) {
+function ProvenanceHtml(provenancePointer: GrapoiPointer, rpt: NamespaceBuilder) {
   const parts = provenancePointer.out(dct('hasPart'))
   const startTime = provenancePointer.out(prov('startedAtTime')).value
   const endTime = provenancePointer.out(prov('endedAtTime')).value
@@ -166,7 +166,7 @@ function ProvenanceHtml(provenancePointer: GrapoiPointer) {
           </>
         )}
       </dl>
-      {parts.map((part: GrapoiPointer) => ProvenanceHtml(part))}
+      {parts.map((part: GrapoiPointer) => ProvenanceHtml(part, rpt))}
     </details>
   )
 }
@@ -239,7 +239,7 @@ L.geoJSON([welstandsgebied, data.footprint], {
   )
 }
 
-function Controle(controleP: any, provenanceDataset: TriplyStore) {
+function Controle(controleP: any, provenanceDataset: TriplyStore, rpt: NamespaceBuilder) {
   const label = controleP.out(rdfs('label')).value
   const validated = controleP.out(rpt('passed')).value === 'true'
   const message = controleP.out(rpt('message')).value
@@ -274,7 +274,7 @@ function Controle(controleP: any, provenanceDataset: TriplyStore) {
           ''
         )}
         <dt>Provenance</dt>
-        <dd className="provenance">{ProvenanceHtml(provenanceNodeInProvenance)}</dd>
+        <dd className="provenance">{ProvenanceHtml(provenanceNodeInProvenance, rpt)}</dd>
       </dl>
     </div>
   )
@@ -291,7 +291,8 @@ export default function (
     glbDownload,
     gebouwAddress,
     elongation,
-  }: RapportageProps,
+    rpt,
+  }: RapportageProps & { rpt: NamespaceBuilder },
   validationPointer: GrapoiPointer,
   provenanceDataset: TriplyStore,
   idsControle: GrapoiPointer,
@@ -427,9 +428,7 @@ export default function (
           </dd>
         </dl>
 
-        {/* TODO restore this when time is ripe <div style={{ height: 880 }} id="cesiumContainer"></div> */}
-
-        {controles.map((controle: GrapoiPointer) => Controle(controle, provenanceDataset))}
+        {controles.map((controle: GrapoiPointer) => Controle(controle, provenanceDataset, rpt))}
 
         <script type="module" dangerouslySetInnerHTML={{ __html: inlineScript }}></script>
       </body>

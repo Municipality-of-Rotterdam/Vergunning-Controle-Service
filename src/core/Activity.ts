@@ -1,6 +1,6 @@
 import grapoi from 'grapoi'
 import { GrapoiPointer } from './helpers/grapoi.js'
-import { dct, prov, skos, xsd, rdf, rdfs, rpt } from '@helpers/namespaces.js'
+import { dct, prov, skos, xsd, rdf } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import { XMLParser } from 'fast-xml-parser'
 import { Store as TriplyStore } from '@triplydb/data-factory'
@@ -23,8 +23,8 @@ export abstract class ActivityA<S, T> {
   }
   protected startProvenance(parent?: ActivityA<any, any>) {
     if (this.provenance) throw new Error('Provenance was already set')
-    const label = `https://demo.triplydb.com/rotterdam/${this.name.replace(/\W/g, '')}`
-    const provenanceNode = label ? factory.namedNode(label) : factory.blankNode
+    const nodeValue = `https://demo.triplydb.com/rotterdam/${this.name.replace(/\W/g, '')}`
+    const provenanceNode = nodeValue ? factory.namedNode(nodeValue) : factory.blankNode
     if (parent) {
       if (!parent.provenance) throw new Error("Parent's provenance was not yet set")
       parent.provenance.addOut(dct('hasPart'), provenanceNode)

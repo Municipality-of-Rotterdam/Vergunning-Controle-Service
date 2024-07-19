@@ -4,9 +4,8 @@ import { exec } from 'child_process'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rdf, rdfs, rpt, xsd, prov, dct, skos, geo, sf } from '@helpers/namespaces.js'
+import { rdf, rdfs, xsd, prov, dct, skos, geo, sf } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
-import App from '@triply/triplydb'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 import { Activity } from './Activity.js'
 import { start, finish } from './helpers/provenance.js'
@@ -17,6 +16,7 @@ import { headerLogBig } from './helpers/headerLog.js'
 import type { GrapoiPointer } from '@helpers/grapoi.js'
 import { Polygon } from 'geojson'
 import { geojsonToWKT } from '@terraformer/wkt'
+import App from '@triply/triplydb'
 const log = createLogger('checks', import.meta)
 
 export const valideer = new Activity(
@@ -25,15 +25,25 @@ export const valideer = new Activity(
     {
       account,
       args,
-      ifcAssetBaseUrl,
       baseIRI,
       datasetName,
       footprint,
       elongation,
+      ifcAssetBaseUrl,
+      rpt,
       ruleIds,
     }: Pick<
       StepContext,
-      'account' | 'args' | 'ifcAssetBaseUrl' | 'baseIRI' | 'datasetName' | 'ruleIds' | 'footprint' | 'elongation'
+      | 'account'
+      | 'args'
+      | 'ifcAssetBaseUrl'
+      | 'baseIRI'
+      | 'datasetName'
+      | 'ruleIds'
+      | 'footprint'
+      | 'elongation'
+      | 'ifcAssetBaseUrl'
+      | 'rpt'
     >,
     thisActivity: Activity<any, any>,
   ) => {
@@ -164,7 +174,7 @@ export const valideer = new Activity(
     log('Uploaden van het validatie rapport naar TriplyDB', 'Upload')
 
     await dataset.importFromStore(report as any, {
-      defaultGraphName: `${baseIRI}graph/validatie-rapport`,
+      defaultGraphName: `${baseIRI}graph/controles`,
       overwriteAll: true,
     })
 
