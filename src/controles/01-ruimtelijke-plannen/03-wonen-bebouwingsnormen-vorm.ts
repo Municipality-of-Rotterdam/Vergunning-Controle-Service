@@ -9,13 +9,26 @@ export type SparqlInputs = {
   bouwaanduiding: NamedNode
 }
 
+const bouwaanduidingMapping: { [key: string]: NamedNode } = {
+  'plat dak': ifc('FLAT_ROOF'),
+}
+
+// Function to get the value by key (name)
 function bouwaanduidingNode(name: string): NamedNode {
-  // TODO find out the options
-  switch (name) {
-    case 'plat dak':
-      return ifc('FLAT_ROOF')
-    default:
-      throw new Error(`Onbekende bouwaanduiding "${name}"`)
+  if (bouwaanduidingMapping.hasOwnProperty(name)) {
+    return bouwaanduidingMapping[name]
+  } else {
+    throw new Error(`Onbekende bouwaanduiding "${name}"`)
+  }
+}
+
+// Function to get the key by value (IFC code)
+function bouwaanduidingTextByIfcCode(ifcCode: NamedNode): string {
+  const name = Object.keys(bouwaanduidingMapping).find((key) => bouwaanduidingMapping[key] === ifcCode)
+  if (name) {
+    return name
+  } else {
+    throw new Error(`Onbekende IFC code "${ifcCode}"`)
   }
 }
 
@@ -92,7 +105,11 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<Spa
   }
 
   bericht({ bouwaanduiding }: SparqlInputs): string {
-    return `Daken moeten het daktype <a href=${bouwaanduiding.value} target="_blank">${bouwaanduiding.value}</a> hebben.`
+    const bouwaanduidingText = bouwaanduiding.value.replace(
+      'https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#',
+      'ifc:',
+    )
+    return `De aanvraag heeft een <a href=${bouwaanduiding.value} target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>, hiermee wordt voldaan aan de regels voor de locatie.`
   }
   berichtGefaald(invoer: SparqlInputs): string {
     return `Dak <a href={?roof} target="_blank">{?roof}</a> heeft het daktype "{?rooftype}". ${this.bericht(invoer)}`

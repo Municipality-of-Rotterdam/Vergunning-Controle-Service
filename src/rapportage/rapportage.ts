@@ -101,7 +101,7 @@ export const rapport = new Activity(
 
     log('Uploaden van het provenance log naar TriplyDB', 'Upload')
     await dataset.importFromStore(thisActivity.provenanceGraph as any, {
-      defaultGraphName: `${baseIRI}graph/provenance-log`,
+      defaultGraphName: `${baseIRI}graph/provenance`,
       overwriteAll: true,
     })
     return {}
