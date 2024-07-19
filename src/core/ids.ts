@@ -14,9 +14,12 @@ const log = createLogger('idsControle', import.meta)
 export const idsControle = new Activity(
   { name: 'IDS Controle', description: 'IDS controle door https://pypi.org/project/ifctester/' },
   async (context: StepContext, thisActivity: Activity<any, any>) => {
+    const htmlFileName = `IDSValidationReport_${context.idsName}.html`
+    const bcfFileName = `IDSValidationReport_${context.idsName}.bcf`
+
     const pythonScript = path.join('src', 'tools', 'validate_IFC.py')
-    const idsReportHtml = path.join(context.outputsDir, 'IDSValidationReport.html')
-    const idsReportBcf = path.join(context.outputsDir, 'IDSValidationReport.bcf')
+    const idsReportHtml = path.join(context.outputsDir, htmlFileName)
+    const idsReportBcf = path.join(context.outputsDir, bcfFileName)
     log('Uitvoeren van IDS controle', 'IDS Controle')
     try {
       await executeCommand(
@@ -33,11 +36,11 @@ export const idsControle = new Activity(
     }
     thisActivity.provenance?.addOut(
       rdfs('seeAlso'),
-      factory.literal(`${context.assetBaseUrl}IDSValidationReport.html`, xsd('anyURI')),
+      factory.literal(`${context.assetBaseUrl}htmlFileName`, xsd('anyURI')),
     )
     thisActivity.provenance?.addOut(
       rdfs('seeAlso'),
-      factory.literal(`${context.assetBaseUrl}IDSValidationReport.bcf`, xsd('anyURI')),
+      factory.literal(`${context.assetBaseUrl}bcfFileName`, xsd('anyURI')),
     )
     return { idsControle: thisActivity.provenance } // TODO this seems worng
   },

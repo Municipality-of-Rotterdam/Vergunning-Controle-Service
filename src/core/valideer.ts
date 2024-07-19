@@ -150,7 +150,7 @@ export const valideer = new Activity(
     log('Uploaden van het validatie rapport naar TriplyDB', 'Upload')
 
     await dataset.importFromStore(report as any, {
-      defaultGraphName: `${baseIRI}graph/validatie-rapport`,
+      defaultGraphName: `${baseIRI}graph/controles`,
       overwriteAll: true,
     })
 

@@ -23,7 +23,8 @@ export abstract class ActivityA<S, T> {
   }
   protected startProvenance(parent?: ActivityA<any, any>) {
     if (this.provenance) throw new Error('Provenance was already set')
-    const label = `https://demo.triplydb.com/rotterdam/${this.name.replace(/\W/g, '')}`
+    const namedNode = `https://demo.triplydb.com/rotterdam/${this.name.replace(/\W/g, '')}`
+    console.log(namedNode)
     const provenanceNode = label ? factory.namedNode(label) : factory.blankNode
     if (parent) {
       if (!parent.provenance) throw new Error("Parent's provenance was not yet set")
