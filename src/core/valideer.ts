@@ -4,9 +4,8 @@ import { exec } from 'child_process'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rdf, rdfs, rpt, xsd, prov, dct, skos, geo, sf } from '@helpers/namespaces.js'
+import { rdf, rdfs, xsd, prov, dct, skos, geo, sf } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
-import App from '@triply/triplydb'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 import { Activity } from './Activity.js'
 import { start, finish } from './helpers/provenance.js'
@@ -15,6 +14,7 @@ import { headerLogBig } from './helpers/headerLog.js'
 
 import type { GrapoiPointer } from '@helpers/grapoi.js'
 import { geojsonToWKT } from '@terraformer/wkt'
+import App from '@triply/triplydb'
 const log = createLogger('checks', import.meta)
 
 export const valideer = new Activity(
@@ -23,14 +23,15 @@ export const valideer = new Activity(
     {
       account,
       args,
-      ifcAssetBaseUrl,
       baseIRI,
       checkGroups,
       datasetName,
+      ifcAssetBaseUrl,
+      rpt,
       ruleIds,
     }: Pick<
       StepContext,
-      'account' | 'args' | 'ifcAssetBaseUrl' | 'baseIRI' | 'checkGroups' | 'datasetName' | 'ruleIds'
+      'account' | 'args' | 'baseIRI' | 'checkGroups' | 'datasetName' | 'ifcAssetBaseUrl' | 'rpt' | 'ruleIds'
     >,
     thisActivity: Activity<any, any>,
   ) => {

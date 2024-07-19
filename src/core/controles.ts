@@ -1,8 +1,5 @@
 import grapoi from 'grapoi'
 import { readdir } from 'fs/promises'
-import factory from '@rdfjs/data-model'
-import { rdf, rdfs, rpt, xsd } from '@helpers/namespaces.js'
-import type { GrapoiPointer } from '@helpers/grapoi.js'
 import { BaseControle } from '@core/BaseControle.js'
 import { BaseGroep } from '@core/BaseGroep.js'
 import { StepContext } from '@core/executeSteps.js'
@@ -26,7 +23,7 @@ export const controles = new Activity(
       await group.runPrepare(context, thisActivity.provenance)
 
       for (const check of group.controles) {
-        await check.runPrepare(context, thisActivity.provenance)
+        await check.runPrepare(context)
       }
     }
 

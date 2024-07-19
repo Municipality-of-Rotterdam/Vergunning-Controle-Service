@@ -5,22 +5,24 @@ import { Quad_Subject } from '@rdfjs/types'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 
 import { Verrijkingen } from './verrijkingen.js'
+import { NamespaceBuilder } from '@rdfjs/namespace'
 
 export type StepContext = {
   // Init
   account: string
   args: Record<string, string>
   assetBaseUrl: string
-  ifcAssetBaseUrl: string
   baseIRI: string
   consoleUrl: string
   datasetName: string
   idsIdentifier: string
   idsName: string
+  ifcAssetBaseUrl: string
   ifcIdentifier: string
   inputIds: string
   inputIfc: string
   outputsDir: string
+  rpt: NamespaceBuilder
   ruleIds: number[]
   //provenanceDataset: TriplyStore
 

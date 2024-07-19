@@ -1,6 +1,6 @@
 import grapoi from 'grapoi'
 import { GrapoiPointer } from './helpers/grapoi.js'
-import { dct, prov, skos, xsd, rdf, rdfs, rpt } from '@helpers/namespaces.js'
+import { dct, prov, skos, xsd, rdf } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import { XMLParser } from 'fast-xml-parser'
 import { Store as TriplyStore } from '@triplydb/data-factory'

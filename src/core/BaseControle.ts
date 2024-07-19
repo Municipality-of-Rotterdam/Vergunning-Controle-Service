@@ -1,7 +1,6 @@
 import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
 
-import { rpt } from '@core/helpers/namespaces.js'
 import { GrapoiPointer } from '@core/helpers/grapoi.js'
 import { BaseGroep } from './BaseGroep.js'
 import { StepContext } from './executeSteps.js'
@@ -85,7 +84,7 @@ export abstract class BaseControle<T, G extends {}> {
     log(message, `Controle: "${this.id}. ${this.naam}"`)
   }
 
-  async runPrepare(context: StepContext, provenance: GrapoiPointer) {
+  async runPrepare(context: StepContext) {
     headerLogBig(`Controle: "${this.naam}": Voorbereiding`)
 
     if (this.groep?.activity) this.activity = start(this.groep.activity, { name: this.naam })
@@ -94,8 +93,8 @@ export abstract class BaseControle<T, G extends {}> {
     this.sparqlInputs = await this.voorbereiding(context, voorbereiding)
 
     if (this.apiResponse) {
-      voorbereiding.addOut(rpt('apiResponse'), JSON.stringify(this.apiResponse))
-      voorbereiding.addOut(rpt('apiCall'), this.apiResponse['_links']['self']['href'])
+      voorbereiding.addOut(context.rpt('apiResponse'), JSON.stringify(this.apiResponse))
+      voorbereiding.addOut(context.rpt('apiCall'), this.apiResponse['_links']['self']['href'])
     }
     finish(voorbereiding)
     if (this.sparqlInputs) {

@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import { existsSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import { rimraf } from 'rimraf'
+import namespace from '@rdfjs/namespace'
 
 import { ensureJava } from '@core/init/ensureJava.js'
 import { ensurePython } from '@core/init/ensurePython.js'
@@ -119,6 +120,7 @@ export const init = new Activity(
     const inputIfc = import.meta.resolve(`../../../input/ifc/${args.ifc}`).replace('file://', '')
     const ifcIdentifier = crypto.createHash('md5').update(inputIfc).digest('hex')
     const baseIRI = `${consoleUrl}/${userName}/${datasetName}/`
+    const rpt = namespace(`${baseIRI}rpt/`)
 
     return {
       account,
@@ -135,6 +137,7 @@ export const init = new Activity(
       inputIfc,
       outputsDir,
       ruleIds,
+      rpt,
     }
   },
 )
