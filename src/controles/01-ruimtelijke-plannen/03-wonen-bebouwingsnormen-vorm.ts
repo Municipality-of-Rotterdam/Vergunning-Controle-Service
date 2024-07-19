@@ -1,11 +1,11 @@
-import { BaseControle } from '@core/BaseControle.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
-import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
+import { Data as RPData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
 import { ifc } from '@helpers/namespaces.js'
 import NamedNode from '@rdfjs/data-model/lib/NamedNode.js'
+import { Controle } from '@root/core/Controle.js'
 
-export type SparqlInputs = {
+export type Data = {
   bouwaanduiding: NamedNode
 }
 
@@ -19,8 +19,8 @@ function bouwaanduidingNode(name: string): NamedNode {
   }
 }
 
-export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<SparqlInputs, GroepsData> {
-  public naam = 'Bebouwingsnormen: Vorm'
+export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
+  public name = 'Bebouwingsnormen: Vorm'
   public tekst = `Ter plaatse van de aanduiding "plat dak" dienen woningen plat te worden afgedekt`
   public verwijzing = ` 
   Hoofdstuk 2 Bestemmingsregels 
@@ -28,9 +28,10 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<Spa
 			23.2 Bebouwingsnormen
 				c.`
 
-  async voorbereiding(context: StepContext): Promise<SparqlInputs> {
+  async _run(context: Controle<StepContext, RPData>): Promise<Data> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const data = this.groepData()
+    const data = context.data
+    if (!data) throw new Error()
 
     // TODO another test footprint
     const geoShape2 = {
@@ -68,7 +69,7 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<Spa
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/3-Wonen-bebouwingsnormen-vorm/'
-  sparql = ({ bouwaanduiding }: SparqlInputs) => {
+  sparql = ({ bouwaanduiding }: Data) => {
     return `
       prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 
@@ -91,10 +92,10 @@ export default class Controle2WonenBebouwingsnormenVorm extends BaseControle<Spa
     `
   }
 
-  bericht({ bouwaanduiding }: SparqlInputs): string {
+  bericht({ bouwaanduiding }: Data): string {
     return `Daken moeten het daktype <a href=${bouwaanduiding.value} target="_blank">${bouwaanduiding.value}</a> hebben.`
   }
-  berichtGefaald(invoer: SparqlInputs): string {
+  berichtGefaald(invoer: Data): string {
     return `Dak <a href={?roof} target="_blank">{?roof}</a> heeft het daktype "{?rooftype}". ${this.bericht(invoer)}`
   }
 }

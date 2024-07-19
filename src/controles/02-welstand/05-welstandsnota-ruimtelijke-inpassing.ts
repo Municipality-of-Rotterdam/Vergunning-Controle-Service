@@ -1,10 +1,10 @@
-import { BaseControle } from '@core/BaseControle.js'
+import { Controle } from '@core/Controle.js'
 import { StepContext } from '@root/core/executeSteps.js'
-import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
+import { Data as WelstandData } from '@root/controles/02-welstand/welstand.js'
 import { WelstandWfsActivity } from '@core/Activity.js'
 import { GeoJSON, MultiPolygon, Position } from 'geojson'
 
-type SparqlInputs = { elongation: number; welstandgebied: string; welstandgebied_id: number; geoJSON: GeoJSON }
+type Data = { elongation: number; welstandgebied: string; welstandgebied_id: number; geoJSON: GeoJSON }
 
 /** Given: Een IFC-model positioneert na georeferentie geheel binnen Welstandsgebied “stempel en
 Strokenbouw”
@@ -13,12 +13,12 @@ And: Er wordt een IFC-model ingediend van IfcBuilding waarbij de Elementen met h
 Then: De ruimtelijke inpassing van het gebouw is in overeenstemming met de stempel en strokenbouw -
 ruimtelijke inpassing. */
 
-export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<SparqlInputs, GroepsData> {
-  public naam = 'Welstand: Stempel en strokenbouw - Ruimtelijke inpassing'
+export default class _ extends Controle<Controle<StepContext, WelstandData>, Data> {
+  public name = 'Welstand: Stempel en strokenbouw - Ruimtelijke inpassing'
   public tekst = `Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)`
   public verwijzing = ``
 
-  async voorbereiding(context: StepContext): Promise<SparqlInputs> {
+  async _run(context: Controle<StepContext, WelstandData>): Promise<Data> {
     // TODO: This is of course actually an "uitvoering", but that's why the BaseControle/BaseGroup needs to be refactored
     const wfs = new WelstandWfsActivity({
       name: 'Welstand WFS request',
@@ -69,15 +69,17 @@ export default class Controle2WelstandRuimtelijkeInpassing extends BaseControle<
       },
     })
     const response = await wfs.run(null)
+    const data = context.data
+    if (!data) throw new Error()
     return {
-      elongation: context.elongation,
+      elongation: data.elongation,
       welstandgebied_id: response.fid,
       welstandgebied: response.geb_type,
       geoJSON: response.surface,
     }
   }
 
-  bericht({ welstandgebied, welstandgebied_id, elongation }: SparqlInputs): string {
+  bericht({ welstandgebied, welstandgebied_id, elongation }: Data): string {
     return `De voetafdruk van het gebouw ligt in welstandsgebied ${welstandgebied_id}, type "${welstandgebied}". De langwerpigheid van het gebouw is L = ${elongation.toString().replace('.', ',')}.`
   }
 }

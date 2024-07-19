@@ -1,13 +1,13 @@
-import { BaseGroep } from '@core/BaseGroep.js'
+import { Controle } from '@root/core/Controle.js'
 import { StepContext } from '@root/core/executeSteps.js'
 
-export type GroepsData = { geoShape: any }
+export type Data = { geoShape: any; elongation: number }
 
-export default class GroepWelstand extends BaseGroep<GroepsData> {
-  public naam = 'Welstand'
+export default class _ extends Controle<StepContext, Data> {
+  public name = 'Welstand'
 
-  async voorbereiding(context: StepContext): Promise<GroepsData> {
+  async _run(context: StepContext): Promise<Data> {
     const geoShape = { _geo: { contains: context.footprint } }
-    return { geoShape }
+    return { geoShape, elongation: context.elongation }
   }
 }

@@ -1,4 +1,3 @@
-import { controles } from '@core/controles.js'
 import { init } from '@core/init/init.js'
 import { linkedData } from '@core/maakLinkedData.js'
 import { upload } from '@core/upload.js'
@@ -15,7 +14,6 @@ const pipeline = new ActivityGroup({ name: 'Vergunningscontroleservice' }, [
   linkedData,
   verrijk,
   upload,
-  controles,
   valideer,
   rapport,
 ])

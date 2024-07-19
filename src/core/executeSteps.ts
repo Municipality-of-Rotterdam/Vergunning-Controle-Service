@@ -1,4 +1,3 @@
-import { BaseGroep } from '@core/BaseGroep.js'
 import { GrapoiPointer } from '@helpers/grapoi.js'
 import { headerLog } from '@helpers/headerLog.js'
 import { Quad_Subject } from '@rdfjs/types'
@@ -34,9 +33,6 @@ export type StepContext = {
   // verrijk
   verrijkingenDataset: TriplyStore
   // Zie type Verrijkingen
-
-  // controles
-  checkGroups: BaseGroep<{}>[]
 
   // Valideer
   validation: TriplyStore

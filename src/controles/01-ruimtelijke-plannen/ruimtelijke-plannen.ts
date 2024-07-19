@@ -1,13 +1,13 @@
-import { BaseGroep } from '@core/BaseGroep.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
+import { Controle } from '@root/core/Controle.js'
 
-export type GroepsData = { bestemmingsplan: any; geoShape: any }
+export type Data = { bestemmingsplan: any; geoShape: any }
 
-export default class GroepRuimtelijkePlannen extends BaseGroep<GroepsData> {
-  public naam = 'Ruimtelijke plannen'
+export default class _ extends Controle<StepContext, Data> {
+  public name = 'Ruimtelijke plannen'
 
-  async voorbereiding(context: StepContext): Promise<GroepsData> {
+  async _run(context: StepContext): Promise<Data> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
     const geoShape = { _geo: { contains: context.footprint } }
     this.log(JSON.stringify(geoShape))
