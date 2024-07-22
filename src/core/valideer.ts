@@ -52,7 +52,7 @@ export const valideer = new Activity(
     const dataset = await user.getDataset(datasetName)
 
     const mainControle = (await Controle.instantiateFromDirectory('src/controles')) as Controle<
-      { footprint: Polygon; elongation: number },
+      { footprint: Polygon; elongation: number; baseIRI: string },
       any
     >
 
@@ -76,7 +76,7 @@ export const valideer = new Activity(
     const { apiUrl } = await triply.getInfo()
 
     if (!thisActivity.provenance) throw new Error()
-    await mainControle.run({ footprint: footprint, elongation }, thisActivity.provenance)
+    await mainControle.run({ footprint, elongation, baseIRI }, thisActivity.provenance)
 
     for (const checkGroup of mainControle.constituents) {
       // const groupRuleIds = group.controles.map((controle) => controle.id)

@@ -15,6 +15,7 @@ type ActivityInfo = {
 export abstract class ActivityA<S, T> {
   public name: string
   public description?: string
+  public baseIRI?: string
   public provenanceGraph?: TriplyStore
   public provenance?: GrapoiPointer
   constructor({ name, description }: ActivityInfo) {
@@ -22,8 +23,9 @@ export abstract class ActivityA<S, T> {
     this.description = description
   }
   protected startProvenance(parent?: ActivityA<any, any>) {
+    if (!this.baseIRI) throw new Error(`unknown baseIRI for ${this.name}`)
     if (this.provenance) throw new Error('Provenance was already set')
-    const nodeValue = `https://demo.triplydb.com/rotterdam/${this.name.replace(/\W/g, '')}`
+    const nodeValue = `${this.baseIRI}${this.name.replace(/\W/g, '')}`
     const provenanceNode = nodeValue ? factory.namedNode(nodeValue) : factory.blankNode
     if (parent) {
       if (!parent.provenance) throw new Error("Parent's provenance was not yet set")
@@ -39,16 +41,23 @@ export abstract class ActivityA<S, T> {
     pointer.addOut(prov('startedAtTime'), factory.literal(new Date().toISOString(), xsd('dateTime')))
   }
   protected endProvenance() {
-    if (!this.provenance) throw new Error('Have not set provenance pointer')
-    const pointer = this.provenance
-    pointer.addOut(prov('endedAtTime'), factory.literal(new Date().toISOString(), xsd('dateTime')))
+    if (!this.provenance) throw new Error('Provenance was not yet set')
+    this.provenance.addOut(prov('endedAtTime'), factory.literal(new Date().toISOString(), xsd('dateTime')))
   }
+
   abstract _run(input: S): Promise<T>
   async run(input: S, parent?: ActivityA<any, any>): Promise<T> {
+    // TODO: Temporary, until there is a better solution
+    if (input instanceof Object && 'baseIRI' in input) {
+      this.baseIRI = input.baseIRI as string
+      if (parent) parent.baseIRI = this.baseIRI
+    } else if (parent && parent.baseIRI) this.baseIRI = parent.baseIRI
+
     headerLog(this.name)
     this.startProvenance(parent)
-    const result = this._run(input)
+    const result = await this._run(input)
     this.endProvenance()
+
     return result
   }
 }
@@ -77,7 +86,6 @@ export class ActivityGroup extends ActivityA<{}, {}> {
         Object.assign(ctx, childResult)
       }
     }
-    this.endProvenance()
     return ctx
   }
 }

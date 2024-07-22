@@ -138,7 +138,8 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     if (!url) throw new Error('must have url')
     const sparql = this.sparql(inputs)
     const activity = new SparqlActivity({ name: `SPARQL query ${this.name}`, body: sparql, url })
-    const response = await activity.run(null)
+    //@ts-ignore TODO: The base IRI is passed through in a wholly unsustainable way at the moment
+    const response = await activity.run({ baseIRI: this.context?.context?.context?.baseIRI })
     const result = response[0] ?? null
     const success = result ? result.success ?? false : true
     let message = success ? this.berichtGeslaagd(inputs) : this.berichtGefaald(inputs)

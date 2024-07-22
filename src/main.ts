@@ -9,7 +9,6 @@ import { ActivityGroup, Activity } from '@core/Activity.js'
 import { StepContext } from '@core/executeSteps.js'
 
 const pipeline = new ActivityGroup({ name: 'Vergunningscontroleservice' }, [
-  init,
   idsControle,
   linkedData,
   verrijk,
@@ -17,5 +16,4 @@ const pipeline = new ActivityGroup({ name: 'Vergunningscontroleservice' }, [
   valideer,
   rapport,
 ])
-
-await pipeline.run({} as StepContext)
+await pipeline.run((await init()) as StepContext)

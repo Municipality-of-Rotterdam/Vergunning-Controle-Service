@@ -3,6 +3,7 @@ import { StepContext } from '@root/core/executeSteps.js'
 import { Data as WelstandData } from './common.js'
 import { WelstandWfsActivity } from '@core/Activity.js'
 import { GeoJSON, MultiPolygon, Position } from 'geojson'
+import { ActivityA } from '@core/Activity.js'
 
 type Data = { elongation: number; welstandgebied: string; welstandgebied_id: number; geoJSON: GeoJSON }
 
@@ -19,7 +20,6 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
   public verwijzing = ``
 
   async _run(context: Controle<StepContext, WelstandData>): Promise<Data> {
-    // TODO: This is of course actually an "uitvoering", but that's why the BaseControle/BaseGroup needs to be refactored
     const wfs = new WelstandWfsActivity({
       name: 'Welstand WFS request',
       description: 'Welstand WFS request',
@@ -68,7 +68,8 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
         }
       },
     })
-    const response = await wfs.run(null)
+    //@ts-ignore TODO: The base IRI is passed through in an unsustainable way
+    const response = await wfs.run({ baseIRI: context.context?.context?.baseIRI })
     const data = context.data
     if (!data) throw new Error()
     return {
