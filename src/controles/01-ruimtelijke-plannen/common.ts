@@ -4,12 +4,12 @@ import { Controle } from '@root/core/Controle.js'
 
 export type Data = { bestemmingsplan: any; geoShape: any }
 
-export default class _ extends Controle<StepContext, Data> {
+export default class _ extends Controle<Controle<any, StepContext>, Data> {
   public name = 'Ruimtelijke plannen'
 
-  async _run(context: StepContext): Promise<Data> {
+  async _run(context: Controle<any, StepContext>): Promise<Data> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const geoShape = { _geo: { contains: context.footprint } }
+    const geoShape = { _geo: { contains: this.context?.context?.footprint } }
     this.log(JSON.stringify(geoShape))
 
     const apiResponse = await ruimtelijkePlannen.plannen(geoShape, { planType: 'bestemmingsplan' })
