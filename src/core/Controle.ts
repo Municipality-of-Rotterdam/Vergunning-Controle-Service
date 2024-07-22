@@ -53,13 +53,19 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     this.constituents.push(controle)
   }
 
-  static async instantiateFromFile(file: Dirent, parent?: Controle<any, any>): Promise<Controle<any, any>> {
-    return import(`../../${join(file.parentPath, file.name.replace(/\.ts$/, '.js'))}`).then(
-      (m) => new m.default(file.name, parent),
-    )
+  static async instantiateFromFile(
+    directory: string,
+    filename: string,
+    parent?: Controle<any, any>,
+  ): Promise<Controle<any, any>> {
+    return import(join(directory, filename.replace(/\.ts$/, '.js'))).then((m) => new m.default(filename, parent))
   }
 
-  static async instantiateFromDirectory(directory: PathLike, parent?: Controle<any, any>): Promise<Controle<any, any>> {
+  static async instantiateFromDirectory(
+    directory: string = 'src/controles',
+    directory2: string = '../controles',
+    parent?: Controle<any, any>,
+  ): Promise<Controle<any, any>> {
     const entries = (await readdir(directory, { withFileTypes: true })).sort()
     const directories = entries.filter((f) => f.isDirectory())
     const files = entries.filter((f) => !f.isDirectory() && (f.name.endsWith('.js') || f.name.endsWith('.ts')))
@@ -68,15 +74,19 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     const fIsCommon = (s: string) => s.replace(/\.[tj]s$/, '') == 'common'
     const commonFiles: Dirent[] = files.filter((f) => fIsCommon(f.name))
     const common: Controle<any, any> = commonFiles.length
-      ? await Controle.instantiateFromFile(commonFiles[0], parent)
-      : new DefaultCommonControle(directory.toString(), parent)
+      ? await Controle.instantiateFromFile(directory2, commonFiles[0].name, parent)
+      : new DefaultCommonControle(directory, parent)
 
     // Collect subcontroles from files & directories and add them to the overarching controle
     const fileSubcontroles: Controle<any, any>[] = await Promise.all(
-      files.filter((f) => !fIsCommon(f.name)).map(async (f) => Controle.instantiateFromFile(f, parent)),
+      files
+        .filter((f) => !fIsCommon(f.name))
+        .map(async (f) => Controle.instantiateFromFile(directory2, f.name, parent)),
     )
     const dirSubcontroles: Controle<any, any>[] = await Promise.all(
-      directories.map(async (d) => Controle.instantiateFromDirectory(join(d.parentPath, d.name), parent)),
+      directories.map(async (d) =>
+        Controle.instantiateFromDirectory(join(directory, d.name), join(directory2, d.name), parent),
+      ),
     )
     const controles = dirSubcontroles.concat(fileSubcontroles)
     for (const c of controles) {
@@ -138,7 +148,8 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     if (!url) throw new Error('must have url')
     const sparql = this.sparql(inputs)
     const activity = new SparqlActivity({ name: `SPARQL query ${this.name}`, body: sparql, url })
-    const response = await activity.run(null)
+    //@ts-ignore TODO: The base IRI is passed through in a wholly unsustainable way at the moment
+    const response = await activity.run({ baseIRI: this.context?.context?.context?.baseIRI })
     const result = response[0] ?? null
     const success = result ? result.success ?? false : true
     let message = success ? this.berichtGeslaagd(inputs) : this.berichtGefaald(inputs)
