@@ -1,9 +1,9 @@
-import { BaseControle } from '@core/BaseControle.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
-import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
+import { Data as RPData } from './common.js'
+import { Controle } from '@root/core/Controle.js'
 
-type SparqlInputs = {
+type Data = {
   gebruiksfunctie: string
 }
 
@@ -14,8 +14,8 @@ Objecttype BVO en optioneel een IfcSpace Objecttype Nevengebruiksfunctie Name: B
 But: de IfcSpace bedrijfsfunctie niet meer is dan 30% van de space BVO.
 Then: Het gebruik van het gebouw is in overeenstemming met de specifieke gebruiksregels. */
 
-export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlInputs, GroepsData> {
-  public naam = 'Wonen: Bedrijfsfunctie'
+export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
+  public name = 'Wonen: Bedrijfsfunctie'
   public tekst = `Woningen mogen mede worden gebruikt voor de uitoefening van een aan huis gebonden beroep of bedrijf, mits: de woonfunctie in overwegende mate gehandhaafd blijft, waarbij het bruto vloeroppervlak van de woning voor ten hoogste 30%, mag worden gebruikt voor een aan huis gebonden beroep of bedrijf`
   public verwijzing = `Hoofdstuk 2 Bestemmingsregels 
 		Artikel 23 Wonen lid 
@@ -23,9 +23,10 @@ export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlIn
 				23.3.1 Algemeen
 					a. `
 
-  async voorbereiding(context: StepContext): Promise<SparqlInputs> {
+  async _run(context: Controle<StepContext, RPData>): Promise<Data> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const data = this.groepData()
+    const data = context.data
+    if (!data) throw new Error()
 
     const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
     this.apiResponse = response
@@ -46,7 +47,7 @@ export default class Controle2WonenBedrijfsfunctie extends BaseControle<SparqlIn
     return { gebruiksfunctie }
   }
 
-  isToepasbaar({ gebruiksfunctie }: SparqlInputs): boolean {
+  isToepasbaar({ gebruiksfunctie }: Data): boolean {
     return gebruiksfunctie.toLowerCase() == 'wonen'
   }
 

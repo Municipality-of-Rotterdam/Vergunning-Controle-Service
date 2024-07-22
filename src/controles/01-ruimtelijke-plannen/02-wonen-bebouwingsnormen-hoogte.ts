@@ -1,14 +1,14 @@
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
-import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
-import { BaseControle } from '@core/BaseControle.js'
+import { Data as RPData } from './common.js'
 import { StepContext } from '@root/core/executeSteps.js'
+import { Controle } from '@root/core/Controle.js'
 
-type SparqlInputs = {
+type Data = {
   max: number
 }
 
-export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<SparqlInputs, GroepsData> {
-  public naam = 'Bebouwingsnormen: Hoogte'
+export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
+  public name = 'Bebouwingsnormen: Hoogte'
   public tekst = `Toegestane hoogte verdiepingen. De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven`
   public verwijzing = `
 	Hoofdstuk 2 Bestemmingsregels 
@@ -16,10 +16,11 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
 			23.2.2 Bebouwingsnormen
 				a.`
 
-  async voorbereiding(context: StepContext): Promise<SparqlInputs> {
+  async _run(context: Controle<StepContext, RPData>): Promise<Data> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
 
-    const data = this.groepData()
+    const data = context.data
+    if (!data) throw new Error()
     const response = await ruimtelijkePlannen.maatvoeringen(data.bestemmingsplan.id, data.geoShape)
     this.apiResponse = response
     const maatvoeringen: any[] = response['_embedded']['maatvoeringen'].filter(
@@ -44,7 +45,7 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/2-Wonen-bebouwingsnormen-hoogte'
-  sparql = ({ max }: SparqlInputs) => {
+  sparql = ({ max }: Data) => {
     return `
       prefix express: <https://w3id.org/express#>
       prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
@@ -63,7 +64,7 @@ export default class Controle2WonenBebouwingsnormenHoogte extends BaseControle<S
     `
   }
 
-  bericht({ max }: SparqlInputs): string {
+  bericht({ max }: Data): string {
     return `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}. <a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen, hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
   }
 }

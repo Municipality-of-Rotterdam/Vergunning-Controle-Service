@@ -1,27 +1,28 @@
-import { BaseControle } from '@core/BaseControle.js'
-import { GroepsData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
+import { Controle } from '@core/Controle.js'
+import { Data as RPData } from './common.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
 import { SparqlActivity } from '@root/core/Activity.js'
 import namespace from '@rdfjs/namespace'
 
-type SparqlInputs = {
+type Data = {
   gebruiksfunctie: string
 }
 
-export default class Controle2WonenBestemmingsomschrijving extends BaseControle<SparqlInputs, GroepsData> {
-  public naam = 'Bestemmingsomschrijving'
+export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
+  public name = 'Bestemmingsomschrijving'
   public tekst = `De voor 'Wonen' aangewezen gronden zijn bestemd voor woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
   public verwijzing = `Hoofdstuk 2 Bestemmingsregels 
 		Artikel 23 Wonen lid 
 			23.1 Bestemmingsomschrijving 
 				a. `
 
-  async voorbereiding(context: StepContext): Promise<SparqlInputs> {
+  async _run(context: Controle<StepContext, RPData>): Promise<Data> {
     const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const data = this.groepData()
+    const data = context.data
+    if (!data) throw new Error()
     const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
-    this.apiResponse = response
+    // this.apiResponse = response
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',
     )
@@ -40,7 +41,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/1-Wonen-bestemmingsomschrijving'
-  sparql = ({ gebruiksfunctie }: SparqlInputs) => `prefix express: <https://w3id.org/express#>
+  sparql = ({ gebruiksfunctie }: Data) => `prefix express: <https://w3id.org/express#>
       prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 
       # Aanname: een IfcSpace heeft 1 Gebruiksfunctie
@@ -71,7 +72,7 @@ export default class Controle2WonenBestemmingsomschrijving extends BaseControle<
         }
       }`
 
-  bericht({ gebruiksfunctie }: SparqlInputs): string {
+  bericht({ gebruiksfunctie }: Data): string {
     return `Ruimte <a href={?space} target="_blank">{?space}</a> met de gebruiksfunctie "{?functie}" mag niet gepositioneerd worden in een bestemmingsomschrijving "${gebruiksfunctie}".`
   }
 }

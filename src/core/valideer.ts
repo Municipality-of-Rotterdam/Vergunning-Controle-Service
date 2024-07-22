@@ -4,17 +4,19 @@ import { exec } from 'child_process'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rdf, rdfs, rpt, xsd, prov, dct, skos, geo, sf } from '@helpers/namespaces.js'
+import { rdf, rdfs, xsd, prov, dct, skos, geo, sf } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
-import App from '@triply/triplydb'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 import { Activity } from './Activity.js'
 import { start, finish } from './helpers/provenance.js'
+import { Controle } from './Controle.js'
 
 import { headerLogBig } from './helpers/headerLog.js'
 
 import type { GrapoiPointer } from '@helpers/grapoi.js'
+import { Polygon } from 'geojson'
 import { geojsonToWKT } from '@terraformer/wkt'
+import App from '@triply/triplydb'
 const log = createLogger('checks', import.meta)
 
 export const valideer = new Activity(
@@ -23,20 +25,36 @@ export const valideer = new Activity(
     {
       account,
       args,
-      ifcAssetBaseUrl,
       baseIRI,
-      checkGroups,
       datasetName,
+      footprint,
+      elongation,
+      ifcAssetBaseUrl,
+      rpt,
       ruleIds,
     }: Pick<
       StepContext,
-      'account' | 'args' | 'ifcAssetBaseUrl' | 'baseIRI' | 'checkGroups' | 'datasetName' | 'ruleIds'
+      | 'account'
+      | 'args'
+      | 'ifcAssetBaseUrl'
+      | 'baseIRI'
+      | 'datasetName'
+      | 'ruleIds'
+      | 'footprint'
+      | 'elongation'
+      | 'ifcAssetBaseUrl'
+      | 'rpt'
     >,
     thisActivity: Activity<any, any>,
   ) => {
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const user = await triply.getAccount(account)
     const dataset = await user.getDataset(datasetName)
+
+    const mainControle = (await Controle.instantiateFromDirectory()) as Controle<
+      { footprint: Polygon; elongation: number; baseIRI: string },
+      any
+    >
 
     const report = new TriplyStore()
     const reportPointer: GrapoiPointer = grapoi({ dataset: report, factory, term: factory.blankNode() })
@@ -57,11 +75,16 @@ export const valideer = new Activity(
 
     const { apiUrl } = await triply.getInfo()
 
-    for (const checkGroup of checkGroups) {
-      const groupRuleIds = checkGroup.controles.map((controle) => controle.id)
-      if (ruleIds.length && ruleIds.some((ruleId) => !groupRuleIds.includes(ruleId))) continue
+    if (!thisActivity.provenance) throw new Error()
+    await mainControle.run({ footprint, elongation, baseIRI }, thisActivity.provenance)
 
-      headerLogBig(`Groep: "${checkGroup.naam}": Uitvoering`, 'yellowBright')
+    for (const checkGroup of mainControle.constituents) {
+      // const groupRuleIds = group.controles.map((controle) => controle.id)
+      // if (ruleIds.length && ruleIds.some((ruleId: number) => !groupRuleIds.includes(ruleId))) continue
+      // const groupRuleIds = checkGroup.controles.map((controle) => controle.id)
+      // if (ruleIds.length && ruleIds.some((ruleId) => !groupRuleIds.includes(ruleId))) continue
+
+      headerLogBig(`Groep: "${checkGroup.name}": Uitvoering`, 'yellowBright')
 
       const data = checkGroup.data
       const bp: GrapoiPointer = grapoi({ dataset: report, factory, term: factory.blankNode() })
@@ -76,29 +99,29 @@ export const valideer = new Activity(
         bp.addOut(rdfs('seeAlso'), factory.literal(url, xsd('anyUri')))
       }
 
-      for (const controle of checkGroup.controles) {
+      for (const controle of checkGroup.constituents) {
         let uitvoering: GrapoiPointer
         if (controle.activity) {
-          uitvoering = start(controle.activity, { name: `Uitvoering ${controle.naam}` })
+          uitvoering = start(controle.activity, { name: `Uitvoering ${controle.name}` })
         } else {
           throw new Error('must have an activity at this point')
         }
 
         if (controle.sparqlUrl) uitvoering.addOut(rpt('sparqlUrl'), factory.literal(controle.sparqlUrl, xsd('anyUri')))
 
-        headerLogBig(`Controle: "${controle.naam}": Uitvoering`)
+        headerLogBig(`Controle: "${controle.name}": Uitvoering`)
 
         const { success, message } = await controle.uitvoering(
-          controle.sparqlInputs,
+          controle.data,
           `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`,
         )
 
         if (success == null) {
-          log(message, controle.naam)
+          log(message, controle.name)
         } else if (success) {
-          log(chalk.greenBright(`✅ ${message}`), controle.naam)
+          log(chalk.greenBright(`✅ ${message}`), controle.name)
         } else {
-          log(chalk.redBright(`❌ ${message}`), controle.naam)
+          log(chalk.redBright(`❌ ${message}`), controle.name)
         }
 
         finish(uitvoering)
@@ -107,9 +130,9 @@ export const valideer = new Activity(
 
         reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
           c.addOut(rdf('type'), rpt('Controle'))
-          c.addOut(rdfs('label'), controle.naam)
-          c.addOut(dct('description'), factory.literal(controle.tekst, 'nl'))
-          c.addOut(rpt('verwijzing'), factory.literal(controle.verwijzing, 'nl'))
+          c.addOut(rdfs('label'), controle.name)
+          if (controle.tekst) c.addOut(dct('description'), factory.literal(controle.tekst, 'nl'))
+          if (controle.verwijzing) c.addOut(rpt('verwijzing'), factory.literal(controle.verwijzing, 'nl'))
           c.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
           c.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
           c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
@@ -117,15 +140,15 @@ export const valideer = new Activity(
 
           // If there is a geoJSON property on the controle data, we add it
           // TODO pending refactoring
-          if (controle.sparqlInputs && controle.sparqlInputs.hasOwnProperty('geoJSON')) {
+          if (controle.data && controle.data.hasOwnProperty('geoJSON')) {
             /*@ts-ignore */
-            const geoJSON = controle.sparqlInputs.geoJSON
+            const geoJSON = controle.data.geoJSON
             const wkt = geojsonToWKT(geoJSON)
             const footprintPtr: GrapoiPointer = grapoi({
               dataset: report,
               factory,
               term: factory.namedNode(
-                `${baseIRI}${datasetName}/Controle${controle.naam.replaceAll(/\W/g, '')}Footprint`,
+                `${baseIRI}${datasetName}/Controle${controle.name.replaceAll(/\W/g, '')}Footprint`,
               ),
             })
             c.addOut(rpt('footprint'), footprintPtr)
@@ -139,11 +162,12 @@ export const valideer = new Activity(
 
           // TODO temporary solution for reporting information that doesn't come from SPARQL query
           //@ts-ignore
-          const elongation = controle.sparqlInputs.elongation
+          const elongation = controle.data.elongation
           if (elongation) c.addOut(rpt('elongation'), factory.literal(elongation))
         })
       }
 
+      // TODO return
       if (checkGroup.activity) finish(checkGroup.activity)
     }
 

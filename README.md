@@ -1,4 +1,4 @@
-# Vergunningscontroleservice application for the Municipality of Rotterdam
+# Vergunningscontroleservice (VSC) application for the Municipality of Rotterdam
 
 ## Prerequisites
 
@@ -26,7 +26,7 @@ Once you have your token, open the file `.env` and write the following line:
 
 You also need `RP_API_TOKEN`. You can find it in the GitLab CI environment settings.
 
-### IFC input
+### Input: IFC file
 
 The IFC file that will be checked needs to be uploaded as an asset to the `vcs` dataset of the respective DTAP environment. See for example here: https://demo.triplydb.com/rotterdam/vcs/assets. This way, we can integrate the application with the DSO, and trigger a web hook to run the application every time a new IFC file from the DSO is uploaded.
 
@@ -51,6 +51,10 @@ It might also be necessary to increase the memory:
 ```sh
 export NODE_OPTIONS="--max-old-space-size=8192"
 ```
+
+### Output: vsc-rapport.html
+
+The output of the VSC application is the report, called `vsc-rapport.html`. This is added as an asset to the respective building dataset. See for example here: https://demo.triplydb.com/rotterdam/KievitswegRMVPIFC/assets.
 
 ## Development of checks
 
