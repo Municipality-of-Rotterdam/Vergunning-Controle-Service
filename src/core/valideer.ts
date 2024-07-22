@@ -51,7 +51,7 @@ export const valideer = new Activity(
     const user = await triply.getAccount(account)
     const dataset = await user.getDataset(datasetName)
 
-    const mainControle = (await Controle.instantiateFromDirectory('src/controles')) as Controle<
+    const mainControle = (await Controle.instantiateFromDirectory()) as Controle<
       { footprint: Polygon; elongation: number; baseIRI: string },
       any
     >
