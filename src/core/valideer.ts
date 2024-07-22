@@ -51,6 +51,11 @@ export const valideer = new Activity(
     const user = await triply.getAccount(account)
     const dataset = await user.getDataset(datasetName)
 
+    const mainControle = (await Controle.instantiateFromDirectory('src/controles')) as Controle<
+      { footprint: Polygon; elongation: number; baseIRI: string },
+      any
+    >
+
     const report = new TriplyStore()
     const reportPointer: GrapoiPointer = grapoi({ dataset: report, factory, term: factory.blankNode() })
 
@@ -70,19 +75,14 @@ export const valideer = new Activity(
 
     const { apiUrl } = await triply.getInfo()
 
-    const controles = (await Controle.instantiateFromDirectory('src/controles')) as Controle<
-      { footprint: Polygon; elongation: number },
-      any
-    >[]
+    if (!thisActivity.provenance) throw new Error()
+    await mainControle.run({ footprint, elongation, baseIRI }, thisActivity.provenance)
 
-    for (const checkGroup of controles) {
+    for (const checkGroup of mainControle.constituents) {
       // const groupRuleIds = group.controles.map((controle) => controle.id)
       // if (ruleIds.length && ruleIds.some((ruleId: number) => !groupRuleIds.includes(ruleId))) continue
       // const groupRuleIds = checkGroup.controles.map((controle) => controle.id)
       // if (ruleIds.length && ruleIds.some((ruleId) => !groupRuleIds.includes(ruleId))) continue
-
-      if (!thisActivity.provenance) throw new Error()
-      await checkGroup.run({ footprint, elongation }, thisActivity.provenance)
 
       headerLogBig(`Groep: "${checkGroup.name}": Uitvoering`, 'yellowBright')
 

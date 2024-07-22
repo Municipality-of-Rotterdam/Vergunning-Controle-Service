@@ -8,24 +8,41 @@ import { GrapoiPointer } from '@core/helpers/grapoi.js'
 import { SparqlActivity } from './Activity.js'
 import { StepContext } from './executeSteps.js'
 import { start, finish } from './helpers/provenance.js'
-// import { Store as TriplyStore } from '@triplydb/data-factory'
+import { Store as TriplyStore } from '@triplydb/data-factory'
+import { BlankNode, NamedNode } from '@rdfjs/types'
+import { dct } from './helpers/namespaces.js'
+import grapoi from 'grapoi'
+import factory from '@rdfjs/data-model'
 
 const log = createLogger('checks', import.meta)
 
-export abstract class Controle<Context, Result extends {}> {
+export abstract class Controle<Context extends {}, Result extends {}> {
   public abstract name: string
   public id?: number
-  // public report?: GrapoiPointer
-  // public reportGraph?: TriplyStore
+
+  // Underlying graph
+  public node: BlankNode | NamedNode
+  public graph: TriplyStore
+  public pointer: GrapoiPointer
+
   public activity?: GrapoiPointer // TODO: To be removed, keeping it while refactoring
+
+  // Parent-child
   public data?: Result
   public context?: Context
   public constituents: Controle<Controle<Context, Result>, any>[]
 
-  constructor(basename: string) {
+  // TODO: Probably more intuitive to define children rather than parent, so as
+  // not to rely on side-effects so much, but that is for later
+  protected constructor(basename: string, parent?: Controle<any, Context>) {
     const id = parseInt(basename.split('-')[0])
     this.id = isNaN(id) ? undefined : id
     this.constituents = []
+
+    this.node = factory.blankNode()
+    this.graph = parent ? parent.graph : new TriplyStore()
+    this.pointer = grapoi({ dataset: this.graph, factory, term: this.node })
+    if (parent) parent.pointer.addOut(dct('hasPart'), this.pointer)
   }
 
   add(controle: Controle<Controle<Context, Result>, any>) {
@@ -36,44 +53,47 @@ export abstract class Controle<Context, Result extends {}> {
     this.constituents.push(controle)
   }
 
-  static async instantiateFromDirectory(directory: PathLike): Promise<Controle<any, any>[]> {
-    const fIsCommon = (s: string) => s.replace(/\.[tj]s$/, '') == 'common'
-    const fFileToControle: (f: Dirent) => Promise<Controle<any, any>> = (f) =>
-      import(`../../${join(f.parentPath, f.name.replace(/\.ts$/, '.js'))}`).then((m) => new m.default(f.name))
+  static async instantiateFromFile(file: Dirent, parent?: Controle<any, any>): Promise<Controle<any, any>> {
+    return import(`../../${join(file.parentPath, file.name.replace(/\.ts$/, '.js'))}`).then(
+      (m) => new m.default(file.name, parent),
+    )
+  }
 
+  static async instantiateFromDirectory(directory: PathLike, parent?: Controle<any, any>): Promise<Controle<any, any>> {
     const entries = (await readdir(directory, { withFileTypes: true })).sort()
     const directories = entries.filter((f) => f.isDirectory())
     const files = entries.filter((f) => !f.isDirectory() && (f.name.endsWith('.js') || f.name.endsWith('.ts')))
 
-    // Collect subcontroles from files & directories
-    const fileSubcontroles: Controle<any, any>[] = await Promise.all(
-      files.filter((f) => !fIsCommon(f.name)).map(fFileToControle),
-    )
-    const dirSubcontroles: Controle<any, any>[] = (
-      await Promise.all(directories.map(async (d) => Controle.instantiateFromDirectory(join(d.parentPath, d.name))))
-    ).flat()
-    const controles = dirSubcontroles.concat(fileSubcontroles)
-    for (const c of controles)
-      if (!(c instanceof Controle)) throw new Error('Alles in de controles/ directory moet een Controle zijn')
+    // Determine the common group of this directory and push all controles as its constituents
+    const fIsCommon = (s: string) => s.replace(/\.[tj]s$/, '') == 'common'
+    const commonFiles: Dirent[] = files.filter((f) => fIsCommon(f.name))
+    const common: Controle<any, any> = commonFiles.length
+      ? await Controle.instantiateFromFile(commonFiles[0], parent)
+      : new DefaultCommonControle(directory.toString(), parent)
 
-    // If there is a common group in the directory, then push all controles inside
-    const commons: Controle<any, any>[] = await Promise.all(files.filter((f) => fIsCommon(f.name)).map(fFileToControle))
-    if (commons.length > 1) {
-      throw new Error('Er kan maar 1 `common.ts` in een controlemap zijn')
-    } else if (commons.length == 1) {
-      const common = commons[0]
-      for (const c of controles) common.add(c)
-      return [common]
-    } else {
-      return controles
+    // Collect subcontroles from files & directories and add them to the overarching controle
+    const fileSubcontroles: Controle<any, any>[] = await Promise.all(
+      files.filter((f) => !fIsCommon(f.name)).map(async (f) => Controle.instantiateFromFile(f, parent)),
+    )
+    const dirSubcontroles: Controle<any, any>[] = await Promise.all(
+      directories.map(async (d) => Controle.instantiateFromDirectory(join(d.parentPath, d.name), parent)),
+    )
+    const controles = dirSubcontroles.concat(fileSubcontroles)
+    for (const c of controles) {
+      if (!(c instanceof Controle)) throw new Error('Alles in de controles/ directory moet een Controle zijn')
+      common.add(c)
     }
+
+    return common
   }
 
   async run(context: Context, activity: GrapoiPointer): Promise<Result> {
     headerLogBig(`Controle run: "${this.name}"`, 'yellowBright')
 
     const prep = start(activity, { name: `Controle ${this.name}` })
-    const intermediate = await this._run(context)
+    const intermediate = (await this._run(context)) ?? {}
+    if (context) Object.assign(intermediate, context)
+
     this.context = context
     this.activity = prep
     this.data = intermediate
@@ -118,7 +138,8 @@ export abstract class Controle<Context, Result extends {}> {
     if (!url) throw new Error('must have url')
     const sparql = this.sparql(inputs)
     const activity = new SparqlActivity({ name: `SPARQL query ${this.name}`, body: sparql, url })
-    const response = await activity.run(null)
+    //@ts-ignore TODO: The base IRI is passed through in a wholly unsustainable way at the moment
+    const response = await activity.run({ baseIRI: this.context?.context?.context?.baseIRI })
     const result = response[0] ?? null
     const success = result ? result.success ?? false : true
     let message = success ? this.berichtGeslaagd(inputs) : this.berichtGefaald(inputs)
@@ -133,5 +154,16 @@ export abstract class Controle<Context, Result extends {}> {
 
   log(message: any) {
     log(message, `Controle: "${this.name}"`)
+  }
+}
+
+export class DefaultCommonControle extends Controle<StepContext, StepContext> {
+  public name: string
+  constructor(basename: string, parent?: Controle<any, any>) {
+    super(basename, parent)
+    this.name = basename
+  }
+  async _run(context: StepContext) {
+    return context
   }
 }

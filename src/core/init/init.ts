@@ -18,9 +18,9 @@ import { Activity } from '@core/Activity.js'
 
 const log = createLogger('init', import.meta)
 
-export const init = new Activity(
-  { name: 'Init', description: 'Initialisatiefase van het Vergunningscontroleservice' },
-  async (_: any) => {
+export const init = //new Activity(
+  // { name: 'Init', description: 'Initialisatiefase van het Vergunningscontroleservice' },
+  async () => {
     dotenv.config()
 
     for (const variable of ['TRIPLYDB_TOKEN', 'RP_API_TOKEN'])
@@ -139,5 +139,4 @@ export const init = new Activity(
       ruleIds,
       rpt,
     }
-  },
-)
+  }
