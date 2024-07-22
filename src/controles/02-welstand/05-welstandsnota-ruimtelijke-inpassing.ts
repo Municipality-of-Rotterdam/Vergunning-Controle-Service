@@ -3,6 +3,10 @@ import { StepContext } from '@root/core/executeSteps.js'
 import { Data as WelstandData } from './common.js'
 import { WelstandWfsActivity } from '@core/Activity.js'
 import { GeoJSON, MultiPolygon, Position } from 'geojson'
+import { rdf, skos, dct, geo, xsd, sf } from '@core/helpers/namespaces.js'
+import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
+import factory from '@rdfjs/data-model'
+import { geojsonToWKT } from '@terraformer/wkt'
 
 type Data = { elongation: number; welstandgebied: string; welstandgebied_id: number; geoJSON: GeoJSON }
 
@@ -71,6 +75,29 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
     const response = await wfs.run(null)
     const data = context.data
     if (!data) throw new Error()
+
+    // Save to report
+    this.pointer.addOut(dct('hasPart'), (p: GrapoiPointer) => {
+      p.addOut(skos('prefLabel'), factory.literal('Langwerpigheid', 'nl'))
+      // p.addOut(rdf('type'), rpt('Elongation'))
+    })
+    this.pointer.addOut(dct('hasPart'), (p: GrapoiPointer) => {
+      p.addOut(skos('prefLabel'), factory.literal('Welstandsgebied', 'nl'))
+      // p.addOut(rdf('type'), rpt('Welstandsgebied'))
+      // p.addOut(skos('prefLabel'))
+    })
+    this.pointer.addOut(dct('hasPart'), (p: GrapoiPointer) => {
+      p.addOut(skos('prefLabel'), factory.literal(`Voetafdruk`, 'nl'))
+      p.addOut(
+        dct('description'),
+        factory.literal(`Voetafdruk van welstandsgebied ${response.fid}: ${response.geb_type}`, 'nl'),
+      )
+      p.addOut(rdf('type'), sf(response.surface.type))
+      p.addOut(geo('coordinateDimension'), factory.literal('2', xsd('integer')))
+      const wkt = geojsonToWKT(response.surface)
+      p.addOut(geo('asWKT'), factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${wkt}`, geo('wktLiteral')))
+    })
+
     return {
       elongation: data.elongation,
       welstandgebied_id: response.fid,
