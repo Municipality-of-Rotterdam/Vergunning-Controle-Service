@@ -1,5 +1,5 @@
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
-import { Data as RPData } from '@root/controles/01-ruimtelijke-plannen/ruimtelijke-plannen.js'
+import { Data as RPData } from './common.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { Controle } from '@root/core/Controle.js'
 

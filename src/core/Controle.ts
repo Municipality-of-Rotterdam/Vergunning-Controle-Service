@@ -1,7 +1,7 @@
 import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
 import { readdir } from 'fs/promises'
-import { PathLike } from 'fs'
+import { PathLike, Dirent } from 'fs'
 import { join, relative } from 'path'
 
 import { GrapoiPointer } from '@core/helpers/grapoi.js'
@@ -37,36 +37,36 @@ export abstract class Controle<Context, Result extends {}> {
   }
 
   static async instantiateFromDirectory(directory: PathLike): Promise<Controle<any, any>[]> {
+    const fIsCommon = (s: string) => s.replace(/\.[tj]s$/, '') == 'common'
+    const fFileToControle: (f: Dirent) => Promise<Controle<any, any>> = (f) =>
+      import(`../../${join(f.parentPath, f.name.replace(/\.ts$/, '.js'))}`).then((m) => new m.default(f.name))
+
     const entries = (await readdir(directory, { withFileTypes: true })).sort()
     const directories = entries.filter((f) => f.isDirectory())
     const files = entries.filter((f) => !f.isDirectory() && (f.name.endsWith('.js') || f.name.endsWith('.ts')))
 
-    // Import controles
-    let controles = await Promise.all(
-      files.map((f) =>
-        import(`../../${join(f.parentPath, f.name.replace(/\.ts$/, '.js'))}`).then((m) => new m.default(f.name)),
-      ),
+    // Collect subcontroles from files & directories
+    const fileSubcontroles: Controle<any, any>[] = await Promise.all(
+      files.filter((f) => !fIsCommon(f.name)).map(fFileToControle),
     )
+    const dirSubcontroles: Controle<any, any>[] = (
+      await Promise.all(directories.map(async (d) => Controle.instantiateFromDirectory(join(d.parentPath, d.name))))
+    ).flat()
+    const controles = dirSubcontroles.concat(fileSubcontroles)
     for (const c of controles)
       if (!(c instanceof Controle)) throw new Error('Alles in de controles/ directory moet een Controle zijn')
 
-    // If there is a group (any file without an id), push all controles in there
-    const controleGroep = controles.filter((c) => c.id === undefined)
-    if (controleGroep.length > 1) {
-      throw new Error('Er kan maar 1 groep in een controlemap zijn')
-    } else if (controleGroep.length == 1) {
-      const groep = controleGroep[0]
-      for (const c of controles.filter((c) => c.id !== undefined)) groep.add(c)
-      controles = [groep]
+    // If there is a common group in the directory, then push all controles inside
+    const commons: Controle<any, any>[] = await Promise.all(files.filter((f) => fIsCommon(f.name)).map(fFileToControle))
+    if (commons.length > 1) {
+      throw new Error('Er kan maar 1 `common.ts` in een controlemap zijn')
+    } else if (commons.length == 1) {
+      const common = commons[0]
+      for (const c of controles) common.add(c)
+      return [common]
+    } else {
+      return controles
     }
-
-    // Do the same for anything hidden in directories
-    for (const d of directories) {
-      const other = await Controle.instantiateFromDirectory(join(d.parentPath, d.name))
-      for (const o of other) controles.push(o)
-    }
-
-    return controles
   }
 
   async run(context: Context, activity: GrapoiPointer): Promise<Result> {

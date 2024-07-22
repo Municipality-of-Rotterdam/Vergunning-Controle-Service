@@ -1,6 +1,6 @@
 import { Controle } from '@core/Controle.js'
 import { StepContext } from '@root/core/executeSteps.js'
-import { Data as WelstandData } from '@root/controles/02-welstand/welstand.js'
+import { Data as WelstandData } from './common.js'
 import { WelstandWfsActivity } from '@core/Activity.js'
 import { GeoJSON, MultiPolygon, Position } from 'geojson'
 
