@@ -6,6 +6,8 @@ import { Store as TriplyStore } from '@triplydb/data-factory'
 import React from 'react'
 import { wktToGeoJSON } from '@terraformer/wkt'
 import { NamespaceBuilder } from '@rdfjs/namespace'
+import { GeoJSON, Geometry } from 'geojson'
+import * as crypto from 'crypto'
 
 export type RapportageProps = {
   baseIRI: string
@@ -179,20 +181,6 @@ function Map(label: string, wkt: string) {
       <script
         dangerouslySetInnerHTML={{
           __html: `
-var RD = new L.Proj.CRS(
-  'EPSG:28992',
-  '+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs',
-  {
-    origin: [-285401.92, 903401.92],
-    resolutions: [
-      3251.206502413005, 1625.6032512065026, 812.8016256032513, 406.40081280162565, 203.20040640081282,
-      101.60020320040641, 50.800101600203206, 25.400050800101603, 12.700025400050801, 6.350012700025401,
-      3.1750063500127004, 1.5875031750063502, 0.7937515875031751, 0.39687579375158755, 0.19843789687579377,
-      0.09921894843789689, 0.04960947421894844,
-    ],
-  },
-)
-
 var data = JSON.parse(document.getElementById('data').textContent)
 
 var welstandsgebied = {
@@ -231,12 +219,67 @@ L.geoJSON([welstandsgebied, data.footprint], {
   coordsToLatLng: (coords) => RD.unproject(L.point(coords[0], coords[1])),
   onEachFeature
 }).addTo(map);
-
 `,
         }}
       ></script>
     </>
   )
+}
+
+// Find all georef content from this controle and add to the map if there are any
+function Map2(p: GrapoiPointer) {
+  const features: GeoJSON[] = []
+  const mapID = crypto.createHash('md5').update(p.value.toString()).digest('hex')
+
+  for (const r of p.out(skos('related'))) {
+    const asWkt = r.out(geo('asWKT')).value
+    const label = r.out(skos('prefLabel')).value
+    const description = r.out(dct('description')).value
+
+    if (asWkt) {
+      const geometry = wktToGeoJSON(
+        asWkt
+          .toString()
+          .replace(/^<.*>\s/, '')
+          .toUpperCase(),
+      ) as Geometry
+
+      features.push({
+        type: 'Feature',
+        properties: {
+          name: label,
+          show_on_map: true,
+          popupContent: description,
+          style: {
+            weight: 2,
+            color: '#999',
+            opacity: 1,
+            fillColor: '#B0DE5C',
+            fillOpacity: 0.5,
+          },
+        },
+        geometry,
+      })
+    }
+  }
+
+  if (features.length) {
+    return (
+      <>
+        <div id={mapID} style={{ height: '300px', width: '600px', float: 'right' }}></div>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+const m${mapID} = L.map('${mapID}').setView([startView.lat, startView.lng], 20);
+tiles.addTo(m${mapID});
+L.geoJSON(${JSON.stringify(features)}, {coordsToLatLng, onEachFeature}).addTo(m${mapID});
+`,
+          }}
+        ></script>
+      </>
+    )
+  }
+  return <></>
 }
 
 function Controle2(p: GrapoiPointer, rpt: NamespaceBuilder, depth: number = 0) {
@@ -246,8 +289,9 @@ function Controle2(p: GrapoiPointer, rpt: NamespaceBuilder, depth: number = 0) {
   return (
     <div
       id={p.value.toString()}
-      style={depth > 1 ? { border: '2px dashed #bbbbbb', margin: '15px 5px', padding: '5px' } : {}}
+      style={depth > 1 ? { border: '2px dashed #bbbbbb', margin: '15px 5px', padding: '5px', overflow: 'auto' } : {}}
     >
+      <>{Map2(p)}</>
       <h3>{label.value}</h3>
       <dl>
         <dt>Node</dt>
@@ -277,11 +321,11 @@ function Controle(controleP: any, provenanceDataset: TriplyStore, rpt: Namespace
   const provenanceNodeInProvenance = grapoi({ dataset: provenanceDataset, term: provenanceNode.term })
   const source = controleP.out(dct('source'))
   const footprint = controleP.out(rpt('footprint')).out(geo('asWKT')).value
+  // {footprint ? Map(label, footprint) : ''}
   return (
     <div key={label}>
       <hr />
       <h3 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h3>
-      {footprint ? Map(label, footprint) : ''}
       <dl>
         <dt>Beschrijving</dt>
         <dd>{description}</dd>
@@ -374,6 +418,40 @@ export default function (
               null,
               2,
             ),
+          }}
+        ></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+const RD = new L.Proj.CRS(
+  'EPSG:28992',
+  '+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs',
+  {
+    origin: [-285401.92, 903401.92],
+    resolutions: [
+      3251.206502413005, 1625.6032512065026, 812.8016256032513, 406.40081280162565, 203.20040640081282,
+      101.60020320040641, 50.800101600203206, 25.400050800101603, 12.700025400050801, 6.350012700025401,
+      3.1750063500127004, 1.5875031750063502, 0.7937515875031751, 0.39687579375158755, 0.19843789687579377,
+      0.09921894843789689, 0.04960947421894844,
+    ],
+  },
+);
+var data = JSON.parse(document.getElementById('data').textContent)
+const coords = data.footprint.geometry.coordinates[0][0]
+const startView = RD.unproject(L.point(coords[0], coords[1]))
+const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+});
+function onEachFeature(feature, layer) {
+  if (feature.properties && feature.properties.popupContent) {
+    layer.bindPopup(feature.properties.popupContent);
+  }
+};
+function coordsToLatLng(coords){
+  return RD.unproject(L.point(coords[0], coords[1]));
+}
+`,
           }}
         ></script>
         <style>{`

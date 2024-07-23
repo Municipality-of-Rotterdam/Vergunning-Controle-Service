@@ -87,10 +87,7 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
     })
     this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
       p.addOut(skos('prefLabel'), factory.literal(`Voetafdruk`, 'nl'))
-      p.addOut(
-        dct('description'),
-        factory.literal(`Voetafdruk van welstandsgebied ${response.fid}: ${response.geb_type}`, 'nl'),
-      )
+      p.addOut(dct('description'), factory.literal(`Voetafdruk van welstandsgebied ${response.geb_type}`, 'nl'))
       p.addOut(rdf('type'), sf(response.surface.type))
       p.addOut(geo('coordinateDimension'), factory.literal('2', xsd('integer')))
       const wkt = geojsonToWKT(response.surface)
