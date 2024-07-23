@@ -86,19 +86,6 @@ export const valideer = new Activity(
 
       headerLogBig(`Groep: "${checkGroup.name}": Uitvoering`, 'yellowBright')
 
-      const data = checkGroup.data
-      const bp: GrapoiPointer = grapoi({ dataset: report, factory, term: factory.blankNode() })
-      if (data && 'bestemmingsplan' in data) {
-        const bestemmingsplan: any = data.bestemmingsplan
-        let url: string = bestemmingsplan['heeftOnderdelen'].filter((o: any) => o['type'] == 'toelichting')[0][
-          'externeReferenties'
-        ][0]
-        bp.addOut(rdf('type'), rpt('Bestemmingsplan'))
-        bp.addOut(rdfs('label'), bestemmingsplan.id)
-        bp.addOut(skos('prefLabel'), bestemmingsplan.naam)
-        bp.addOut(rdfs('seeAlso'), factory.literal(url, xsd('anyUri')))
-      }
-
       for (const controle of checkGroup.constituents) {
         let uitvoering: GrapoiPointer
         if (controle.activity) {
@@ -136,29 +123,6 @@ export const valideer = new Activity(
           c.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
           c.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
           c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
-          c.addOut(dct('source'), bp)
-
-          // If there is a geoJSON property on the controle data, we add it
-          // TODO pending refactoring
-          if (controle.data && controle.data.hasOwnProperty('geoJSON')) {
-            /*@ts-ignore */
-            const geoJSON = controle.data.geoJSON
-            const wkt = geojsonToWKT(geoJSON)
-            const footprintPtr: GrapoiPointer = grapoi({
-              dataset: report,
-              factory,
-              term: factory.namedNode(
-                `${baseIRI}${datasetName}/Controle${controle.name.replaceAll(/\W/g, '')}Footprint`,
-              ),
-            })
-            c.addOut(rpt('footprint'), footprintPtr)
-            footprintPtr.addOut(geo('coordinateDimension'), factory.literal('2', xsd('integer')))
-            footprintPtr.addOut(rdf('type'), sf(geoJSON.type))
-            footprintPtr.addOut(
-              geo('asWKT'),
-              factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${wkt}`, geo('wktLiteral')),
-            )
-          }
 
           // TODO temporary solution for reporting information that doesn't come from SPARQL query
           //@ts-ignore

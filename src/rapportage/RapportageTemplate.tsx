@@ -24,21 +24,6 @@ export type RapportageProps = {
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
 
-function Bestemmingsplan(source: GrapoiPointer) {
-  const naam = source.out(skos('prefLabel'))
-  const id = source.out(rdfs('label'))
-  const url = source.out(rdfs('seeAlso'))
-  if (url && url.value) {
-    return (
-      <a href={url.value.toString()}>
-        {naam.value} ({id.value})
-      </a>
-    )
-  } else {
-    return 'n.v.t.'
-  }
-}
-
 function ElongationExplanation() {
   return (
     <details>
@@ -282,6 +267,22 @@ L.geoJSON(${JSON.stringify(features)}, {coordsToLatLng, onEachFeature}).addTo(m$
   return <></>
 }
 
+function Bestemmingsplan(p: GrapoiPointer) {
+  const source = p.out(dct('source'))
+  const label = source.out(skos('prefLabel')).value
+  const url = source.out(rdfs('seeAlso')).value
+  if (!source.value) return <></>
+  else
+    return (
+      <>
+        <dt>Bestemmingsplan</dt>
+        <dd>
+          <a href={url ? url.toString() : ''}>{label}</a>
+        </dd>
+      </>
+    )
+}
+
 function Controle2(p: GrapoiPointer, rpt: NamespaceBuilder, depth: number = 0) {
   const label = p.out(rdfs('label'))
   const subcontroles = p.out(dct('hasPart'))
@@ -294,8 +295,7 @@ function Controle2(p: GrapoiPointer, rpt: NamespaceBuilder, depth: number = 0) {
       <>{Map2(p)}</>
       <h3>{label.value}</h3>
       <dl>
-        <dt>Node</dt>
-        <dd>{p.value}</dd>
+        {Bestemmingsplan(p)}
         <>
           {related.map((r) => (
             <>
@@ -334,8 +334,6 @@ function Controle(controleP: any, provenanceDataset: TriplyStore, rpt: Namespace
           {validated ? <strong>✅</strong> : <strong>❌</strong>} <span dangerouslySetInnerHTML={{ __html: message }} />
           {elongation ? ElongationExplanation() : ''}
         </dd>
-        <dt>Bestemmingsplan</dt>
-        <dd>{Bestemmingsplan(source)}</dd>
         {verwijzing ? (
           <>
             <dt>Verwijzing</dt>

@@ -1,6 +1,8 @@
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
 import { Controle } from '@root/core/Controle.js'
+import { dct, rdfs, skos, xsd } from '@core/helpers/namespaces.js'
+import factory from '@rdfjs/data-model'
 
 export type Data = { bestemmingsplan: any; geoShape: any }
 
@@ -36,6 +38,15 @@ export default class _ extends Controle<Controle<any, StepContext>, Data> {
     const bestemmingsplan = plans[plans.length - 1]
 
     this.log(`Geselecteerd: ${bestemmingsplan.id}`)
+
+    let url: string = bestemmingsplan['heeftOnderdelen'].filter((o: any) => o['type'] == 'toelichting')[0][
+      'externeReferenties'
+    ][0]
+
+    this.pointer.addOut(dct('source'), (bp: any) => {
+      bp.addOut(skos('prefLabel'), `${bestemmingsplan.naam} (${bestemmingsplan.id})`)
+      bp.addOut(rdfs('seeAlso'), factory.literal(url, xsd('anyUri')))
+    })
 
     return { bestemmingsplan, geoShape }
   }
