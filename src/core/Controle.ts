@@ -77,9 +77,13 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     // Determine the common group of this directory and push all controles as its constituents
     const fIsCommon = (s: string) => s.replace(/\.[tj]s$/, '') == 'common'
     const commonFiles: Dirent[] = files.filter((f) => fIsCommon(f.name))
-    const common: Controle<any, any> = commonFiles.length
-      ? await Controle.instantiateFromFile(path.join(directory2, commonFiles[0].name), parent)
-      : new DefaultCommonControle(directory2, parent)
+
+    if (commonFiles.length != 1) throw new Error('Er moet een overkoepelende `common.ts` controle zijn')
+
+    const common: Controle<any, any> = await Controle.instantiateFromFile(
+      path.join(directory2, commonFiles[0].name),
+      parent,
+    )
 
     // Collect subcontroles from files & directories and add them to the overarching controle
     const fileSubcontroles: Controle<any, any>[] = await Promise.all(
@@ -170,16 +174,5 @@ export abstract class Controle<Context extends {}, Result extends {}> {
 
   log(message: any) {
     log(message, `Controle: "${this.name}"`)
-  }
-}
-
-export class DefaultCommonControle extends Controle<StepContext, StepContext> {
-  public name: string
-  constructor(basename: string, parent?: Controle<any, any>) {
-    super(basename, parent)
-    this.name = basename
-  }
-  async _run(context: StepContext) {
-    return context
   }
 }
