@@ -2,7 +2,7 @@ import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
 import { readdir } from 'fs/promises'
 import { PathLike, Dirent } from 'fs'
-import { join, relative } from 'path'
+import path from 'path'
 
 import { GrapoiPointer } from '@core/helpers/grapoi.js'
 import { SparqlActivity } from './Activity.js'
@@ -10,7 +10,7 @@ import { StepContext } from './executeSteps.js'
 import { start, finish } from './helpers/provenance.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 import { BlankNode, NamedNode } from '@rdfjs/types'
-import { dct } from './helpers/namespaces.js'
+import { dct, rdfs } from './helpers/namespaces.js'
 import grapoi from 'grapoi'
 import factory from '@rdfjs/data-model'
 
@@ -18,6 +18,7 @@ const log = createLogger('checks', import.meta)
 
 export abstract class Controle<Context extends {}, Result extends {}> {
   public abstract name: string
+  public path: string
   public id?: number
 
   // Underlying graph
@@ -34,15 +35,21 @@ export abstract class Controle<Context extends {}, Result extends {}> {
 
   // TODO: Probably more intuitive to define children rather than parent, so as
   // not to rely on side-effects so much, but that is for later
-  protected constructor(basename: string, parent?: Controle<any, Context>) {
+  protected constructor(fullPath: string, parent?: Controle<any, Context>) {
+    const p = fullPath.split(path.sep)
+    const basename = p[p.length - 1]
     const id = parseInt(basename.split('-')[0])
+    this.path = fullPath
     this.id = isNaN(id) ? undefined : id
     this.constituents = []
 
-    this.node = factory.blankNode()
-    this.graph = parent ? parent.graph : new TriplyStore()
+    this.node = factory.namedNode(`https://example.org/${this.path}`)
+    if (parent) {
+      this.graph = parent.graph
+    } else {
+      this.graph = new TriplyStore()
+    }
     this.pointer = grapoi({ dataset: this.graph, factory, term: this.node })
-    if (parent) parent.pointer.addOut(dct('hasPart'), this.pointer)
   }
 
   add(controle: Controle<Controle<Context, Result>, any>) {
@@ -51,14 +58,11 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     }
     controle.context = this
     this.constituents.push(controle)
+    this.pointer.addOut(dct('hasPart'), controle.node)
   }
 
-  static async instantiateFromFile(
-    directory: string,
-    filename: string,
-    parent?: Controle<any, any>,
-  ): Promise<Controle<any, any>> {
-    return import(join(directory, filename.replace(/\.ts$/, '.js'))).then((m) => new m.default(filename, parent))
+  static async instantiateFromFile(file: string, parent?: Controle<any, any>): Promise<Controle<any, any>> {
+    return import(file.replace(/\.ts$/, '.js')).then((m) => new m.default(file, parent))
   }
 
   static async instantiateFromDirectory(
@@ -74,18 +78,18 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     const fIsCommon = (s: string) => s.replace(/\.[tj]s$/, '') == 'common'
     const commonFiles: Dirent[] = files.filter((f) => fIsCommon(f.name))
     const common: Controle<any, any> = commonFiles.length
-      ? await Controle.instantiateFromFile(directory2, commonFiles[0].name, parent)
-      : new DefaultCommonControle(directory, parent)
+      ? await Controle.instantiateFromFile(path.join(directory2, commonFiles[0].name), parent)
+      : new DefaultCommonControle(directory2, parent)
 
     // Collect subcontroles from files & directories and add them to the overarching controle
     const fileSubcontroles: Controle<any, any>[] = await Promise.all(
       files
         .filter((f) => !fIsCommon(f.name))
-        .map(async (f) => Controle.instantiateFromFile(directory2, f.name, parent)),
+        .map(async (f) => Controle.instantiateFromFile(path.join(directory2, f.name), common)),
     )
     const dirSubcontroles: Controle<any, any>[] = await Promise.all(
       directories.map(async (d) =>
-        Controle.instantiateFromDirectory(join(directory, d.name), join(directory2, d.name), parent),
+        Controle.instantiateFromDirectory(path.join(directory, d.name), path.join(directory2, d.name), common),
       ),
     )
     const controles = dirSubcontroles.concat(fileSubcontroles)
@@ -99,6 +103,8 @@ export abstract class Controle<Context extends {}, Result extends {}> {
 
   async run(context: Context, activity: GrapoiPointer): Promise<Result> {
     headerLogBig(`Controle run: "${this.name}"`, 'yellowBright')
+
+    this.pointer.addOut(rdfs('label'), factory.literal(this.name))
 
     const prep = start(activity, { name: `Controle ${this.name}` })
     const intermediate = (await this._run(context)) ?? {}

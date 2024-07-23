@@ -3,7 +3,7 @@ import { StepContext } from '@root/core/executeSteps.js'
 import { Data as WelstandData } from './common.js'
 import { WelstandWfsActivity } from '@core/Activity.js'
 import { GeoJSON, MultiPolygon, Position } from 'geojson'
-import { rdf, skos, dct, geo, xsd, sf } from '@core/helpers/namespaces.js'
+import { rdf, skos, dct, geo, xsd, sf, litre } from '@core/helpers/namespaces.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 import factory from '@rdfjs/data-model'
 import { geojsonToWKT } from '@terraformer/wkt'
@@ -77,16 +77,15 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
     if (!data) throw new Error()
 
     // Save to report
-    this.pointer.addOut(dct('hasPart'), (p: GrapoiPointer) => {
+    this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
       p.addOut(skos('prefLabel'), factory.literal('Langwerpigheid', 'nl'))
-      // p.addOut(rdf('type'), rpt('Elongation'))
+      p.addOut(litre('hasLiteral'), factory.literal(data.elongation.toString(), xsd('number')))
     })
-    this.pointer.addOut(dct('hasPart'), (p: GrapoiPointer) => {
+    this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
       p.addOut(skos('prefLabel'), factory.literal('Welstandsgebied', 'nl'))
-      // p.addOut(rdf('type'), rpt('Welstandsgebied'))
-      // p.addOut(skos('prefLabel'))
+      p.addOut(litre('hasLiteral'), factory.literal(`${response.fid}: ${response.geb_type}`, 'nl'))
     })
-    this.pointer.addOut(dct('hasPart'), (p: GrapoiPointer) => {
+    this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
       p.addOut(skos('prefLabel'), factory.literal(`Voetafdruk`, 'nl'))
       p.addOut(
         dct('description'),

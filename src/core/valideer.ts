@@ -56,10 +56,10 @@ export const valideer = new Activity(
       any
     >
 
-    const report = new TriplyStore()
-    const reportPointer: GrapoiPointer = grapoi({ dataset: report, factory, term: factory.blankNode() })
+    const report = mainControle.graph
+    const reportPointer = mainControle.pointer
 
-    reportPointer.addOut(rdf('type'), rpt('ValidateRapport'))
+    reportPointer.addOut(rdf('type'), rpt('Controle'))
     reportPointer.addOut(rpt('building'), factory.literal(`${baseIRI}${datasetName}/3Dgebouw`, xsd('anyURI')))
 
     // In the CI, git is not found --- somehow even when it is added to the Dockerfile

@@ -1,6 +1,6 @@
 import grapoi from 'grapoi'
 import { readFile } from 'fs/promises'
-import { rdfs, prov, dct, skos, geo } from '@helpers/namespaces.js'
+import { rdf, rdfs, prov, dct, skos, geo, litre } from '@helpers/namespaces.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 import React from 'react'
@@ -239,6 +239,33 @@ L.geoJSON([welstandsgebied, data.footprint], {
   )
 }
 
+function Controle2(p: GrapoiPointer, rpt: NamespaceBuilder, depth: number = 0) {
+  const label = p.out(rdfs('label'))
+  const subcontroles = p.out(dct('hasPart'))
+  const related = p.out(skos('related'))
+  return (
+    <div
+      id={p.value.toString()}
+      style={depth > 1 ? { border: '2px dashed #bbbbbb', margin: '15px 5px', padding: '5px' } : {}}
+    >
+      <h3>{label.value}</h3>
+      <dl>
+        <dt>Node</dt>
+        <dd>{p.value}</dd>
+        <>
+          {related.map((r) => (
+            <>
+              <dt>{r.out(skos('prefLabel')).value}</dt>
+              <dd>{r.out(litre('hasLiteral')).value}</dd>
+            </>
+          ))}
+        </>
+      </dl>
+      <>{subcontroles.map((c) => Controle2(c, rpt, depth + 1))}</>
+    </div>
+  )
+}
+
 function Controle(controleP: any, provenanceDataset: TriplyStore, rpt: NamespaceBuilder) {
   const label = controleP.out(rdfs('label')).value
   const validated = controleP.out(rpt('passed')).value === 'true'
@@ -429,6 +456,8 @@ export default function (
         </dl>
 
         {controles.map((controle: GrapoiPointer) => Controle(controle, provenanceDataset, rpt))}
+        <hr />
+        {Controle2(validationPointer, rpt)}
 
         <script type="module" dangerouslySetInnerHTML={{ __html: inlineScript }}></script>
       </body>
