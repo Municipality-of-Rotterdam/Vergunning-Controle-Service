@@ -6,9 +6,9 @@ import { Store as TriplyStore } from '@triplydb/data-factory'
 import React from 'react'
 import { wktToGeoJSON } from '@terraformer/wkt'
 import { NamespaceBuilder } from '@rdfjs/namespace'
-import { GeoJSON, Geometry } from 'geojson'
+import { GeoJSON, Geometry, Feature } from 'geojson'
 import { Controle } from '@root/core/Controle.js'
-import { isGeoJSON } from '@root/core/helpers/isGeoJSON.js'
+import { isGeoJSON, isFeature } from '@root/core/helpers/isGeoJSON.js'
 import * as crypto from 'crypto'
 
 export type RapportageProps = {
@@ -214,41 +214,9 @@ L.geoJSON([welstandsgebied, data.footprint], {
 }
 
 // Find all georef content from this controle and add to the map if there are any
-function Map2(p: GrapoiPointer) {
-  const features: GeoJSON[] = []
-  const mapID = crypto.createHash('md5').update(p.value.toString()).digest('hex')
-
-  for (const r of p.out(skos('related'))) {
-    const asWkt = r.out(geo('asWKT')).value
-    const label = r.out(skos('prefLabel')).value
-    const description = r.out(dct('description')).value
-
-    if (asWkt) {
-      const geometry = wktToGeoJSON(
-        asWkt
-          .toString()
-          .replace(/^<.*>\s/, '')
-          .toUpperCase(),
-      ) as Geometry
-
-      features.push({
-        type: 'Feature',
-        properties: {
-          name: label,
-          show_on_map: true,
-          popupContent: description,
-          style: {
-            weight: 2,
-            color: '#999',
-            opacity: 1,
-            fillColor: '#B0DE5C',
-            fillOpacity: 0.5,
-          },
-        },
-        geometry,
-      })
-    }
-  }
+function Map2(c: Controle<any, any>) {
+  const features: Feature[] = Object.entries(c.info).flatMap(([_, v]) => (isFeature(v) ? [v] : []))
+  const mapID = crypto.createHash('md5').update(c.name.toString()).digest('hex')
 
   if (features.length) {
     return (
@@ -269,22 +237,6 @@ L.geoJSON(${JSON.stringify(features)}, {coordsToLatLng, onEachFeature}).addTo(m$
   return <></>
 }
 
-function Bestemmingsplan(p: GrapoiPointer) {
-  const source = p.out(dct('source'))
-  const label = source.out(skos('prefLabel')).value
-  const url = source.out(rdfs('seeAlso')).value
-  if (!source.value) return <></>
-  else
-    return (
-      <>
-        <dt>Bestemmingsplan</dt>
-        <dd>
-          <a href={url ? url.toString() : ''}>{label}</a>
-        </dd>
-      </>
-    )
-}
-
 function Controle2(controle: Controle<any, any>, rpt: NamespaceBuilder, depth: number = 0) {
   const p = controle.pointer
   const subcontroles = controle.constituents
@@ -295,40 +247,37 @@ function Controle2(controle: Controle<any, any>, rpt: NamespaceBuilder, depth: n
       id={p.value.toString()}
       style={depth > 1 ? { border: '2px dashed #bbbbbb', margin: '15px 5px', padding: '5px', overflow: 'auto' } : {}}
     >
-      <>{Map2(p)}</>
+      <>{Map2(controle)}</>
       <h3>{label}</h3>
       <dl>
         <dt>Beschrijving</dt>
         <dd>{controle.tekst}</dd>
-        {Bestemmingsplan(p)}
-        <>
-          {Object.entries(info).map(([k, v]) => {
-            if (typeof v == 'number') {
-              return (
-                <>
-                  <dt>{k}</dt>
-                  <dd>{v.toString().replace('.', ',')}</dd>
-                </>
-              )
-            } else if (typeof v == 'string') {
-              return (
-                <>
-                  <dt>{k}</dt>
-                  <dd>{v}</dd>
-                </>
-              )
-            } else if (!isGeoJSON(v)) {
-              return (
-                <>
-                  <dt>{k}</dt>
-                  <dd>
-                    <a href={v.url}>{v.text}</a>
-                  </dd>
-                </>
-              )
-            } else return <></>
-          })}
-        </>
+        {Object.entries(info).map(([k, v]) => {
+          if (typeof v == 'number') {
+            return (
+              <>
+                <dt>{k}</dt>
+                <dd>{v.toString().replace('.', ',')}</dd>
+              </>
+            )
+          } else if (typeof v == 'string') {
+            return (
+              <>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </>
+            )
+          } else if (!isFeature(v)) {
+            return (
+              <>
+                <dt>{k}</dt>
+                <dd>
+                  <a href={v.url}>{v.text}</a>
+                </dd>
+              </>
+            )
+          } else return <></>
+        })}
       </dl>
       <>{subcontroles.map((c) => Controle2(c, rpt, depth + 1))}</>
     </div>

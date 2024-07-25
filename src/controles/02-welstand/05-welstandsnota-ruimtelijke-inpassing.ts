@@ -78,7 +78,38 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
 
     this.info['Langwerpigheid'] = data.elongation
     this.info['Welstandgebied'] = response.geb_type
-    this.info['Voetafdruk'] = response.surface
+    this.info['Voetafdruk van het welstandsgebied'] = {
+      type: 'Feature',
+      properties: {
+        name: response.geb_type,
+        show_on_map: true,
+        popupContent: `Welstandsgebied "${response.geb_type}"`,
+        style: {
+          weight: 2,
+          color: '#999',
+          opacity: 1,
+          fillColor: '#B0DE5C',
+          fillOpacity: 0.5,
+        },
+      },
+      geometry: response.surface,
+    }
+    this.info['Voetafdruk van het gebouw'] = {
+      type: 'Feature',
+      properties: {
+        name: 'Voetafdruk van het gebouw',
+        show_on_map: true,
+        popupContent: 'Voetafdruk van het gebouw',
+        style: {
+          weight: 2,
+          color: '#999',
+          opacity: 1,
+          fillColor: '#B0DE5C',
+          fillOpacity: 0.5,
+        },
+      },
+      geometry: context.context?.context?.footprint,
+    }
 
     // Save to report
     this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
