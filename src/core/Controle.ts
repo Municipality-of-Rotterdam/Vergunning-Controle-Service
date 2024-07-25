@@ -36,6 +36,7 @@ export abstract class Controle<Context extends {}, Result extends {}> {
   public context?: Context
   public constituents: Controle<Controle<Context, Result>, any>[]
 
+  public status?: boolean | null
   public info: { [key: string]: number | string | Feature | { text: string; url: string } }
 
   // TODO: Probably more intuitive to define children rather than parent, so as
@@ -155,7 +156,14 @@ export abstract class Controle<Context extends {}, Result extends {}> {
         this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
           const t = typeof v == 'number' ? xsd('number') : undefined
           p.addOut(skos('prefLabel'), factory.literal(k, 'nl'))
-          p.addOut(litre('hasLiteral'), factory.literal(v.toString(), t))
+          if (v.hasOwnProperty('url')) {
+            //@ts-ignore
+            p.addOut(rdfs('seeAlso'), factory.literal(v.url, xsd('anyURI')))
+            //@ts-ignore
+            p.addOut(litre('hasLiteral'), factory.literal(v.text, t))
+          } else {
+            p.addOut(litre('hasLiteral'), factory.literal(v.toString(), t))
+          }
         })
       }
     }
@@ -184,15 +192,19 @@ export abstract class Controle<Context extends {}, Result extends {}> {
   sparql?: (inputs: Result) => string
 
   async uitvoering(inputs: Result, url?: string): Promise<{ success: boolean | null; message: string }> {
-    if (!this.sparql) return { success: null, message: this.bericht(inputs) }
-    if (!this.isToepasbaar(inputs)) return { success: null, message: 'Niet van toepassing' }
+    if (!this.sparql || !this.isToepasbaar(inputs)) {
+      const result = { success: null, message: this.bericht(inputs) }
+      this.status = null
+      this.info['Resultaat'] = result.message
+      return result
+    }
     if (!url) throw new Error('must have url')
     const sparql = this.sparql(inputs)
     const activity = new SparqlActivity({ name: `SPARQL query ${this.name}`, body: sparql, url })
     //@ts-ignore TODO: The base IRI is passed through in a wholly unsustainable way at the moment
     const response = await activity.run({ baseIRI: this.context?.context?.context?.baseIRI })
     const result = response[0] ?? null
-    const success = result ? result.success ?? false : true
+    const success: boolean = result ? result.success == 'true' ?? false : true
     let message = success ? this.berichtGeslaagd(inputs) : this.berichtGefaald(inputs)
 
     if (result) {
@@ -200,6 +212,10 @@ export abstract class Controle<Context extends {}, Result extends {}> {
         message = message.replaceAll(`{?${key}}`, value as string)
       }
     }
+
+    this.status = success
+    this.info['Resultaat'] = message
+
     return { success, message }
   }
 

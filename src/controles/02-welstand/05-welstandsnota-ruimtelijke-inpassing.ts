@@ -111,6 +111,7 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
       //@ts-ignore
       geometry: context.context?.context?.footprint,
     }
+    this.status = null
 
     return {
       elongation: data.elongation,

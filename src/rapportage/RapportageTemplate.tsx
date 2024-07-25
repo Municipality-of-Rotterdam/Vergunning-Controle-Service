@@ -160,61 +160,8 @@ function ProvenanceHtml(provenancePointer: GrapoiPointer, rpt: NamespaceBuilder)
   )
 }
 
-function Map(label: string, wkt: string) {
-  const geoJSON = wktToGeoJSON(wkt.replace(/^<.*>\s/, '').toUpperCase())
-  return (
-    <>
-      <div id={`map_${label}`} style={{ height: '300px', width: '600px', float: 'right' }}></div>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-var data = JSON.parse(document.getElementById('data').textContent)
-
-var welstandsgebied = {
-  "type": "Feature",
-  "properties": {
-      "name": "Welstandsgebied",
-      "show_on_map": true,
-      "popupContent": "Welstandsgebied 77: Stempel & strokenbouw",
-      "style": {
-          weight: 2,
-          color: "#999",
-          opacity: 1,
-          fillColor: "#B0DE5C",
-          fillOpacity: 0.8
-    },
-  },
-  "geometry": ${JSON.stringify(geoJSON)}
-}
-
-const coords = data.footprint.geometry.coordinates[0][0]
-const startView = RD.unproject(L.point(coords[0], coords[1]))
-const map = L.map('map_${label}').setView([startView.lat, startView.lng], 20);
-
-const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map);
-
-function onEachFeature(feature, layer) {
-  if (feature.properties && feature.properties.popupContent) {
-    layer.bindPopup(feature.properties.popupContent);
-  }
-}
-
-L.geoJSON([welstandsgebied, data.footprint], {
-  coordsToLatLng: (coords) => RD.unproject(L.point(coords[0], coords[1])),
-  onEachFeature
-}).addTo(map);
-`,
-        }}
-      ></script>
-    </>
-  )
-}
-
 // Find all georef content from this controle and add to the map if there are any
-function Map2(c: Controle<any, any>) {
+function Map(c: Controle<any, any>) {
   const features: Feature[] = Object.entries(c.info).flatMap(([_, v]) => (isFeature(v) ? [v] : []))
   const mapID = crypto.createHash('md5').update(c.name.toString()).digest('hex')
 
@@ -237,34 +184,66 @@ L.geoJSON(${JSON.stringify(features)}, {coordsToLatLng, onEachFeature}).addTo(m$
   return <></>
 }
 
-function Controle2(controle: Controle<any, any>, rpt: NamespaceBuilder, depth: number = 0) {
-  const p = controle.pointer
+function Icon(status: boolean | null | undefined) {
+  if (status === true) return '✅'
+  if (status === false) return '❌'
+  if (status === null) return '⭕'
+  return ''
+}
+
+function ControleDiv(controle: Controle<any, any>, rpt: NamespaceBuilder, depth: number = 0) {
   const subcontroles = controle.constituents
   const label = controle.name
   const info = controle.info
+  const provenance = controle.activity
+  if (!provenance) throw new Error('should be known')
+
   return (
     <div
-      id={p.value.toString()}
-      style={depth > 1 ? { border: '2px dashed #bbbbbb', margin: '15px 5px', padding: '5px', overflow: 'auto' } : {}}
+      id={controle.name.toString()}
+      style={
+        depth > 0
+          ? { border: '2px dashed #bbbbbb', margin: '15px 5px', padding: '5px', overflow: 'auto', clear: 'both' }
+          : {}
+      }
     >
-      <>{Map2(controle)}</>
-      <h3>{label}</h3>
+      <>{Map(controle)}</>
+      <h3 className={controle.status === false ? 'bg-danger-subtle' : ''}>
+        {Icon(controle.status)} {label}
+      </h3>
       <dl>
-        <dt>Beschrijving</dt>
-        <dd>{controle.tekst}</dd>
+        {controle.tekst ? (
+          <>
+            <dt>Beschrijving</dt>
+            <dd>{controle.tekst}</dd>
+          </>
+        ) : (
+          ''
+        )}
+        {controle.verwijzing ? (
+          <>
+            <dt>Verwijzing</dt>
+            <dd>{controle.verwijzing}</dd>
+          </>
+        ) : (
+          ''
+        )}
         {Object.entries(info).map(([k, v]) => {
           if (typeof v == 'number') {
             return (
               <>
                 <dt>{k}</dt>
-                <dd>{v.toString().replace('.', ',')}</dd>
+                <dd>
+                  {v.toString().replace('.', ',')}
+                  {k == 'Langwerpigheid' ? ElongationExplanation() : ''}
+                </dd>
               </>
             )
           } else if (typeof v == 'string') {
             return (
               <>
                 <dt>{k}</dt>
-                <dd>{v}</dd>
+                <dd dangerouslySetInnerHTML={{ __html: v }} />
               </>
             )
           } else if (!isFeature(v)) {
@@ -272,53 +251,18 @@ function Controle2(controle: Controle<any, any>, rpt: NamespaceBuilder, depth: n
               <>
                 <dt>{k}</dt>
                 <dd>
-                  <a href={v.url}>{v.text}</a>
+                  <a href={v.url} target="_blank">
+                    {v.text}
+                  </a>
                 </dd>
               </>
             )
           } else return <></>
         })}
-      </dl>
-      <>{subcontroles.map((c) => Controle2(c, rpt, depth + 1))}</>
-    </div>
-  )
-}
-
-function ControleE(controleP: any, provenanceDataset: TriplyStore, rpt: NamespaceBuilder) {
-  const label = controleP.out(rdfs('label')).value
-  const validated = controleP.out(rpt('passed')).value === 'true'
-  const message = controleP.out(rpt('message')).value
-  const verwijzing = controleP.out(rpt('verwijzing')).value
-  const elongation = controleP.out(rpt('elongation')).value
-  const description = controleP.out(dct('description')).value
-  const provenanceNode = controleP.out(prov('wasGeneratedBy'))
-  const provenanceNodeInProvenance = grapoi({ dataset: provenanceDataset, term: provenanceNode.term })
-  const source = controleP.out(dct('source'))
-  const footprint = controleP.out(rpt('footprint')).out(geo('asWKT')).value
-  // {footprint ? Map(label, footprint) : ''}
-  return (
-    <div key={label}>
-      <hr />
-      <h3 className={!validated ? 'bg-danger-subtle' : ''}>{label}</h3>
-      <dl>
-        <dt>Beschrijving</dt>
-        <dd>{description}</dd>
-        <dt>Resultaat</dt>
-        <dd className="result">
-          {validated ? <strong>✅</strong> : <strong>❌</strong>} <span dangerouslySetInnerHTML={{ __html: message }} />
-          {elongation ? ElongationExplanation() : ''}
-        </dd>
-        {verwijzing ? (
-          <>
-            <dt>Verwijzing</dt>
-            <dd>{verwijzing}</dd>
-          </>
-        ) : (
-          ''
-        )}
         <dt>Provenance</dt>
-        <dd className="provenance">{ProvenanceHtml(provenanceNodeInProvenance, rpt)}</dd>
+        <dd className="provenance">{ProvenanceHtml(provenance, rpt)}</dd>
       </dl>
+      <>{subcontroles.map((c) => ControleDiv(c, rpt, depth + 1))}</>
     </div>
   )
 }
@@ -341,7 +285,6 @@ export default function (
   idsControle: GrapoiPointer,
 ) {
   const validationPointer = controle.pointer
-  const controles = validationPointer.out(rpt('controle'))
   const ifc = validationPointer.out(rpt('ifc'))
   const gitRev = validationPointer.out(rpt('gitRevision'))
   const idsFiles = idsControle.out(rdfs('seeAlso'))
@@ -506,9 +449,7 @@ function coordsToLatLng(coords){
           </dd>
         </dl>
 
-        {controles.map((controle: GrapoiPointer) => ControleE(controle, provenanceDataset, rpt))}
-        <hr />
-        {Controle2(controle, rpt)}
+        {ControleDiv(controle, rpt)}
 
         <script type="module" dangerouslySetInnerHTML={{ __html: inlineScript }}></script>
       </body>
