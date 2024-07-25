@@ -108,26 +108,9 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
           fillOpacity: 0.5,
         },
       },
+      //@ts-ignore
       geometry: context.context?.context?.footprint,
     }
-
-    // Save to report
-    this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
-      p.addOut(skos('prefLabel'), factory.literal('Langwerpigheid', 'nl'))
-      p.addOut(litre('hasLiteral'), factory.literal(data.elongation.toString(), xsd('number')))
-    })
-    this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
-      p.addOut(skos('prefLabel'), factory.literal('Welstandsgebied', 'nl'))
-      p.addOut(litre('hasLiteral'), factory.literal(`${response.fid}: ${response.geb_type}`, 'nl'))
-    })
-    this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
-      p.addOut(skos('prefLabel'), factory.literal(`Voetafdruk`, 'nl'))
-      p.addOut(dct('description'), factory.literal(`Voetafdruk van welstandsgebied ${response.geb_type}`, 'nl'))
-      p.addOut(rdf('type'), sf(response.surface.type))
-      p.addOut(geo('coordinateDimension'), factory.literal('2', xsd('integer')))
-      const wkt = geojsonToWKT(response.surface)
-      p.addOut(geo('asWKT'), factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${wkt}`, geo('wktLiteral')))
-    })
 
     return {
       elongation: data.elongation,

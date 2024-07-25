@@ -10,10 +10,12 @@ import { StepContext } from './executeSteps.js'
 import { start, finish } from './helpers/provenance.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 import { BlankNode, NamedNode } from '@rdfjs/types'
-import { dct, rdfs } from './helpers/namespaces.js'
+import { dct, rdfs, skos, geo, sf, rdf, litre, xsd } from './helpers/namespaces.js'
 import grapoi from 'grapoi'
 import { Feature } from 'geojson'
+import { isFeature } from './helpers/isGeoJSON.js'
 import factory from '@rdfjs/data-model'
+import { geojsonToWKT } from '@terraformer/wkt'
 
 const log = createLogger('checks', import.meta)
 
@@ -133,6 +135,30 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     }
     finish(prep)
     // this.log(this.data)
+
+    // Save anything that was saved to the `info` object also to the RDF report
+    for (const [k, v] of Object.entries(this.info)) {
+      if (isFeature(v)) {
+        this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
+          const descr = v.properties?.popupContent
+          p.addOut(skos('prefLabel'), factory.literal(k, 'nl'))
+          if (descr) p.addOut(dct('description'), factory.literal(descr, 'nl'))
+          p.addOut(rdf('type'), sf(v.geometry.type))
+          p.addOut(geo('coordinateDimension'), factory.literal('2', xsd('integer')))
+          const wkt = geojsonToWKT(v.geometry)
+          p.addOut(
+            geo('asWKT'),
+            factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${wkt}`, geo('wktLiteral')),
+          )
+        })
+      } else {
+        this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
+          const t = typeof v == 'number' ? xsd('number') : undefined
+          p.addOut(skos('prefLabel'), factory.literal(k, 'nl'))
+          p.addOut(litre('hasLiteral'), factory.literal(v.toString(), t))
+        })
+      }
+    }
 
     return intermediate
   }
