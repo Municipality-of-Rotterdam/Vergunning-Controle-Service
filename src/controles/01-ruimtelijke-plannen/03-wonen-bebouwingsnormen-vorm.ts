@@ -1,5 +1,5 @@
 import { StepContext } from '@root/core/executeSteps.js'
-import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
+import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { Data as RPData } from './common.js'
 import { ifc } from '@helpers/namespaces.js'
 import NamedNode from '@rdfjs/data-model/lib/NamedNode.js'
@@ -42,10 +42,6 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
 				c.`
 
   async _run(context: Controle<StepContext, RPData>): Promise<Data> {
-    const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const data = context.data
-    if (!data) throw new Error()
-
     // TODO another test footprint
     const geoShape2 = {
       _geo: {
@@ -63,8 +59,15 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
         },
       },
     }
-    const response = await ruimtelijkePlannen.bouwaanduidingenZoek(data.bestemmingsplan.id, geoShape2)
-    this.apiResponse = response
+
+    const data = context.data
+    if (!data) throw new Error()
+    const response = await new RuimtelijkePlannenActivity({
+      url: `/plannen/${data?.bestemmingsplan.id}/bouwaanduidingen/_zoek`,
+      body: geoShape2,
+      //@ts-ignore
+    }).run(context.context?.context)
+
     const bouwaanduidingen: any[] = response['_embedded']['bouwaanduidingen']
 
     this.log(`${bouwaanduidingen.length} bouwaanduidingen gevonden`)

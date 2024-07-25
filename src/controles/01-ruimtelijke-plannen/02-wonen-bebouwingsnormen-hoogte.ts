@@ -1,4 +1,4 @@
-import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
+import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { Data as RPData } from './common.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { Controle } from '@root/core/Controle.js'
@@ -17,12 +17,13 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
 				a.`
 
   async _run(context: Controle<StepContext, RPData>): Promise<Data> {
-    const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-
     const data = context.data
-    if (!data) throw new Error()
-    const response = await ruimtelijkePlannen.maatvoeringen(data.bestemmingsplan.id, data.geoShape)
-    this.apiResponse = response
+    const response = await new RuimtelijkePlannenActivity({
+      url: `/plannen/${data?.bestemmingsplan.id}/maatvoeringen/_zoek`,
+      body: data?.geoShape,
+      //@ts-ignore
+    }).run(context.context?.context)
+
     const maatvoeringen: any[] = response['_embedded']['maatvoeringen'].filter(
       (maatvoering: any) => maatvoering['naam'] == 'maximum aantal bouwlagen',
     )

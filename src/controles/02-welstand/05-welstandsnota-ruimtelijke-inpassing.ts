@@ -18,7 +18,7 @@ Then: De ruimtelijke inpassing van het gebouw is in overeenstemming met de stemp
 ruimtelijke inpassing. */
 
 export default class _ extends Controle<Controle<StepContext, WelstandData>, Data> {
-  public name = 'Welstand: Stempel en strokenbouw - Ruimtelijke inpassing'
+  public name = 'Stempel en strokenbouw - Ruimtelijke inpassing'
   public tekst = `Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)`
   public verwijzing = ``
 

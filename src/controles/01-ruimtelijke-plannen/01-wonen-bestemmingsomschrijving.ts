@@ -1,7 +1,7 @@
 import { Controle } from '@core/Controle.js'
 import { Data as RPData } from './common.js'
 import { StepContext } from '@root/core/executeSteps.js'
-import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
+import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { SparqlActivity } from '@root/core/Activity.js'
 import namespace from '@rdfjs/namespace'
 
@@ -18,11 +18,13 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
 				a. `
 
   async _run(context: Controle<StepContext, RPData>): Promise<Data> {
-    const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
     const data = context.data
-    if (!data) throw new Error()
-    const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
-    // this.apiResponse = response
+    const response = await new RuimtelijkePlannenActivity({
+      url: `plannen/${data?.bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
+      body: data?.geoShape,
+      //@ts-ignore
+    }).run(context.context?.context)
+
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',
     )
@@ -33,9 +35,8 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
       throw new Error('Op dit moment mag er maar 1 enkelbestemmingsvlak bestaan.')
     }
 
-    const gebruiksfunctie: string = bestemmingsvlakken[0]['naam']
-
-    this.log(`Bestemmingsvlak ${gebruiksfunctie}`)
+    const vlak = bestemmingsvlakken[0]
+    const gebruiksfunctie: string = vlak['naam']
 
     return { gebruiksfunctie }
   }
