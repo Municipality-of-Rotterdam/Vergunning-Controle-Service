@@ -1,4 +1,4 @@
-# Vergunningscontroleservice (VSC) application for the Municipality of Rotterdam
+# Vergunningscontroleservice (VCS) application for the Municipality of Rotterdam
 
 ## Prerequisites
 
@@ -52,9 +52,9 @@ It might also be necessary to increase the memory:
 export NODE_OPTIONS="--max-old-space-size=8192"
 ```
 
-### Output: vsc-rapport.html
+### Output: vcs-rapport.html
 
-The output of the VSC application is the report, called `vsc-rapport.html`. This is added as an asset to the respective building dataset. See for example here: https://demo.triplydb.com/rotterdam/KievitswegRMVPIFC/assets.
+The output of the VCS application is the report, called `vcs-rapport.html`. This is added as an asset to the respective building dataset. See for example here: https://demo.triplydb.com/rotterdam/KievitswegRMVPIFC/assets.
 
 ## Development of checks
 
