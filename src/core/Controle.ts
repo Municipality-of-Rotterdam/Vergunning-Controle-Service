@@ -12,6 +12,7 @@ import { Store as TriplyStore } from '@triplydb/data-factory'
 import { BlankNode, NamedNode } from '@rdfjs/types'
 import { dct, rdfs } from './helpers/namespaces.js'
 import grapoi from 'grapoi'
+import { GeoJSON } from 'geojson'
 import factory from '@rdfjs/data-model'
 
 const log = createLogger('checks', import.meta)
@@ -33,6 +34,8 @@ export abstract class Controle<Context extends {}, Result extends {}> {
   public context?: Context
   public constituents: Controle<Controle<Context, Result>, any>[]
 
+  public info: { [key: string]: number | string | GeoJSON | { text: string; url: string } }
+
   // TODO: Probably more intuitive to define children rather than parent, so as
   // not to rely on side-effects so much, but that is for later
   protected constructor(fullPath: string, parent?: Controle<any, Context>) {
@@ -42,6 +45,8 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     this.path = fullPath
     this.id = isNaN(id) ? undefined : id
     this.constituents = []
+
+    this.info = {}
 
     this.node = factory.namedNode(`https://example.org/${this.path}`)
     if (parent) {

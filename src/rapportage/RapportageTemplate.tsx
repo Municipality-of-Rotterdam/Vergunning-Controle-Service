@@ -7,6 +7,8 @@ import React from 'react'
 import { wktToGeoJSON } from '@terraformer/wkt'
 import { NamespaceBuilder } from '@rdfjs/namespace'
 import { GeoJSON, Geometry } from 'geojson'
+import { Controle } from '@root/core/Controle.js'
+import { isGeoJSON } from '@root/core/helpers/isGeoJSON.js'
 import * as crypto from 'crypto'
 
 export type RapportageProps = {
@@ -283,26 +285,49 @@ function Bestemmingsplan(p: GrapoiPointer) {
     )
 }
 
-function Controle2(p: GrapoiPointer, rpt: NamespaceBuilder, depth: number = 0) {
-  const label = p.out(rdfs('label'))
-  const subcontroles = p.out(dct('hasPart'))
-  const related = p.out(skos('related'))
+function Controle2(controle: Controle<any, any>, rpt: NamespaceBuilder, depth: number = 0) {
+  const p = controle.pointer
+  const subcontroles = controle.constituents
+  const label = controle.name
+  const info = controle.info
   return (
     <div
       id={p.value.toString()}
       style={depth > 1 ? { border: '2px dashed #bbbbbb', margin: '15px 5px', padding: '5px', overflow: 'auto' } : {}}
     >
       <>{Map2(p)}</>
-      <h3>{label.value}</h3>
+      <h3>{label}</h3>
       <dl>
+        <dt>Beschrijving</dt>
+        <dd>{controle.tekst}</dd>
         {Bestemmingsplan(p)}
         <>
-          {related.map((r) => (
-            <>
-              <dt>{r.out(skos('prefLabel')).value}</dt>
-              <dd>{r.out(litre('hasLiteral')).value}</dd>
-            </>
-          ))}
+          {Object.entries(info).map(([k, v]) => {
+            if (typeof v == 'number') {
+              return (
+                <>
+                  <dt>{k}</dt>
+                  <dd>{v.toString().replace('.', ',')}</dd>
+                </>
+              )
+            } else if (typeof v == 'string') {
+              return (
+                <>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
+                </>
+              )
+            } else if (!isGeoJSON(v)) {
+              return (
+                <>
+                  <dt>{k}</dt>
+                  <dd>
+                    <a href={v.url}>{v.text}</a>
+                  </dd>
+                </>
+              )
+            } else return <></>
+          })}
         </>
       </dl>
       <>{subcontroles.map((c) => Controle2(c, rpt, depth + 1))}</>
@@ -310,7 +335,7 @@ function Controle2(p: GrapoiPointer, rpt: NamespaceBuilder, depth: number = 0) {
   )
 }
 
-function Controle(controleP: any, provenanceDataset: TriplyStore, rpt: NamespaceBuilder) {
+function ControleE(controleP: any, provenanceDataset: TriplyStore, rpt: NamespaceBuilder) {
   const label = controleP.out(rdfs('label')).value
   const validated = controleP.out(rpt('passed')).value === 'true'
   const message = controleP.out(rpt('message')).value
@@ -362,10 +387,11 @@ export default function (
     elongation,
     rpt,
   }: RapportageProps & { rpt: NamespaceBuilder },
-  validationPointer: GrapoiPointer,
+  controle: Controle<any, any>,
   provenanceDataset: TriplyStore,
   idsControle: GrapoiPointer,
 ) {
+  const validationPointer = controle.pointer
   const controles = validationPointer.out(rpt('controle'))
   const ifc = validationPointer.out(rpt('ifc'))
   const gitRev = validationPointer.out(rpt('gitRevision'))
@@ -531,9 +557,9 @@ function coordsToLatLng(coords){
           </dd>
         </dl>
 
-        {controles.map((controle: GrapoiPointer) => Controle(controle, provenanceDataset, rpt))}
+        {controles.map((controle: GrapoiPointer) => ControleE(controle, provenanceDataset, rpt))}
         <hr />
-        {Controle2(validationPointer, rpt)}
+        {Controle2(controle, rpt)}
 
         <script type="module" dangerouslySetInnerHTML={{ __html: inlineScript }}></script>
       </body>

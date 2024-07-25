@@ -48,6 +48,8 @@ export default class _ extends Controle<Controle<any, StepContext>, Data> {
       bp.addOut(rdfs('seeAlso'), factory.literal(url, xsd('anyUri')))
     })
 
+    this.info['Bestemmingsplan'] = { text: `${bestemmingsplan.naam} (${bestemmingsplan.id})`, url }
+
     return { bestemmingsplan, geoShape }
   }
 }

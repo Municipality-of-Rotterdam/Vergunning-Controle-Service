@@ -51,13 +51,13 @@ export const valideer = new Activity(
     const user = await triply.getAccount(account)
     const dataset = await user.getDataset(datasetName)
 
-    const mainControle = (await Controle.instantiateFromDirectory()) as Controle<
+    const controle = (await Controle.instantiateFromDirectory()) as Controle<
       { footprint: Polygon; elongation: number; baseIRI: string },
       any
     >
 
-    const report = mainControle.graph
-    const reportPointer = mainControle.pointer
+    const report = controle.graph
+    const reportPointer = controle.pointer
 
     reportPointer.addOut(rdf('type'), rpt('Controle'))
     reportPointer.addOut(rpt('building'), factory.literal(`${baseIRI}${datasetName}/3Dgebouw`, xsd('anyURI')))
@@ -76,9 +76,9 @@ export const valideer = new Activity(
     const { apiUrl } = await triply.getInfo()
 
     if (!thisActivity.provenance) throw new Error()
-    await mainControle.run({ footprint, elongation, baseIRI }, thisActivity.provenance)
+    await controle.run({ footprint, elongation, baseIRI }, thisActivity.provenance)
 
-    for (const checkGroup of mainControle.constituents) {
+    for (const checkGroup of controle.constituents) {
       // const groupRuleIds = group.controles.map((controle) => controle.id)
       // if (ruleIds.length && ruleIds.some((ruleId: number) => !groupRuleIds.includes(ruleId))) continue
       // const groupRuleIds = checkGroup.controles.map((controle) => controle.id)
@@ -123,11 +123,6 @@ export const valideer = new Activity(
           c.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
           c.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
           c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
-
-          // TODO temporary solution for reporting information that doesn't come from SPARQL query
-          //@ts-ignore
-          const elongation = controle.data.elongation
-          if (elongation) c.addOut(rpt('elongation'), factory.literal(elongation))
         })
       }
 
@@ -144,6 +139,6 @@ export const valideer = new Activity(
 
     log('Klaar met het uploaden van het validatie rapport naar TriplyDB', 'Upload')
 
-    return { validation: report, validationPointer: reportPointer }
+    return { controle }
   },
 )

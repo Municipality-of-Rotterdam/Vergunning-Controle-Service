@@ -2,6 +2,7 @@ import { GrapoiPointer } from '@helpers/grapoi.js'
 import { headerLog } from '@helpers/headerLog.js'
 import { Quad_Subject } from '@rdfjs/types'
 import { Store as TriplyStore } from '@triplydb/data-factory'
+import { Controle } from './Controle.js'
 
 import { Verrijkingen } from './verrijkingen.js'
 import { NamespaceBuilder } from '@rdfjs/namespace'
@@ -38,6 +39,5 @@ export type StepContext = {
   // Zie type Verrijkingen
 
   // Valideer
-  validation: TriplyStore
-  validationPointer: GrapoiPointer
+  controle: Controle<any, any>
 } & Verrijkingen

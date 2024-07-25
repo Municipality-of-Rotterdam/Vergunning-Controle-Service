@@ -76,6 +76,10 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
     const data = context.data
     if (!data) throw new Error()
 
+    this.info['Langwerpigheid'] = data.elongation
+    this.info['Welstandgebied'] = response.geb_type
+    this.info['Voetafdruk'] = response.surface
+
     // Save to report
     this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
       p.addOut(skos('prefLabel'), factory.literal('Langwerpigheid', 'nl'))

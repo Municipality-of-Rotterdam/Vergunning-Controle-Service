@@ -27,7 +27,7 @@ export const rapport = new Activity(
       idsControle,
       outputsDir,
       rpt,
-      validationPointer,
+      controle,
     }: Pick<
       StepContext,
       | 'account'
@@ -41,7 +41,7 @@ export const rapport = new Activity(
       | 'idsControle'
       | 'outputsDir'
       | 'rpt'
-      | 'validationPointer'
+      | 'controle'
     >,
     thisActivity: Activity<any, any>,
   ) => {
@@ -64,7 +64,7 @@ export const rapport = new Activity(
       baseIRI,
       rpt,
       footprintUrl: `${gebouwSubject.toString()}/footprint`,
-      gebouw: validationPointer.out(rpt('building')).value.toString(),
+      gebouw: controle.pointer.out(rpt('building')).value.toString(),
       gltfDownload: `${assetBaseUrl}3Dgebouw.gltf`,
       glbDownload: `${assetBaseUrl}3Dgebouw.glb`,
       footprint: {
@@ -86,7 +86,7 @@ export const rapport = new Activity(
     }
     const provenance = thisActivity.provenanceGraph
     if (!provenance) throw new Error()
-    const html = renderToStaticMarkup(RapportageTemplate(props, validationPointer, provenance, idsControle))
+    const html = renderToStaticMarkup(RapportageTemplate(props, controle, provenance, idsControle))
     await writeFile(`${outputsDir}/vcs-rapport.html`, html)
     const fileId = `vcs-rapport.html`
 
