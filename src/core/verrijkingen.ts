@@ -11,6 +11,7 @@ import { Polygon } from 'geojson'
 
 export type Verrijkingen = {
   footprint: Polygon
+  footprint2: Polygon
   elongation: number
 }
 

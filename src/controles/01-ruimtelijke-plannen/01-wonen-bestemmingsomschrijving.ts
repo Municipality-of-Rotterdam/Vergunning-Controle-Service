@@ -17,10 +17,10 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 			23.1 Bestemmingsomschrijving 
 				a. `
 
-  async _run({ baseIRI, bestemmingsplan, geoShape }: StepContext & RPData): Promise<Data> {
+  async _run({ baseIRI, bestemmingsplan, footprint }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
-      body: geoShape,
+      body: { _geo: { contains: footprint } },
     }).run({ baseIRI })
 
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(

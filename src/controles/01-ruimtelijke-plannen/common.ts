@@ -4,17 +4,15 @@ import { Controle } from '@root/core/Controle.js'
 import { dct, rdfs, skos, xsd } from '@core/helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 
-export type Data = { bestemmingsplan: any; geoShape: any }
+export type Data = { bestemmingsplan: any }
 
 export default class _ extends Controle<StepContext, Data> {
   public name = 'Ruimtelijke plannen'
 
   async _run({ footprint, baseIRI }: StepContext): Promise<Data> {
-    const geoShape = { _geo: { contains: footprint } }
-
     const response = await new RuimtelijkePlannenActivity({
       url: '/plannen/_zoek',
-      body: geoShape,
+      body: { _geo: { contains: footprint } },
       params: { planType: 'bestemmingsplan' },
     }).run({ baseIRI })
 
@@ -47,6 +45,6 @@ export default class _ extends Controle<StepContext, Data> {
 
     this.info['Bestemmingsplan'] = { text: `${bestemmingsplan.naam} (${bestemmingsplan.id})`, url }
 
-    return { bestemmingsplan, geoShape }
+    return { bestemmingsplan }
   }
 }

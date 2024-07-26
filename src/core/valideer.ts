@@ -28,6 +28,7 @@ export const valideer = new Activity(
       baseIRI,
       datasetName,
       footprint,
+      footprint2,
       elongation,
       ifcAssetBaseUrl,
       rpt,
@@ -41,6 +42,7 @@ export const valideer = new Activity(
       | 'datasetName'
       | 'ruleIds'
       | 'footprint'
+      | 'footprint2'
       | 'elongation'
       | 'ifcAssetBaseUrl'
       | 'rpt'
@@ -51,10 +53,7 @@ export const valideer = new Activity(
     const user = await triply.getAccount(account)
     const dataset = await user.getDataset(datasetName)
 
-    const controle = (await Controle.instantiateFromDirectory()) as Controle<
-      { footprint: Polygon; elongation: number; baseIRI: string },
-      any
-    >
+    const controle = (await Controle.instantiateFromDirectory()) as Controle<Partial<StepContext>, any>
 
     const report = controle.graph
     const reportPointer = controle.pointer
@@ -76,7 +75,7 @@ export const valideer = new Activity(
     const { apiUrl } = await triply.getInfo()
 
     if (!thisActivity.provenance) throw new Error()
-    await controle.run({ footprint, elongation, baseIRI }, thisActivity.provenance)
+    await controle.run({ footprint, elongation, footprint2, baseIRI }, thisActivity.provenance)
 
     for (const checkGroup of controle.children) {
       // const groupRuleIds = group.controles.map((controle) => controle.id)

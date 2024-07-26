@@ -1,6 +1,5 @@
 import { Controle } from '@core/Controle.js'
 import { StepContext } from '@root/core/executeSteps.js'
-import { Data as WelstandData } from './common.js'
 import { WelstandWfsActivity } from '@core/Activity.js'
 import { GeoJSON, MultiPolygon, Position } from 'geojson'
 import { rdf, skos, dct, geo, xsd, sf, litre } from '@core/helpers/namespaces.js'
@@ -17,12 +16,12 @@ And: Er wordt een IFC-model ingediend van IfcBuilding waarbij de Elementen met h
 Then: De ruimtelijke inpassing van het gebouw is in overeenstemming met de stempel en strokenbouw -
 ruimtelijke inpassing. */
 
-export default class _ extends Controle<StepContext & WelstandData, Data> {
+export default class _ extends Controle<StepContext, Data> {
   public name = 'Stempel en strokenbouw - Ruimtelijke inpassing'
   public tekst = `Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)`
   public verwijzing = ``
 
-  async _run({ elongation, baseIRI, footprint }: StepContext & WelstandData): Promise<Data> {
+  async _run({ elongation, baseIRI, footprint }: StepContext): Promise<Data> {
     const wfs = new WelstandWfsActivity({
       name: 'Welstand WFS request',
       description: 'Welstand WFS request',
@@ -35,7 +34,7 @@ export default class _ extends Controle<StepContext & WelstandData, Data> {
          <gml:Polygon srsName="urn:ogc:def:crs:EPSG::28992" gml:id="footprint">
            <gml:exterior>
              <gml:LinearRing>
-<gml:posList srsDimension="2">84165 431938 84172 431938 84172 431943 84165 431943 84165 431938</gml:posList>
+<gml:posList srsDimension="2">${footprint.coordinates.flat().join(' ')}</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>

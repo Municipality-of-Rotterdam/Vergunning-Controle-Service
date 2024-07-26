@@ -41,28 +41,10 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 			23.2 Bebouwingsnormen
 				c.`
 
-  async _run({ bestemmingsplan, baseIRI }: StepContext & RPData): Promise<Data> {
-    // TODO another test footprint
-    const geoShape2 = {
-      _geo: {
-        contains: {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [84165, 431938],
-              [84172, 431938],
-              [84172, 431943],
-              [84165, 431943],
-              [84165, 431938],
-            ],
-          ],
-        },
-      },
-    }
-
+  async _run({ bestemmingsplan, baseIRI, footprint }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: `/plannen/${bestemmingsplan.id}/bouwaanduidingen/_zoek`,
-      body: geoShape2,
+      body: { _geo: { contains: footprint } },
     }).run({ baseIRI })
 
     const bouwaanduidingen: any[] = response['_embedded']['bouwaanduidingen']

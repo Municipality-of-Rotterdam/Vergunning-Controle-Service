@@ -8,6 +8,7 @@ import { StepContext } from '@root/core/executeSteps.js'
 import { qudt } from '@core/helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
+import { wktToGeoJSON } from '@terraformer/wkt'
 
 const executeCommand = createExecutor('verrijking', import.meta, 'voetprint')
 
@@ -52,21 +53,14 @@ export default async function Voetprint({
    * Temporary stub
    * TODO remove this when we have better test data.
    */
-  polygon = `POLYGON ((84116 431825, 84121 431825, 84121 431829, 84116 431829, 84116 431825))`
-  const footprint = {
-    type: 'Polygon',
-    coordinates: [
-      polygon
-        .split('((')
-        .pop()!
-        .replace('))', '')
-        .split(',')
-        .map((pair) => pair.trim().split(' ').map(parseFloat)),
-    ],
-  }
+  polygon = `POLYGON ((84165 431938, 84172 431938, 84172 431943, 84165 431943, 84165 431938))`
+  const polygon2 = `POLYGON ((84116 431825, 84121 431825, 84121 431829, 84116 431829, 84116 431825))`
+
+  const footprint = wktToGeoJSON(polygon)
 
   return {
     footprint,
+    footprint2: wktToGeoJSON(polygon2),
     elongation,
   }
 }
