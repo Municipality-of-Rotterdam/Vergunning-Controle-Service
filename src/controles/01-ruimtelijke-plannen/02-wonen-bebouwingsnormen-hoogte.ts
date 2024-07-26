@@ -7,7 +7,7 @@ type Data = {
   max: number
 }
 
-export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
+export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bebouwingsnormen: Hoogte'
   public tekst = `Toegestane hoogte verdiepingen. De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven`
   public verwijzing = `
@@ -16,13 +16,11 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
 			23.2.2 Bebouwingsnormen
 				a.`
 
-  async _run(context: Controle<StepContext, RPData>): Promise<Data> {
-    const data = context.data
+  async _run({ baseIRI, bestemmingsplan, geoShape }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
-      url: `/plannen/${data?.bestemmingsplan.id}/maatvoeringen/_zoek`,
-      body: data?.geoShape,
-      //@ts-ignore
-    }).run(context.context?.context)
+      url: `/plannen/${bestemmingsplan.id}/maatvoeringen/_zoek`,
+      body: geoShape,
+    }).run({ baseIRI })
 
     const maatvoeringen: any[] = response['_embedded']['maatvoeringen'].filter(
       (maatvoering: any) => maatvoering['naam'] == 'maximum aantal bouwlagen',

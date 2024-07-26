@@ -17,12 +17,12 @@ And: Er wordt een IFC-model ingediend van IfcBuilding waarbij de Elementen met h
 Then: De ruimtelijke inpassing van het gebouw is in overeenstemming met de stempel en strokenbouw -
 ruimtelijke inpassing. */
 
-export default class _ extends Controle<Controle<StepContext, WelstandData>, Data> {
+export default class _ extends Controle<StepContext & WelstandData, Data> {
   public name = 'Stempel en strokenbouw - Ruimtelijke inpassing'
   public tekst = `Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)`
   public verwijzing = ``
 
-  async _run(context: Controle<StepContext, WelstandData>): Promise<Data> {
+  async _run({ elongation, baseIRI, footprint }: StepContext & WelstandData): Promise<Data> {
     const wfs = new WelstandWfsActivity({
       name: 'Welstand WFS request',
       description: 'Welstand WFS request',
@@ -71,12 +71,9 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
         }
       },
     })
-    //@ts-ignore TODO: The base IRI is passed through in an unsustainable way
-    const response = await wfs.run({ baseIRI: context.context?.context?.baseIRI })
-    const data = context.data
-    if (!data) throw new Error()
+    const response = await wfs.run({ baseIRI })
 
-    this.info['Langwerpigheid'] = data.elongation
+    this.info['Langwerpigheid'] = elongation
     this.info['Welstandgebied'] = response.geb_type
     this.info['Voetafdruk van het welstandsgebied'] = {
       type: 'Feature',
@@ -108,13 +105,12 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
           fillOpacity: 0.5,
         },
       },
-      //@ts-ignore
-      geometry: context.context?.context?.footprint,
+      geometry: footprint,
     }
     this.status = null
 
     return {
-      elongation: data.elongation,
+      elongation: elongation,
       welstandgebied_id: response.fid,
       welstandgebied: response.geb_type,
       geoJSON: response.surface,

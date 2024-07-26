@@ -31,10 +31,9 @@ export abstract class Controle<Context extends {}, Result extends {}> {
 
   public activity?: GrapoiPointer // TODO: To be removed, keeping it while refactoring
 
-  // Parent-child
-  public data?: Result
-  public context?: Context
-  public constituents: Controle<Controle<Context, Result>, any>[]
+  public data?: Context & Result
+  public parent?: Controle<any, Context>
+  public children: Controle<Context & Result, any>[]
 
   public status?: boolean | null
   public info: { [key: string]: number | string | Feature | { text: string; url: string } }
@@ -47,7 +46,7 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     const id = parseInt(basename.split('-')[0])
     this.path = fullPath
     this.id = isNaN(id) ? undefined : id
-    this.constituents = []
+    this.children = []
 
     this.info = {}
 
@@ -60,12 +59,8 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     this.pointer = grapoi({ dataset: this.graph, factory, term: this.node })
   }
 
-  add(controle: Controle<Controle<Context, Result>, any>) {
-    if (controle.context && controle.context != this) {
-      throw new Error('context is already set')
-    }
-    controle.context = this
-    this.constituents.push(controle)
+  add(controle: Controle<Context & Result, any>) {
+    this.children.push(controle)
     this.pointer.addOut(dct('hasPart'), controle.node)
   }
 
@@ -119,15 +114,12 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     this.pointer.addOut(rdfs('label'), factory.literal(this.name))
 
     const prep = start(activity, { name: `Controle ${this.name}` })
-    const intermediate = (await this._run(context)) ?? {}
-    if (context) Object.assign(intermediate, context)
-
-    this.context = context
     this.activity = prep
-    this.data = intermediate
-    for (const p of this.constituents) {
-      // p is an instance of Controle<Controle<Context, T>, any>
-      await p.run(this, prep)
+
+    const result = Object.assign({}, context, await this._run(context))
+    this.data = result
+    for (const p of this.children) {
+      await p.run(result, prep)
     }
 
     if (this.apiResponse) {
@@ -168,7 +160,7 @@ export abstract class Controle<Context extends {}, Result extends {}> {
       }
     }
 
-    return intermediate
+    return result
   }
   abstract _run(context: Context): Promise<Result>
 
@@ -191,7 +183,7 @@ export abstract class Controle<Context extends {}, Result extends {}> {
   }
   sparql?: (inputs: Result) => string
 
-  async uitvoering(inputs: Result, url?: string): Promise<{ success: boolean | null; message: string }> {
+  async uitvoering(inputs: Context & Result, url?: string): Promise<{ success: boolean | null; message: string }> {
     if (!this.sparql || !this.isToepasbaar(inputs)) {
       const result = { success: null, message: this.bericht(inputs) }
       this.status = null
@@ -201,8 +193,8 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     if (!url) throw new Error('must have url')
     const sparql = this.sparql(inputs)
     const activity = new SparqlActivity({ name: `SPARQL query ${this.name}`, body: sparql, url })
-    //@ts-ignore TODO: The base IRI is passed through in a wholly unsustainable way at the moment
-    const response = await activity.run({ baseIRI: this.context?.context?.context?.baseIRI })
+    //@ts-ignore TODO
+    const response = await activity.run({ baseIRI: inputs.baseIRI })
     const result = response[0] ?? null
     const success: boolean = result ? result.success == 'true' ?? false : true
     let message = success ? this.berichtGeslaagd(inputs) : this.berichtGefaald(inputs)

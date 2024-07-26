@@ -9,7 +9,7 @@ type Data = {
   gebruiksfunctie: string
 }
 
-export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
+export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bestemmingsomschrijving'
   public tekst = `De voor 'Wonen' aangewezen gronden zijn bestemd voor woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
   public verwijzing = `Hoofdstuk 2 Bestemmingsregels 
@@ -17,13 +17,11 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
 			23.1 Bestemmingsomschrijving 
 				a. `
 
-  async _run(context: Controle<StepContext, RPData>): Promise<Data> {
-    const data = context.data
+  async _run({ baseIRI, bestemmingsplan, geoShape }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
-      url: `plannen/${data?.bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
-      body: data?.geoShape,
-      //@ts-ignore
-    }).run(context.context?.context)
+      url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
+      body: geoShape,
+    }).run({ baseIRI })
 
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',

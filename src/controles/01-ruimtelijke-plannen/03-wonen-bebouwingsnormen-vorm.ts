@@ -32,7 +32,7 @@ function bouwaanduidingTextByIfcCode(ifcCode: NamedNode): string {
   }
 }
 
-export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
+export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bebouwingsnormen: Vorm'
   public tekst = `Ter plaatse van de aanduiding "plat dak" dienen woningen plat te worden afgedekt`
   public verwijzing = ` 
@@ -41,7 +41,7 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
 			23.2 Bebouwingsnormen
 				c.`
 
-  async _run(context: Controle<StepContext, RPData>): Promise<Data> {
+  async _run({ bestemmingsplan, baseIRI }: StepContext & RPData): Promise<Data> {
     // TODO another test footprint
     const geoShape2 = {
       _geo: {
@@ -60,13 +60,10 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
       },
     }
 
-    const data = context.data
-    if (!data) throw new Error()
     const response = await new RuimtelijkePlannenActivity({
-      url: `/plannen/${data?.bestemmingsplan.id}/bouwaanduidingen/_zoek`,
+      url: `/plannen/${bestemmingsplan.id}/bouwaanduidingen/_zoek`,
       body: geoShape2,
-      //@ts-ignore
-    }).run(context.context?.context)
+    }).run({ baseIRI })
 
     const bouwaanduidingen: any[] = response['_embedded']['bouwaanduidingen']
 

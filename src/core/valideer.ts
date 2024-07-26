@@ -78,7 +78,7 @@ export const valideer = new Activity(
     if (!thisActivity.provenance) throw new Error()
     await controle.run({ footprint, elongation, baseIRI }, thisActivity.provenance)
 
-    for (const checkGroup of controle.constituents) {
+    for (const checkGroup of controle.children) {
       // const groupRuleIds = group.controles.map((controle) => controle.id)
       // if (ruleIds.length && ruleIds.some((ruleId: number) => !groupRuleIds.includes(ruleId))) continue
       // const groupRuleIds = checkGroup.controles.map((controle) => controle.id)
@@ -86,7 +86,7 @@ export const valideer = new Activity(
 
       headerLogBig(`Groep: "${checkGroup.name}": Uitvoering`, 'yellowBright')
 
-      for (const controle of checkGroup.constituents) {
+      for (const controle of checkGroup.children) {
         let uitvoering: GrapoiPointer
         if (controle.activity) {
           uitvoering = start(controle.activity, { name: `Uitvoering ${controle.name}` })

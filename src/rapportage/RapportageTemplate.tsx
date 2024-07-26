@@ -192,7 +192,7 @@ function Icon(status: boolean | null | undefined) {
 }
 
 function ControleDiv(controle: Controle<any, any>, rpt: NamespaceBuilder, depth: number = 0) {
-  const subcontroles = controle.constituents
+  const subcontroles = controle.children
   const label = controle.name
   const info = controle.info
   const provenance = controle.activity

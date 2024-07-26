@@ -6,17 +6,17 @@ import factory from '@rdfjs/data-model'
 
 export type Data = { bestemmingsplan: any; geoShape: any }
 
-export default class _ extends Controle<Controle<any, StepContext>, Data> {
+export default class _ extends Controle<StepContext, Data> {
   public name = 'Ruimtelijke plannen'
 
-  async _run(context: Controle<any, StepContext>): Promise<Data> {
-    const geoShape = { _geo: { contains: this.context?.context?.footprint } }
+  async _run({ footprint, baseIRI }: StepContext): Promise<Data> {
+    const geoShape = { _geo: { contains: footprint } }
 
     const response = await new RuimtelijkePlannenActivity({
       url: '/plannen/_zoek',
       body: geoShape,
       params: { planType: 'bestemmingsplan' },
-    }).run(context.context)
+    }).run({ baseIRI })
 
     let plans = response['_embedded']['plannen']
 
