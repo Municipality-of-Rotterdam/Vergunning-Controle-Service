@@ -1,6 +1,6 @@
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
-import { Data as RPData } from './common.js'
+import { Data as RPData } from '../common.js'
 import { Controle } from '@root/core/Controle.js'
 
 type Data = {
@@ -15,7 +15,7 @@ But: de IfcSpace bedrijfsfunctie niet meer is dan 30% van de space BVO.
 Then: Het gebruik van het gebouw is in overeenstemming met de specifieke gebruiksregels. */
 
 export default class _ extends Controle<StepContext & RPData, Data> {
-  public name = 'Wonen: Bedrijfsfunctie'
+  public name = 'Bedrijfsfunctie'
   public tekst = `Woningen mogen mede worden gebruikt voor de uitoefening van een aan huis gebonden beroep of bedrijf, mits: de woonfunctie in overwegende mate gehandhaafd blijft, waarbij het bruto vloeroppervlak van de woning voor ten hoogste 30%, mag worden gebruikt voor een aan huis gebonden beroep of bedrijf`
   public verwijzing = `Hoofdstuk 2 Bestemmingsregels 
 		Artikel 23 Wonen lid 
@@ -46,7 +46,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     return { gebruiksfunctie }
   }
 
-  isToepasbaar({ gebruiksfunctie }: Data): boolean {
+  applicable({ gebruiksfunctie }: Data): boolean {
     return gebruiksfunctie.toLowerCase() == 'wonen'
   }
 

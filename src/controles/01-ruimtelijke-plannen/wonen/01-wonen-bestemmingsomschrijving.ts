@@ -1,5 +1,5 @@
 import { Controle } from '@core/Controle.js'
-import { Data as RPData } from './common.js'
+import { Data as RPData } from '../common.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { SparqlActivity } from '@root/core/Activity.js'

@@ -1,8 +1,10 @@
 import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
 import { readdir } from 'fs/promises'
-import { PathLike, Dirent } from 'fs'
+import { Dirent } from 'fs'
 import path from 'path'
+import chalk from 'chalk'
+import App from '@triply/triplydb'
 
 import { GrapoiPointer } from '@core/helpers/grapoi.js'
 import { SparqlActivity } from './Activity.js'
@@ -10,7 +12,7 @@ import { StepContext } from './executeSteps.js'
 import { start, finish } from './helpers/provenance.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 import { BlankNode, NamedNode } from '@rdfjs/types'
-import { dct, rdfs, skos, geo, sf, rdf, litre, xsd } from './helpers/namespaces.js'
+import { dct, rdfs, skos, geo, sf, rdf, litre, xsd, prov } from './helpers/namespaces.js'
 import grapoi from 'grapoi'
 import { Feature } from 'geojson'
 import { isFeature } from './helpers/isGeoJSON.js'
@@ -19,7 +21,7 @@ import { geojsonToWKT } from '@terraformer/wkt'
 
 const log = createLogger('checks', import.meta)
 
-export abstract class Controle<Context extends {}, Result extends {}> {
+export abstract class Controle<Context extends Partial<StepContext>, Result extends {}> {
   public abstract name: string
   public path: string
   public id?: number
@@ -35,7 +37,6 @@ export abstract class Controle<Context extends {}, Result extends {}> {
   public parent?: Controle<any, Context>
   public children: Controle<Context & Result, any>[]
 
-  public applicable: boolean
   public status?: boolean | null
   public info: { [key: string]: number | string | Feature | { text: string; url: string } }
 
@@ -49,7 +50,6 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     this.id = isNaN(id) ? undefined : id
     this.children = []
 
-    this.applicable = true
     this.info = {}
 
     this.node = factory.namedNode(`https://example.org/${this.path}`)
@@ -110,25 +110,58 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     return common
   }
 
-  async runAll(context: Context, activity: GrapoiPointer): Promise<Result> {
-    headerLogBig(`Controle run: "${this.name}"`, 'yellowBright')
+  applicable(_: Result): boolean {
+    return true
+  }
 
-    this.pointer.addOut(rdfs('label'), factory.literal(this.name))
+  async runAll(context: Context, activity: GrapoiPointer): Promise<Result> {
+    const { rpt, account, datasetName } = context as StepContext // TODO
+
+    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
+    const user = await triply.getAccount(account)
+    const { apiUrl } = await triply.getInfo()
+
+    headerLogBig(`Controle run: "${this.name}"`, 'yellowBright')
 
     const prep = start(activity, { name: `Controle ${this.name}` })
     this.activity = prep
 
+    headerLogBig(`Groep: "${this.name}"`, 'yellowBright')
     const result = Object.assign({}, context, await this.run(context))
     this.data = result
-    for (const p of this.children) {
-      await p.runAll(result, prep)
+
+    const { success, message } = await this.uitvoering(
+      result,
+      `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`,
+    )
+
+    for (const p of this.children) await p.runAll(result, prep)
+    finish(prep)
+
+    // Log to console
+    if (success == null) {
+      log(message, this.name)
+    } else if (success) {
+      log(chalk.greenBright(`✅ ${message}`), this.name)
+    } else {
+      log(chalk.redBright(`❌ ${message}`), this.name)
     }
+
+    // Write RDF
+    this.pointer.addOut(rdfs('label'), factory.literal(this.name))
+    this.pointer.addOut(rdf('type'), rpt('Controle'))
+    this.pointer.addOut(rdfs('label'), this.name)
+    if (this.tekst) this.pointer.addOut(dct('description'), factory.literal(this.tekst, 'nl'))
+    if (this.verwijzing) this.pointer.addOut(rpt('verwijzing'), factory.literal(this.verwijzing, 'nl'))
+    if (this.sparqlUrl) this.pointer.addOut(rpt('sparqlUrl'), factory.literal(this.sparqlUrl, xsd('anyUri')))
+    this.pointer.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
+    this.pointer.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
+    this.pointer.addOut(prov('wasGeneratedBy'), this.activity?.term)
 
     if (this.apiResponse) {
       // prep.addOut(context.rpt('apiResponse'), JSON.stringify(this.apiResponse))
       // prep.addOut(context.rpt('apiCall'), this.apiResponse['_links']['self']['href'])
     }
-    finish(prep)
     // this.log(this.data)
 
     // Save anything that was saved to the `info` object also to the RDF report
@@ -174,13 +207,11 @@ export abstract class Controle<Context extends {}, Result extends {}> {
   bericht(inputs: Result): string {
     return 'n.v.t.'
   }
-  isToepasbaar(_: Result): boolean {
-    return true
-  }
+
   sparql?: (inputs: Result) => string
 
   async uitvoering(inputs: Context & Result, url?: string): Promise<{ success: boolean | null; message: string }> {
-    if (!this.sparql || !this.isToepasbaar(inputs)) {
+    if (!this.sparql || !this.applicable(inputs)) {
       const result = { success: null, message: this.bericht(inputs) }
       this.status = null
       this.info['Resultaat'] = result.message

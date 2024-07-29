@@ -1,6 +1,6 @@
 import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
-import { Data as RPData } from './common.js'
+import { Data as RPData } from '../common.js'
 import { ifc } from '@helpers/namespaces.js'
 import NamedNode from '@rdfjs/data-model/lib/NamedNode.js'
 import { Controle } from '@root/core/Controle.js'

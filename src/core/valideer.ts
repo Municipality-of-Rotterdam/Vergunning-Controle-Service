@@ -52,6 +52,7 @@ export const valideer = new Activity(
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const user = await triply.getAccount(account)
     const dataset = await user.getDataset(datasetName)
+    const { apiUrl } = await triply.getInfo()
 
     const controle = (await Controle.instantiateFromDirectory()) as Controle<Partial<StepContext>, any>
 
@@ -72,62 +73,11 @@ export const valideer = new Activity(
     }
     reportPointer.addOut(rpt('ifc'), factory.literal(`${ifcAssetBaseUrl}${args.ifc}`, xsd('anyURI')))
 
-    const { apiUrl } = await triply.getInfo()
-
     if (!thisActivity.provenance) throw new Error()
-    await controle.runAll({ footprint, elongation, footprint2, baseIRI }, thisActivity.provenance)
-
-    for (const checkGroup of controle.children) {
-      // const groupRuleIds = group.controles.map((controle) => controle.id)
-      // if (ruleIds.length && ruleIds.some((ruleId: number) => !groupRuleIds.includes(ruleId))) continue
-      // const groupRuleIds = checkGroup.controles.map((controle) => controle.id)
-      // if (ruleIds.length && ruleIds.some((ruleId) => !groupRuleIds.includes(ruleId))) continue
-
-      headerLogBig(`Groep: "${checkGroup.name}": Uitvoering`, 'yellowBright')
-
-      for (const controle of checkGroup.children) {
-        let uitvoering: GrapoiPointer
-        if (controle.activity) {
-          uitvoering = start(controle.activity, { name: `Uitvoering ${controle.name}` })
-        } else {
-          throw new Error('must have an activity at this point')
-        }
-
-        if (controle.sparqlUrl) uitvoering.addOut(rpt('sparqlUrl'), factory.literal(controle.sparqlUrl, xsd('anyUri')))
-
-        headerLogBig(`Controle: "${controle.name}": Uitvoering`)
-
-        const { success, message } = await controle.uitvoering(
-          controle.data,
-          `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`,
-        )
-
-        if (success == null) {
-          log(message, controle.name)
-        } else if (success) {
-          log(chalk.greenBright(`✅ ${message}`), controle.name)
-        } else {
-          log(chalk.redBright(`❌ ${message}`), controle.name)
-        }
-
-        finish(uitvoering)
-
-        if (controle.activity) finish(controle.activity)
-
-        reportPointer.addOut(rpt('controle'), (c: GrapoiPointer) => {
-          c.addOut(rdf('type'), rpt('Controle'))
-          c.addOut(rdfs('label'), controle.name)
-          if (controle.tekst) c.addOut(dct('description'), factory.literal(controle.tekst, 'nl'))
-          if (controle.verwijzing) c.addOut(rpt('verwijzing'), factory.literal(controle.verwijzing, 'nl'))
-          c.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
-          c.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
-          c.addOut(prov('wasGeneratedBy'), controle.activity?.term)
-        })
-      }
-
-      // TODO return
-      if (checkGroup.activity) finish(checkGroup.activity)
-    }
+    await controle.runAll(
+      { footprint, elongation, footprint2, baseIRI, datasetName, rpt, account },
+      thisActivity.provenance,
+    )
 
     log('Uploaden van het validatie rapport naar TriplyDB', 'Upload')
 
