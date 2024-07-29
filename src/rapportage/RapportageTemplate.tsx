@@ -173,7 +173,10 @@ function Map(c: Controle<any, any>) {
           dangerouslySetInnerHTML={{
             __html: `
 const m${mapID} = L.map('${mapID}').setView([startView.lat, startView.lng], 20);
-tiles.addTo(m${mapID});
+const tiles${mapID} = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+});
+tiles${mapID}.addTo(m${mapID});
 L.geoJSON(${JSON.stringify(features)}, {coordsToLatLng, onEachFeature}).addTo(m${mapID});
 `,
           }}
