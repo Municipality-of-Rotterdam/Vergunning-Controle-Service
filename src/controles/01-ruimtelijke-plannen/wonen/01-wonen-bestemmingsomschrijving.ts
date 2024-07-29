@@ -4,9 +4,11 @@ import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { SparqlActivity } from '@root/core/Activity.js'
 import namespace from '@rdfjs/namespace'
+import { Geometry } from 'geojson'
 
 type Data = {
   gebruiksfunctie: string
+  geometry: Geometry
 }
 
 export default class _ extends Controle<StepContext & RPData, Data> {
@@ -20,18 +22,40 @@ export default class _ extends Controle<StepContext & RPData, Data> {
   async run({ baseIRI, bestemmingsplan, footprint }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
+      params: { expand: 'geometrie' },
       body: { _geo: { contains: footprint } },
     }).run({ baseIRI })
+
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',
     )
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
+
     if (bestemmingsvlakken.length != 1) {
       throw new Error('Op dit moment mag er maar 1 enkelbestemmingsvlak bestaan.')
     }
     const vlak = bestemmingsvlakken[0]
     const gebruiksfunctie: string = vlak['naam']
-    return { gebruiksfunctie }
+    const geometry: Geometry = vlak['geometrie']
+
+    this.info['Bestemmingsvlak'] = {
+      type: 'Feature',
+      properties: {
+        name: `Bestemmingsvlak`,
+        show_on_map: true,
+        popupContent: `Bestemmingsvlak "${gebruiksfunctie}"`,
+        style: {
+          weight: 2,
+          color: '#999',
+          opacity: 1,
+          fillColor: '#B0DE5C',
+          fillOpacity: 0.5,
+        },
+      },
+      geometry,
+    }
+
+    return { gebruiksfunctie, geometry }
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/1-Wonen-bestemmingsomschrijving'
