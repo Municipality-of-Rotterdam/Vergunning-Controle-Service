@@ -17,25 +17,20 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 			23.1 Bestemmingsomschrijving 
 				a. `
 
-  async _run({ baseIRI, bestemmingsplan, footprint }: StepContext & RPData): Promise<Data> {
+  async run({ baseIRI, bestemmingsplan, footprint }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
       body: { _geo: { contains: footprint } },
     }).run({ baseIRI })
-
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',
     )
-
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
-
     if (bestemmingsvlakken.length != 1) {
       throw new Error('Op dit moment mag er maar 1 enkelbestemmingsvlak bestaan.')
     }
-
     const vlak = bestemmingsvlakken[0]
     const gebruiksfunctie: string = vlak['naam']
-
     return { gebruiksfunctie }
   }
 

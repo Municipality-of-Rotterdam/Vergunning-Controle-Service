@@ -4,7 +4,7 @@ import { StepContext } from '@root/core/executeSteps.js'
 export default class _ extends Controle<StepContext, {}> {
   public name = 'Welstand'
 
-  async _run(_: StepContext): Promise<{}> {
+  async run(_: StepContext): Promise<{}> {
     return {}
   }
 }

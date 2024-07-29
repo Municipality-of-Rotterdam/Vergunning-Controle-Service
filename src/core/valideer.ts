@@ -75,7 +75,7 @@ export const valideer = new Activity(
     const { apiUrl } = await triply.getInfo()
 
     if (!thisActivity.provenance) throw new Error()
-    await controle.run({ footprint, elongation, footprint2, baseIRI }, thisActivity.provenance)
+    await controle.runAll({ footprint, elongation, footprint2, baseIRI }, thisActivity.provenance)
 
     for (const checkGroup of controle.children) {
       // const groupRuleIds = group.controles.map((controle) => controle.id)

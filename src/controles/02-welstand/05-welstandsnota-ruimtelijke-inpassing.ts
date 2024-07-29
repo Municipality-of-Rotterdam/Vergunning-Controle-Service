@@ -21,7 +21,7 @@ export default class _ extends Controle<StepContext, Data> {
   public tekst = `Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)`
   public verwijzing = ``
 
-  async _run({ elongation, baseIRI, footprint }: StepContext): Promise<Data> {
+  async run({ elongation, baseIRI, footprint }: StepContext): Promise<Data> {
     const wfs = new WelstandWfsActivity({
       name: 'Welstand WFS request',
       description: 'Welstand WFS request',

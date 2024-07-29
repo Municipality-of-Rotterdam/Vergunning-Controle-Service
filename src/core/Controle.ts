@@ -35,6 +35,7 @@ export abstract class Controle<Context extends {}, Result extends {}> {
   public parent?: Controle<any, Context>
   public children: Controle<Context & Result, any>[]
 
+  public applicable: boolean
   public status?: boolean | null
   public info: { [key: string]: number | string | Feature | { text: string; url: string } }
 
@@ -48,6 +49,7 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     this.id = isNaN(id) ? undefined : id
     this.children = []
 
+    this.applicable = true
     this.info = {}
 
     this.node = factory.namedNode(`https://example.org/${this.path}`)
@@ -108,7 +110,7 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     return common
   }
 
-  async run(context: Context, activity: GrapoiPointer): Promise<Result> {
+  async runAll(context: Context, activity: GrapoiPointer): Promise<Result> {
     headerLogBig(`Controle run: "${this.name}"`, 'yellowBright')
 
     this.pointer.addOut(rdfs('label'), factory.literal(this.name))
@@ -116,10 +118,10 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     const prep = start(activity, { name: `Controle ${this.name}` })
     this.activity = prep
 
-    const result = Object.assign({}, context, await this._run(context))
+    const result = Object.assign({}, context, await this.run(context))
     this.data = result
     for (const p of this.children) {
-      await p.run(result, prep)
+      await p.runAll(result, prep)
     }
 
     if (this.apiResponse) {
@@ -162,7 +164,7 @@ export abstract class Controle<Context extends {}, Result extends {}> {
 
     return result
   }
-  abstract _run(context: Context): Promise<Result>
+  abstract run(context: Context): Promise<Result>
 
   // TODO: Refactor below
   apiResponse?: any
