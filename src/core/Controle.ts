@@ -121,25 +121,27 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     const user = await triply.getAccount(account)
     const { apiUrl } = await triply.getInfo()
 
-    headerLogBig(`Controle run: "${this.name}"`, 'yellowBright')
+    headerLogBig(`Controle: "${this.name}"`, 'yellowBright')
 
     const prep = start(activity, { name: `Controle ${this.name}` })
     this.activity = prep
 
-    headerLogBig(`Groep: "${this.name}"`, 'yellowBright')
     const result = Object.assign({}, context, await this.run(context))
     this.data = result
 
-    const { success, message } = await this.uitvoering(
-      result,
-      `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`,
-    )
+    let success: boolean | null | undefined = undefined
+    let message: string | undefined = undefined
+    if (!this.children) {
+      const r = await this.uitvoering(result, `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`)
+      success = r.success
+      message = r.message
+    }
 
     for (const p of this.children) await p.runAll(result, prep)
     finish(prep)
 
     // Log to console
-    if (success == null) {
+    if (success === null || success == undefined) {
       log(message, this.name)
     } else if (success) {
       log(chalk.greenBright(`✅ ${message}`), this.name)
@@ -154,8 +156,9 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     if (this.tekst) this.pointer.addOut(dct('description'), factory.literal(this.tekst, 'nl'))
     if (this.verwijzing) this.pointer.addOut(rpt('verwijzing'), factory.literal(this.verwijzing, 'nl'))
     if (this.sparqlUrl) this.pointer.addOut(rpt('sparqlUrl'), factory.literal(this.sparqlUrl, xsd('anyUri')))
-    this.pointer.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
-    this.pointer.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
+    if (success !== undefined)
+      this.pointer.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
+    if (message !== undefined) this.pointer.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
     this.pointer.addOut(prov('wasGeneratedBy'), this.activity?.term)
 
     if (this.apiResponse) {
