@@ -131,7 +131,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
 
     let success: boolean | null | undefined = undefined
     let message: string | undefined = undefined
-    if (!this.children) {
+    if (this.children.length == 0) {
       const r = await this.uitvoering(result, `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`)
       success = r.success
       message = r.message
@@ -141,7 +141,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     finish(prep)
 
     // Log to console
-    if (success === null || success == undefined) {
+    if (success === null || success === undefined) {
       log(message, this.name)
     } else if (success) {
       log(chalk.greenBright(`✅ ${message}`), this.name)
