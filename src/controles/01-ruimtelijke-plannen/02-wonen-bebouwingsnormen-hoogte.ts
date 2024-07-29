@@ -64,6 +64,10 @@ export default class _ extends Controle<StepContext & RPData, Data> {
   }
 
   bericht({ max }: Data): string {
-    return `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}. <a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen, hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
+    let result = `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}.`
+    if (this.status === true) result += `De aanvraag voldoet hieraan.`
+    else
+      result += `<a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen. Hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
+    return result
   }
 }

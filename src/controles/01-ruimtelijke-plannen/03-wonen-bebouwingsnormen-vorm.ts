@@ -92,9 +92,10 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       'https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#',
       'ifc:',
     )
-    return `De aanvraag heeft een <a href=${bouwaanduiding.value} target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>, hiermee wordt voldaan aan de regels voor de locatie.`
-  }
-  berichtGefaald(invoer: Data): string {
-    return `Dak <a href={?roof} target="_blank">{?roof}</a> heeft het daktype "{?rooftype}". ${this.bericht(invoer)}`
+
+    let result = `Op de locatie geldt een bouwaanduiding <a href=${bouwaanduiding.value} target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>.`
+    if (this.status === true) result += `De aanvraag voldoet hieraan.`
+    else result += `De aanvraag heeft een dak <a href={?roof} target="_blank">{?roof}</a> met type "{?rooftype}.`
+    return result
   }
 }

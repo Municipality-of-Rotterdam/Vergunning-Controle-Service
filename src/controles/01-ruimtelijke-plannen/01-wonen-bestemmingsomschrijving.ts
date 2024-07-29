@@ -72,6 +72,9 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       }`
 
   bericht({ gebruiksfunctie }: Data): string {
-    return `Ruimte <a href={?space} target="_blank">{?space}</a> met de gebruiksfunctie "{?functie}" mag niet gepositioneerd worden in een bestemmingsomschrijving "${gebruiksfunctie}".`
+    if (this.status === true)
+      return `Op de locatie geldt de bestemmingsomschrijving ${gebruiksfunctie}. De aanvraag voldoet hieraan.`
+    else
+      return `Ruimte <a href={?space} target="_blank">{?space}</a> met de gebruiksfunctie "{?functie}" mag niet gepositioneerd worden in een bestemmingsomschrijving "${gebruiksfunctie}".`
   }
 }

@@ -170,13 +170,7 @@ export abstract class Controle<Context extends {}, Result extends {}> {
   tekst?: string
   verwijzing?: string
   bericht(inputs: Result): string {
-    return 'nvt'
-  }
-  berichtGefaald(inputs: Result): string {
-    return this.bericht(inputs)
-  }
-  berichtGeslaagd(inputs: Result): string {
-    return this.bericht(inputs)
+    return 'n.v.t.'
   }
   isToepasbaar(_: Result): boolean {
     return true
@@ -197,7 +191,7 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     const response = await activity.run({ baseIRI: inputs.baseIRI })
     const result = response[0] ?? null
     const success: boolean = result ? result.success == 'true' ?? false : true
-    let message = success ? this.berichtGeslaagd(inputs) : this.berichtGefaald(inputs)
+    let message = this.bericht(inputs)
 
     if (result) {
       for (const [key, value] of Object.entries(result)) {
