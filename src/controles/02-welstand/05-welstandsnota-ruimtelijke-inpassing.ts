@@ -1,6 +1,6 @@
 import { Controle } from '@core/Controle.js'
 import { StepContext } from '@root/core/executeSteps.js'
-import { WelstandWfsActivity } from '@core/Activity.js'
+import { XmlActivity } from '@core/Activity.js'
 import { GeoJSON, MultiPolygon, Position } from 'geojson'
 import { rdf, skos, dct, geo, xsd, sf, litre } from '@core/helpers/namespaces.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
@@ -22,9 +22,10 @@ export default class _ extends Controle<StepContext, Data> {
   public verwijzing = ``
 
   async run({ elongation, baseIRI, footprint }: StepContext): Promise<Data> {
-    const wfs = new WelstandWfsActivity({
+    const wfs = new XmlActivity({
       name: 'Welstand WFS request',
       description: 'Welstand WFS request',
+      url: `https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer`,
       body: `<?xml version="1.0" encoding="UTF-8"?>
 <GetFeature xmlns:gml="http://www.opengis.net/gml/3.2" xmlns="http://www.opengis.net/wfs/2.0" xmlns:fes="http://www.opengis.net/fes/2.0" service="WFS" version="2.0.0">
    <Query xmlns:Welstandskaart_tijdelijk_VCS="https://vnrpwapp426.rotterdam.local:6443/arcgis/admin/services/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer" typeNames="Welstandskaart_tijdelijk_VCS:Gebiedstypen">

@@ -159,13 +159,21 @@ export class SparqlActivity<S> extends ApiActivity<S, any[]> {
   }
 }
 
-export class WelstandWfsActivity<S, T> extends ApiActivity<S, T> {
+export class XmlActivity<S, T> extends ApiActivity<S, T> {
   public extract: (xml: any) => T
-  constructor({ name, description, body, extract }: ActivityInfo & Pick<Request, 'body'> & Extractor<T>) {
+  constructor({
+    name,
+    description,
+    body,
+    url,
+    params,
+    extract,
+  }: ActivityInfo & Pick<Request, 'body' | 'url' | 'params'> & Extractor<T>) {
     super({
       name,
       description,
-      url: 'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer',
+      url,
+      params,
       headers: {
         'Content-Type': 'application/xml',
       },
