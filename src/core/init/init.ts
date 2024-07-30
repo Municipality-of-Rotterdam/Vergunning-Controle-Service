@@ -2,7 +2,7 @@ import argsParser from 'args-parser';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { existsSync } from 'fs';
-import { mkdir, writeFile } from 'fs/promises';
+import fs, { mkdir, writeFile } from 'fs/promises';
 import { rimraf } from 'rimraf';
 
 import { Activity } from '@core/Activity.js';
@@ -28,7 +28,11 @@ export const init = //new Activity(
 
     const args = argsParser(process.argv)
 
-    console.log(process.env)
+    if (process.env.TRIGGER_PAYLOAD) {
+      const triggerFileData = await fs.readFile(process.env.TRIGGER_PAYLOAD, 'utf8')
+      const triggerData = JSON.parse(triggerFileData)
+      console.log(triggerData)
+    }
 
     const datasetName = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
     const idsName = args.ids.replaceAll('.ids', '').replace(/[^a-zA-Z]+/g, '')
