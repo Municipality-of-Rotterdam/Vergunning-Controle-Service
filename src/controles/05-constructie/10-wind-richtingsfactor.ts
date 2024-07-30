@@ -1,8 +1,8 @@
-import { GeoJSON, Polygon, Position } from 'geojson';
-
-import { XmlActivity } from '@core/Activity.js';
-import { Controle } from '@core/Controle.js';
-import { StepContext } from '@root/core/executeSteps.js';
+import { XmlActivity } from '@core/Activity.js'
+import { Controle } from '@core/Controle.js'
+import { StepContext } from '@root/core/executeSteps.js'
+import { GeoJSON, Geometry, Polygon, Position } from 'geojson'
+import { projectGeoJSON } from '@root/core/helpers/crs.js'
 
 type Data = { windzone: number; geoJSON: GeoJSON }
 
@@ -58,7 +58,10 @@ export default class _ extends Controle<StepContext, Data> {
           coordsPolygon.push([numbers[i], numbers[i + 1]])
         }
         coordsPolygon.push([numbers[0], numbers[1]])
-        const geoJSON: Polygon = { type: 'Polygon', coordinates: [coordsPolygon] }
+        const geoJSON: Polygon = {
+          type: 'Polygon',
+          coordinates: [coordsPolygon],
+        }
 
         return {
           windzone: windzones['provincies_windzones:Windzone'],
@@ -84,7 +87,7 @@ export default class _ extends Controle<StepContext, Data> {
           fillOpacity: 0.5,
         },
       },
-      geometry: response.surface,
+      geometry: projectGeoJSON(response.surface) as Geometry,
     }
     this.info['Voetafdruk van het gebouw'] = {
       type: 'Feature',
@@ -100,7 +103,7 @@ export default class _ extends Controle<StepContext, Data> {
           fillOpacity: 0.5,
         },
       },
-      geometry: footprint,
+      geometry: projectGeoJSON(footprint) as Geometry,
     }
     this.status = null
 

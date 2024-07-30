@@ -5,6 +5,7 @@ import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { SparqlActivity } from '@root/core/Activity.js'
 import namespace from '@rdfjs/namespace'
 import { Geometry } from 'geojson'
+import { projectGeoJSON } from '@root/core/helpers/crs.js'
 
 type Data = {
   gebruiksfunctie: string
@@ -53,6 +54,22 @@ export default class _ extends Controle<StepContext & RPData, Data> {
         },
       },
       geometry,
+    }
+    this.info['Voetafdruk van het gebouw'] = {
+      type: 'Feature',
+      properties: {
+        name: 'Voetafdruk van het gebouw',
+        show_on_map: true,
+        popupContent: 'Voetafdruk van het gebouw',
+        style: {
+          weight: 2,
+          color: '#999',
+          opacity: 1,
+          fillColor: '#B0DE5C',
+          fillOpacity: 0.5,
+        },
+      },
+      geometry: projectGeoJSON(footprint) as Geometry,
     }
 
     return { gebruiksfunctie, geometry }
