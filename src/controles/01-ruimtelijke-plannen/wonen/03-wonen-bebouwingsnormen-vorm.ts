@@ -46,6 +46,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       url: `/plannen/${bestemmingsplan.id}/bouwaanduidingen/_zoek`,
       body: { _geo: { contains: footprint } },
     }).run({ baseIRI })
+    this.apiResponse = response
 
     const bouwaanduidingen: any[] = response['_embedded']['bouwaanduidingen']
 
@@ -93,9 +94,10 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       'ifc:',
     )
 
-    let result = `Op de locatie geldt een bouwaanduiding <a href=${bouwaanduiding.value} target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>.`
+    let result = `Op de locatie geldt een bouwaanduiding <a href=${bouwaanduiding.value} target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>. `
     if (this.status === true) result += `De aanvraag voldoet hieraan.`
-    else result += `De aanvraag heeft een dak <a href={?roof} target="_blank">{?roof}</a> met type "{?rooftype}.`
+    // else result += `De aanvraag heeft een dak <a href={?roof} target="_blank">{?roof}</a> met type "{?rooftype}.`
+    else result += `De aanvraag voldoet hier niet aan.`
     return result
   }
 }

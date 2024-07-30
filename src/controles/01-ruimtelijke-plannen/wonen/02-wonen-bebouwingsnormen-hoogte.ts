@@ -21,6 +21,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       url: `/plannen/${bestemmingsplan.id}/maatvoeringen/_zoek`,
       body: { _geo: { contains: footprint2 } },
     }).run({ baseIRI })
+    this.apiResponse = response // TODO remove
 
     const maatvoeringen: any[] = response['_embedded']['maatvoeringen'].filter(
       (maatvoering: any) => maatvoering['naam'] == 'maximum aantal bouwlagen',
@@ -64,7 +65,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
   }
 
   bericht({ max }: Data): string {
-    let result = `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}.`
+    let result = `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}. `
     if (this.status === true) result += `De aanvraag voldoet hieraan.`
     else
       result += `<a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen. Hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`

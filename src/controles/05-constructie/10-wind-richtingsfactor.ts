@@ -1,7 +1,8 @@
-import { Controle } from '@core/Controle.js'
-import { StepContext } from '@root/core/executeSteps.js'
-import { XmlActivity } from '@core/Activity.js'
-import { GeoJSON, Polygon, Position } from 'geojson'
+import { GeoJSON, Polygon, Position } from 'geojson';
+
+import { XmlActivity } from '@core/Activity.js';
+import { Controle } from '@core/Controle.js';
+import { StepContext } from '@root/core/executeSteps.js';
 
 type Data = { windzone: number; geoJSON: GeoJSON }
 
@@ -38,6 +39,12 @@ export default class _ extends Controle<StepContext, Data> {
   </Query>
 </GetFeature>`,
       extract: (response: any) => {
+        if (!response['wfs:FeatureCollection']?.['wfs:member']?.['provincies_windzones:provincies_windzones']) {
+          throw new Error(
+            `Geen wind data gevonden, de WFS service gaf het volgende antwoord: ${JSON.stringify(response, null, 2)}`,
+          )
+        }
+
         const windzones = response['wfs:FeatureCollection']['wfs:member']['provincies_windzones:provincies_windzones']
 
         // Extract Polygons from the API call
@@ -60,6 +67,7 @@ export default class _ extends Controle<StepContext, Data> {
       },
     })
     const response = await wfs.run({ baseIRI })
+    this.apiResponse = response // TODO remove
 
     this.info['Windzone'] = response.windzone
     this.info['Geometrie van de windzone'] = {

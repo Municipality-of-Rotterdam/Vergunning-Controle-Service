@@ -72,6 +72,7 @@ export default class _ extends Controle<StepContext, Data> {
       },
     })
     const response = await wfs.run({ baseIRI })
+    this.apiResponse = response // TODO: Remove
 
     this.info['Langwerpigheid'] = elongation
     this.info['Welstandgebied'] = response.geb_type
