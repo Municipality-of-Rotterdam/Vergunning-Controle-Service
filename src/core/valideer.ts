@@ -27,6 +27,7 @@ export const valideer = new Activity(
       args,
       baseIRI,
       datasetName,
+      footprint,
       footprintT1,
       footprintT2,
       elongation,
@@ -41,6 +42,7 @@ export const valideer = new Activity(
       | 'baseIRI'
       | 'datasetName'
       | 'ruleIds'
+      | 'footprint'
       | 'footprintT1'
       | 'footprintT2'
       | 'elongation'
@@ -74,7 +76,7 @@ export const valideer = new Activity(
 
     if (!thisActivity.provenance) throw new Error()
     await controle.runAll(
-      { elongation, footprintT1, footprintT2, baseIRI, datasetName, rpt, account },
+      { elongation, footprint, footprintT1, footprintT2, baseIRI, datasetName, rpt, account },
       thisActivity.provenance,
     )
 

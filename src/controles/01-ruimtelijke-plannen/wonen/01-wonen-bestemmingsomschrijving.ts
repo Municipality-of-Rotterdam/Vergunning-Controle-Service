@@ -4,7 +4,7 @@ import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { SparqlActivity } from '@root/core/Activity.js'
 import namespace from '@rdfjs/namespace'
-import { Geometry } from 'geojson'
+import { Geometry, Feature } from 'geojson'
 import { projectGeoJSON } from '@root/core/helpers/crs.js'
 
 type Data = {
@@ -20,11 +20,11 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 			23.1 Bestemmingsomschrijving 
 				a. `
 
-  async run({ baseIRI, bestemmingsplan, footprintT1 }: StepContext & RPData): Promise<Data> {
+  async run({ baseIRI, bestemmingsplan, footprintT1, footprint }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
       params: { expand: 'geometrie' },
-      body: { _geo: { contains: footprintT1 } },
+      body: { _geo: { intersects: footprint } },
     }).run({ baseIRI })
     this.apiResponse = response // TODO remove
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
@@ -32,28 +32,38 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     )
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
 
-    if (bestemmingsvlakken.length != 1) {
-      throw new Error('Op dit moment mag er maar 1 enkelbestemmingsvlak bestaan.')
+    // if (bestemmingsvlakken.length > 1) {
+    //   throw new Error('Op dit moment mag er maar 1 enkelbestemmingsvlak bestaan.')
+    // }
+    const features: Feature[] = []
+    for (const zone of bestemmingsvlakken) {
+      const gebruiksfunctie: string = zone['naam']
+      const geometry: Geometry = zone['geometrie']
+      features.push({
+        type: 'Feature',
+        properties: {
+          name: `Bestemmingsvlak`,
+          show_on_map: true,
+          popupContent: `Bestemmingsvlak "${gebruiksfunctie}"`,
+          style: {
+            weight: 2,
+            color: '#999',
+            opacity: 1,
+            fillColor: '#B0DE5C',
+            fillOpacity: 0.5,
+          },
+        },
+        geometry,
+      })
     }
+
     const vlak = bestemmingsvlakken[0]
     const gebruiksfunctie: string = vlak['naam']
     const geometry: Geometry = vlak['geometrie']
 
-    this.info['Bestemmingsvlak'] = {
-      type: 'Feature',
-      properties: {
-        name: `Bestemmingsvlak`,
-        show_on_map: true,
-        popupContent: `Bestemmingsvlak "${gebruiksfunctie}"`,
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
-      },
-      geometry,
+    this.info['Bestemmingsvlakken'] = {
+      type: 'FeatureCollection',
+      features,
     }
     this.info['Voetafdruk van het gebouw'] = {
       type: 'Feature',
@@ -69,7 +79,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
           fillOpacity: 0.5,
         },
       },
-      geometry: projectGeoJSON(footprintT1) as Geometry,
+      geometry: projectGeoJSON(footprint) as Geometry,
     }
 
     return { gebruiksfunctie, geometry }

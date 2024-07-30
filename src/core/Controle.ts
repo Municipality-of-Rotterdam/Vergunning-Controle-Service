@@ -14,8 +14,8 @@ import { Store as TriplyStore } from '@triplydb/data-factory'
 import { BlankNode, NamedNode } from '@rdfjs/types'
 import { dct, rdfs, skos, geo, sf, rdf, litre, xsd, prov } from './helpers/namespaces.js'
 import grapoi from 'grapoi'
-import { Feature } from 'geojson'
-import { isFeature } from './helpers/isGeoJSON.js'
+import { Feature, FeatureCollection } from 'geojson'
+import { isFeature, isFeatureCollection } from './helpers/isGeoJSON.js'
 import factory from '@rdfjs/data-model'
 import { geojsonToWKT } from '@terraformer/wkt'
 
@@ -38,7 +38,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
   public children: Controle<Context & Result, any>[]
 
   public status?: boolean | null
-  public info: { [key: string]: number | string | Feature | { text: string; url: string } }
+  public info: { [key: string]: number | string | Feature | FeatureCollection | { text: string; url: string } }
 
   // TODO: Probably more intuitive to define children rather than parent, so as
   // not to rely on side-effects so much, but that is for later
@@ -172,6 +172,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     // Save anything that was saved to the `info` object also to the RDF report
     for (const [k, v] of Object.entries(this.info)) {
       if (isFeature(v)) {
+        //TODO: isFeatureCollection
         this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
           const descr = v.properties?.popupContent
           p.addOut(skos('prefLabel'), factory.literal(k, 'nl'))
