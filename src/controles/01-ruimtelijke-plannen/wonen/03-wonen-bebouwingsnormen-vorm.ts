@@ -96,7 +96,8 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
     let result = `Op de locatie geldt een bouwaanduiding <a href=${bouwaanduiding.value} target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>. `
     if (this.status === true) result += `De aanvraag voldoet hieraan.`
-    else result += `De aanvraag heeft een dak <a href={?roof} target="_blank">{?roof}</a> met type "{?rooftype}.`
+    // else result += `De aanvraag heeft een dak <a href={?roof} target="_blank">{?roof}</a> met type "{?rooftype}.`
+    else result += `De aanvraag voldoet hier niet aan.`
     return result
   }
 }
