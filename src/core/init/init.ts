@@ -1,20 +1,20 @@
-import argsParser from 'args-parser'
-import crypto from 'crypto'
-import dotenv from 'dotenv'
-import { existsSync } from 'fs'
-import { mkdir, writeFile } from 'fs/promises'
-import { rimraf } from 'rimraf'
-import namespace from '@rdfjs/namespace'
+import argsParser from 'args-parser';
+import crypto from 'crypto';
+import dotenv from 'dotenv';
+import { existsSync } from 'fs';
+import fs, { mkdir, writeFile } from 'fs/promises';
+import { rimraf } from 'rimraf';
 
-import { ensureJava } from '@core/init/ensureJava.js'
-import { ensurePython } from '@core/init/ensurePython.js'
-import { installPythonDependencies } from '@core/init/installPythonDependencies.js'
-import { getAccount } from '@helpers/getAccount.js'
-import { createLogger } from '@helpers/logger.js'
-import App from '@triply/triplydb'
-import Asset from '@triply/triplydb/Asset.js'
-import Dataset from '@triply/triplydb/Dataset.js'
-import { Activity } from '@core/Activity.js'
+import { Activity } from '@core/Activity.js';
+import { ensureJava } from '@core/init/ensureJava.js';
+import { ensurePython } from '@core/init/ensurePython.js';
+import { installPythonDependencies } from '@core/init/installPythonDependencies.js';
+import { getAccount } from '@helpers/getAccount.js';
+import { createLogger } from '@helpers/logger.js';
+import namespace from '@rdfjs/namespace';
+import App from '@triply/triplydb';
+import Asset from '@triply/triplydb/Asset.js';
+import Dataset from '@triply/triplydb/Dataset.js';
 
 const log = createLogger('init', import.meta)
 
@@ -27,6 +27,16 @@ export const init = //new Activity(
       if (!process.env[variable]) throw new Error(`Missing variable ${variable}`)
 
     const args = argsParser(process.argv)
+
+    if (process.env.TRIGGER_PAYLOAD) {
+      const triggerFileData = await fs.readFile(process.env.TRIGGER_PAYLOAD, 'utf8')
+      const triggerData = JSON.parse(triggerFileData)
+      const triggerAsset = triggerData.assets?.[0]?.assetName
+
+      if (triggerAsset && triggerAsset.endsWith('.ifc')) {
+        args.ifc = triggerAsset
+      }
+    }
 
     const datasetName = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
     const idsName = args.ids.replaceAll('.ids', '').replace(/[^a-zA-Z]+/g, '')
@@ -52,10 +62,12 @@ export const init = //new Activity(
       )
     }
 
-    const datasetInfo = await dataset.getInfo()
-    const graphPrefix = datasetInfo.prefixes.find((item) => item.prefixLabel === 'graph')!
+    const consoleUrl = (await triply.getInfo()).consoleUrl
+    const userName = (await user.getInfo()).accountName
+    const baseIRI = `${consoleUrl}/${userName}/${datasetName}/`
+
     log(account, 'Account')
-    log(graphPrefix.iri.replace('/graphs/', ''), 'Dataset')
+    log(baseIRI, 'Dataset')
 
     await ensurePython()
     await ensureJava()
@@ -113,13 +125,10 @@ export const init = //new Activity(
     // write asset to input ifc directory
     await writeFile(ifcOutput, await ifcAsset.toStream(), 'utf8')
 
-    const consoleUrl = (await triply.getInfo()).consoleUrl
-    const userName = (await user.getInfo()).accountName
     const ifcAssetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/vcs/assets/download?fileName=`
     const assetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/${datasetName}/assets/download?fileName=`
     const inputIfc = import.meta.resolve(`../../../input/ifc/${args.ifc}`).replace('file://', '')
     const ifcIdentifier = crypto.createHash('md5').update(inputIfc).digest('hex')
-    const baseIRI = `${consoleUrl}/${userName}/${datasetName}/`
     const rpt = namespace(`${baseIRI}rpt/`)
 
     return {

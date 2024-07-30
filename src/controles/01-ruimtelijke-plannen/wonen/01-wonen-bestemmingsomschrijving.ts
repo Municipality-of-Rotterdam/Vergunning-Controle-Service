@@ -1,15 +1,18 @@
 import { Controle } from '@core/Controle.js'
-import { Data as RPData } from './common.js'
+import { Data as RPData } from '../common.js'
 import { StepContext } from '@root/core/executeSteps.js'
-import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
+import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { SparqlActivity } from '@root/core/Activity.js'
 import namespace from '@rdfjs/namespace'
+import { Geometry } from 'geojson'
+import { projectGeoJSON } from '@root/core/helpers/crs.js'
 
 type Data = {
   gebruiksfunctie: string
+  geometry: Geometry
 }
 
-export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
+export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bestemmingsomschrijving'
   public tekst = `De voor 'Wonen' aangewezen gronden zijn bestemd voor woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
   public verwijzing = `Hoofdstuk 2 Bestemmingsregels 
@@ -17,27 +20,59 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
 			23.1 Bestemmingsomschrijving 
 				a. `
 
-  async _run(context: Controle<StepContext, RPData>): Promise<Data> {
-    const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const data = context.data
-    if (!data) throw new Error()
-    const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
-    // this.apiResponse = response
+  async run({ baseIRI, bestemmingsplan, footprintT1 }: StepContext & RPData): Promise<Data> {
+    const response = await new RuimtelijkePlannenActivity({
+      url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
+      params: { expand: 'geometrie' },
+      body: { _geo: { contains: footprintT1 } },
+    }).run({ baseIRI })
+    this.apiResponse = response // TODO remove
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',
     )
-
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
 
     if (bestemmingsvlakken.length != 1) {
       throw new Error('Op dit moment mag er maar 1 enkelbestemmingsvlak bestaan.')
     }
+    const vlak = bestemmingsvlakken[0]
+    const gebruiksfunctie: string = vlak['naam']
+    const geometry: Geometry = vlak['geometrie']
 
-    const gebruiksfunctie: string = bestemmingsvlakken[0]['naam']
+    this.info['Bestemmingsvlak'] = {
+      type: 'Feature',
+      properties: {
+        name: `Bestemmingsvlak`,
+        show_on_map: true,
+        popupContent: `Bestemmingsvlak "${gebruiksfunctie}"`,
+        style: {
+          weight: 2,
+          color: '#999',
+          opacity: 1,
+          fillColor: '#B0DE5C',
+          fillOpacity: 0.5,
+        },
+      },
+      geometry,
+    }
+    this.info['Voetafdruk van het gebouw'] = {
+      type: 'Feature',
+      properties: {
+        name: 'Voetafdruk van het gebouw',
+        show_on_map: true,
+        popupContent: 'Voetafdruk van het gebouw',
+        style: {
+          weight: 2,
+          color: '#999',
+          opacity: 1,
+          fillColor: '#B0DE5C',
+          fillOpacity: 0.5,
+        },
+      },
+      geometry: projectGeoJSON(footprintT1) as Geometry,
+    }
 
-    this.log(`Bestemmingsvlak ${gebruiksfunctie}`)
-
-    return { gebruiksfunctie }
+    return { gebruiksfunctie, geometry }
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/1-Wonen-bestemmingsomschrijving'
@@ -73,6 +108,9 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
       }`
 
   bericht({ gebruiksfunctie }: Data): string {
-    return `Ruimte <a href={?space} target="_blank">{?space}</a> met de gebruiksfunctie "{?functie}" mag niet gepositioneerd worden in een bestemmingsomschrijving "${gebruiksfunctie}".`
+    if (this.status === true)
+      return `Op de locatie geldt de bestemmingsomschrijving ${gebruiksfunctie}. De aanvraag voldoet hieraan.`
+    else
+      return `Ruimte <a href={?space} target="_blank">{?space}</a> met de gebruiksfunctie "{?functie}" mag niet gepositioneerd worden in een bestemmingsomschrijving "${gebruiksfunctie}".`
   }
 }

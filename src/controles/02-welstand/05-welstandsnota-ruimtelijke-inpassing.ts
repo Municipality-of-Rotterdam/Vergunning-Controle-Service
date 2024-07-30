@@ -1,9 +1,12 @@
 import { Controle } from '@core/Controle.js'
 import { StepContext } from '@root/core/executeSteps.js'
-import { Data as WelstandData } from './common.js'
-import { WelstandWfsActivity } from '@core/Activity.js'
-import { GeoJSON, MultiPolygon, Position } from 'geojson'
-import { ActivityA } from '@core/Activity.js'
+import { XmlActivity } from '@core/Activity.js'
+import { GeoJSON, Geometry, MultiPolygon, Position } from 'geojson'
+import { rdf, skos, dct, geo, xsd, sf, litre } from '@core/helpers/namespaces.js'
+import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
+import factory from '@rdfjs/data-model'
+import { geojsonToWKT } from '@terraformer/wkt'
+import { projectGeoJSON } from '@root/core/helpers/crs.js'
 
 type Data = { elongation: number; welstandgebied: string; welstandgebied_id: number; geoJSON: GeoJSON }
 
@@ -14,15 +17,16 @@ And: Er wordt een IFC-model ingediend van IfcBuilding waarbij de Elementen met h
 Then: De ruimtelijke inpassing van het gebouw is in overeenstemming met de stempel en strokenbouw -
 ruimtelijke inpassing. */
 
-export default class _ extends Controle<Controle<StepContext, WelstandData>, Data> {
-  public name = 'Welstand: Stempel en strokenbouw - Ruimtelijke inpassing'
+export default class _ extends Controle<StepContext, Data> {
+  public name = 'Stempel en strokenbouw - Ruimtelijke inpassing'
   public tekst = `Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)`
   public verwijzing = ``
 
-  async _run(context: Controle<StepContext, WelstandData>): Promise<Data> {
-    const wfs = new WelstandWfsActivity({
+  async run({ elongation, baseIRI, footprintT1 }: StepContext): Promise<Data> {
+    const wfs = new XmlActivity({
       name: 'Welstand WFS request',
       description: 'Welstand WFS request',
+      url: `https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer`,
       body: `<?xml version="1.0" encoding="UTF-8"?>
 <GetFeature xmlns:gml="http://www.opengis.net/gml/3.2" xmlns="http://www.opengis.net/wfs/2.0" xmlns:fes="http://www.opengis.net/fes/2.0" service="WFS" version="2.0.0">
    <Query xmlns:Welstandskaart_tijdelijk_VCS="https://vnrpwapp426.rotterdam.local:6443/arcgis/admin/services/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer" typeNames="Welstandskaart_tijdelijk_VCS:Gebiedstypen">
@@ -32,7 +36,7 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
          <gml:Polygon srsName="urn:ogc:def:crs:EPSG::28992" gml:id="footprint">
            <gml:exterior>
              <gml:LinearRing>
-<gml:posList srsDimension="2">84165 431938 84172 431938 84172 431943 84165 431943 84165 431938</gml:posList>
+<gml:posList srsDimension="2">${footprintT1.coordinates.flat().join(' ')}</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>
@@ -64,16 +68,51 @@ export default class _ extends Controle<Controle<StepContext, WelstandData>, Dat
         return {
           fid: gebiedstypen['Welstandskaart_tijdelijk_VCS:FID'],
           geb_type: gebiedstypen['Welstandskaart_tijdelijk_VCS:GEB_TYPE'],
-          surface: geoJSON,
+          surface: projectGeoJSON(geoJSON) as Geometry,
         }
       },
     })
-    //@ts-ignore TODO: The base IRI is passed through in an unsustainable way
-    const response = await wfs.run({ baseIRI: context.context?.context?.baseIRI })
-    const data = context.data
-    if (!data) throw new Error()
+    const response = await wfs.run({ baseIRI })
+    this.apiResponse = response // TODO: Remove
+
+    this.info['Langwerpigheid'] = elongation
+    this.info['Welstandgebied'] = response.geb_type
+    this.info['Voetafdruk van het welstandsgebied'] = {
+      type: 'Feature',
+      properties: {
+        name: response.geb_type,
+        show_on_map: true,
+        popupContent: `Welstandsgebied "${response.geb_type}"`,
+        style: {
+          weight: 2,
+          color: '#999',
+          opacity: 1,
+          fillColor: '#B0DE5C',
+          fillOpacity: 0.5,
+        },
+      },
+      geometry: response.surface,
+    }
+    this.info['Voetafdruk van het gebouw'] = {
+      type: 'Feature',
+      properties: {
+        name: 'Voetafdruk van het gebouw',
+        show_on_map: true,
+        popupContent: 'Voetafdruk van het gebouw',
+        style: {
+          weight: 2,
+          color: '#999',
+          opacity: 1,
+          fillColor: '#B0DE5C',
+          fillOpacity: 0.5,
+        },
+      },
+      geometry: projectGeoJSON(footprintT1) as Geometry,
+    }
+    this.status = null
+
     return {
-      elongation: data.elongation,
+      elongation: elongation,
       welstandgebied_id: response.fid,
       welstandgebied: response.geb_type,
       geoJSON: response.surface,

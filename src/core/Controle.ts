@@ -1,8 +1,10 @@
 import { headerLogBig } from '@helpers/headerLog.js'
 import { createLogger } from '@helpers/logger.js'
 import { readdir } from 'fs/promises'
-import { PathLike, Dirent } from 'fs'
-import { join, relative } from 'path'
+import { Dirent } from 'fs'
+import path from 'path'
+import chalk from 'chalk'
+import App from '@triply/triplydb'
 
 import { GrapoiPointer } from '@core/helpers/grapoi.js'
 import { SparqlActivity } from './Activity.js'
@@ -10,14 +12,18 @@ import { StepContext } from './executeSteps.js'
 import { start, finish } from './helpers/provenance.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 import { BlankNode, NamedNode } from '@rdfjs/types'
-import { dct } from './helpers/namespaces.js'
+import { dct, rdfs, skos, geo, sf, rdf, litre, xsd, prov } from './helpers/namespaces.js'
 import grapoi from 'grapoi'
+import { Feature } from 'geojson'
+import { isFeature } from './helpers/isGeoJSON.js'
 import factory from '@rdfjs/data-model'
+import { geojsonToWKT } from '@terraformer/wkt'
 
 const log = createLogger('checks', import.meta)
 
-export abstract class Controle<Context extends {}, Result extends {}> {
+export abstract class Controle<Context extends Partial<StepContext>, Result extends {}> {
   public abstract name: string
+  public path: string
   public id?: number
 
   // Underlying graph
@@ -27,38 +33,41 @@ export abstract class Controle<Context extends {}, Result extends {}> {
 
   public activity?: GrapoiPointer // TODO: To be removed, keeping it while refactoring
 
-  // Parent-child
-  public data?: Result
-  public context?: Context
-  public constituents: Controle<Controle<Context, Result>, any>[]
+  public data?: Context & Result
+  public parent?: Controle<any, Context>
+  public children: Controle<Context & Result, any>[]
+
+  public status?: boolean | null
+  public info: { [key: string]: number | string | Feature | { text: string; url: string } }
 
   // TODO: Probably more intuitive to define children rather than parent, so as
   // not to rely on side-effects so much, but that is for later
-  protected constructor(basename: string, parent?: Controle<any, Context>) {
+  protected constructor(fullPath: string, parent?: Controle<any, Context>) {
+    const p = fullPath.split(path.sep)
+    const basename = p[p.length - 1]
     const id = parseInt(basename.split('-')[0])
+    this.path = fullPath
     this.id = isNaN(id) ? undefined : id
-    this.constituents = []
+    this.children = []
 
-    this.node = factory.blankNode()
-    this.graph = parent ? parent.graph : new TriplyStore()
-    this.pointer = grapoi({ dataset: this.graph, factory, term: this.node })
-    if (parent) parent.pointer.addOut(dct('hasPart'), this.pointer)
-  }
+    this.info = {}
 
-  add(controle: Controle<Controle<Context, Result>, any>) {
-    if (controle.context && controle.context != this) {
-      throw new Error('context is already set')
+    this.node = factory.namedNode(`https://example.org/${this.path}`)
+    if (parent) {
+      this.graph = parent.graph
+    } else {
+      this.graph = new TriplyStore()
     }
-    controle.context = this
-    this.constituents.push(controle)
+    this.pointer = grapoi({ dataset: this.graph, factory, term: this.node })
   }
 
-  static async instantiateFromFile(
-    directory: string,
-    filename: string,
-    parent?: Controle<any, any>,
-  ): Promise<Controle<any, any>> {
-    return import(join(directory, filename.replace(/\.ts$/, '.js'))).then((m) => new m.default(filename, parent))
+  add(controle: Controle<Context & Result, any>) {
+    this.children.push(controle)
+    this.pointer.addOut(dct('hasPart'), controle.node)
+  }
+
+  static async instantiateFromFile(file: string, parent?: Controle<any, any>): Promise<Controle<any, any>> {
+    return import(file.replace(/\.ts$/, '.js')).then((m) => new m.default(file, parent))
   }
 
   static async instantiateFromDirectory(
@@ -73,19 +82,23 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     // Determine the common group of this directory and push all controles as its constituents
     const fIsCommon = (s: string) => s.replace(/\.[tj]s$/, '') == 'common'
     const commonFiles: Dirent[] = files.filter((f) => fIsCommon(f.name))
-    const common: Controle<any, any> = commonFiles.length
-      ? await Controle.instantiateFromFile(directory2, commonFiles[0].name, parent)
-      : new DefaultCommonControle(directory, parent)
+
+    if (commonFiles.length != 1) throw new Error('Er moet een overkoepelende `common.ts` controle zijn')
+
+    const common: Controle<any, any> = await Controle.instantiateFromFile(
+      path.join(directory2, commonFiles[0].name),
+      parent,
+    )
 
     // Collect subcontroles from files & directories and add them to the overarching controle
     const fileSubcontroles: Controle<any, any>[] = await Promise.all(
       files
         .filter((f) => !fIsCommon(f.name))
-        .map(async (f) => Controle.instantiateFromFile(directory2, f.name, parent)),
+        .map(async (f) => Controle.instantiateFromFile(path.join(directory2, f.name), common)),
     )
     const dirSubcontroles: Controle<any, any>[] = await Promise.all(
       directories.map(async (d) =>
-        Controle.instantiateFromDirectory(join(directory, d.name), join(directory2, d.name), parent),
+        Controle.instantiateFromDirectory(path.join(directory, d.name), path.join(directory2, d.name), common),
       ),
     )
     const controles = dirSubcontroles.concat(fileSubcontroles)
@@ -97,31 +110,99 @@ export abstract class Controle<Context extends {}, Result extends {}> {
     return common
   }
 
-  async run(context: Context, activity: GrapoiPointer): Promise<Result> {
-    headerLogBig(`Controle run: "${this.name}"`, 'yellowBright')
+  applicable(_: Result): boolean {
+    return true
+  }
+
+  async runAll(context: Context, activity: GrapoiPointer): Promise<Result> {
+    const { rpt, account, datasetName } = context as StepContext // TODO
+
+    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
+    const user = await triply.getAccount(account)
+    const { apiUrl } = await triply.getInfo()
+
+    headerLogBig(`Controle: "${this.name}"`, 'yellowBright')
 
     const prep = start(activity, { name: `Controle ${this.name}` })
-    const intermediate = (await this._run(context)) ?? {}
-    if (context) Object.assign(intermediate, context)
-
-    this.context = context
     this.activity = prep
-    this.data = intermediate
-    for (const p of this.constituents) {
-      // p is an instance of Controle<Controle<Context, T>, any>
-      await p.run(this, prep)
+
+    const result = Object.assign({}, context, await this.run(context))
+    this.data = result
+
+    let success: boolean | null | undefined = undefined
+    let message: string | undefined = undefined
+    if (this.children.length == 0) {
+      const r = await this.uitvoering(result, `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`)
+      success = r.success
+      message = r.message
     }
 
-    if (this.apiResponse) {
-      // prep.addOut(context.rpt('apiResponse'), JSON.stringify(this.apiResponse))
-      // prep.addOut(context.rpt('apiCall'), this.apiResponse['_links']['self']['href'])
-    }
+    for (const p of this.children) await p.runAll(result, prep)
     finish(prep)
-    // this.log(this.data)
 
-    return intermediate
+    // Log to console
+    if (success === null || success === undefined) {
+      log(message, this.name)
+    } else if (success) {
+      log(chalk.greenBright(`✅ ${message}`), this.name)
+    } else {
+      log(chalk.redBright(`❌ ${message}`), this.name)
+    }
+
+    // Write RDF
+    this.pointer.addOut(rdfs('label'), factory.literal(this.name))
+    this.pointer.addOut(rdf('type'), rpt('Controle'))
+    this.pointer.addOut(rdfs('label'), this.name)
+    if (this.tekst) this.pointer.addOut(dct('description'), factory.literal(this.tekst, 'nl'))
+    if (this.verwijzing) this.pointer.addOut(rpt('verwijzing'), factory.literal(this.verwijzing, 'nl'))
+    if (this.sparqlUrl) this.pointer.addOut(rpt('sparqlUrl'), factory.literal(this.sparqlUrl, xsd('anyUri')))
+    if (success !== undefined)
+      this.pointer.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
+    if (message !== undefined) this.pointer.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
+    this.pointer.addOut(prov('wasGeneratedBy'), this.activity?.term)
+
+    if (this.apiResponse && context.rpt) {
+      prep.addOut(context.rpt('apiResponse'), JSON.stringify(this.apiResponse))
+    }
+    // if (this.apiCall && context.rpt) {
+    //   prep.addOut(context.rpt('apiCall'), this.apiCall)
+    // }
+    //this.log(this.data)
+
+    // Save anything that was saved to the `info` object also to the RDF report
+    for (const [k, v] of Object.entries(this.info)) {
+      if (isFeature(v)) {
+        this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
+          const descr = v.properties?.popupContent
+          p.addOut(skos('prefLabel'), factory.literal(k, 'nl'))
+          if (descr) p.addOut(dct('description'), factory.literal(descr, 'nl'))
+          p.addOut(rdf('type'), sf(v.geometry.type))
+          p.addOut(geo('coordinateDimension'), factory.literal('2', xsd('integer')))
+          const wkt = geojsonToWKT(v.geometry)
+          p.addOut(
+            geo('asWKT'),
+            factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${wkt}`, geo('wktLiteral')),
+          )
+        })
+      } else {
+        this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
+          const t = typeof v == 'number' ? xsd('number') : undefined
+          p.addOut(skos('prefLabel'), factory.literal(k, 'nl'))
+          if (v.hasOwnProperty('url')) {
+            //@ts-ignore
+            p.addOut(rdfs('seeAlso'), factory.literal(v.url, xsd('anyURI')))
+            //@ts-ignore
+            p.addOut(litre('hasLiteral'), factory.literal(v.text, t))
+          } else {
+            p.addOut(litre('hasLiteral'), factory.literal(v.toString(), t))
+          }
+        })
+      }
+    }
+
+    return result
   }
-  abstract _run(context: Context): Promise<Result>
+  abstract run(context: Context): Promise<Result>
 
   // TODO: Refactor below
   apiResponse?: any
@@ -129,51 +210,44 @@ export abstract class Controle<Context extends {}, Result extends {}> {
   tekst?: string
   verwijzing?: string
   bericht(inputs: Result): string {
-    return 'nvt'
+    return 'n.v.t.'
   }
-  berichtGefaald(inputs: Result): string {
-    return this.bericht(inputs)
-  }
-  berichtGeslaagd(inputs: Result): string {
-    return this.bericht(inputs)
-  }
-  isToepasbaar(_: Result): boolean {
-    return true
-  }
+
   sparql?: (inputs: Result) => string
 
-  async uitvoering(inputs: Result, url?: string): Promise<{ success: boolean | null; message: string }> {
-    if (!this.sparql) return { success: null, message: this.bericht(inputs) }
-    if (!this.isToepasbaar(inputs)) return { success: null, message: 'Niet van toepassing' }
+  async uitvoering(inputs: Context & Result, url?: string): Promise<{ success: boolean | null; message: string }> {
+    if (!this.sparql) {
+      const result = { success: null, message: this.bericht(inputs) }
+      this.status = null
+      this.info['Resultaat'] = result.message
+      return result
+    }
     if (!url) throw new Error('must have url')
     const sparql = this.sparql(inputs)
     const activity = new SparqlActivity({ name: `SPARQL query ${this.name}`, body: sparql, url })
-    //@ts-ignore TODO: The base IRI is passed through in a wholly unsustainable way at the moment
-    const response = await activity.run({ baseIRI: this.context?.context?.context?.baseIRI })
+
+    // TODO This is a hacky way of getting the SPARQL url into the report. To do
+    // it properly, the `Activity` has to be refactored.
+    if (inputs.rpt) this.activity?.addOut(inputs.rpt('sparqlUrl'), this.sparqlUrl ?? 'undefined')
+
+    const response = await activity.run({ baseIRI: inputs.baseIRI })
     const result = response[0] ?? null
-    const success = result ? result.success ?? false : true
-    let message = success ? this.berichtGeslaagd(inputs) : this.berichtGefaald(inputs)
+    const success: boolean = result ? result.success == 'true' ?? false : true
+    this.status = success
+    let message = this.bericht(inputs)
 
     if (result) {
       for (const [key, value] of Object.entries(result)) {
         message = message.replaceAll(`{?${key}}`, value as string)
       }
     }
+
+    this.info['Resultaat'] = message
+
     return { success, message }
   }
 
   log(message: any) {
     log(message, `Controle: "${this.name}"`)
-  }
-}
-
-export class DefaultCommonControle extends Controle<StepContext, StepContext> {
-  public name: string
-  constructor(basename: string, parent?: Controle<any, any>) {
-    super(basename, parent)
-    this.name = basename
-  }
-  async _run(context: StepContext) {
-    return context
   }
 }

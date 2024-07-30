@@ -1,5 +1,5 @@
-import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
-import { Data as RPData } from './common.js'
+import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
+import { Data as RPData } from '../common.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { Controle } from '@root/core/Controle.js'
 
@@ -7,7 +7,7 @@ type Data = {
   max: number
 }
 
-export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
+export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bebouwingsnormen: Hoogte'
   public tekst = `Toegestane hoogte verdiepingen. De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven`
   public verwijzing = `
@@ -16,13 +16,13 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
 			23.2.2 Bebouwingsnormen
 				a.`
 
-  async _run(context: Controle<StepContext, RPData>): Promise<Data> {
-    const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
+  async run({ baseIRI, bestemmingsplan, footprintT2 }: StepContext & RPData): Promise<Data> {
+    const response = await new RuimtelijkePlannenActivity({
+      url: `/plannen/${bestemmingsplan.id}/maatvoeringen/_zoek`,
+      body: { _geo: { contains: footprintT2 } },
+    }).run({ baseIRI })
+    this.apiResponse = response // TODO remove
 
-    const data = context.data
-    if (!data) throw new Error()
-    const response = await ruimtelijkePlannen.maatvoeringen(data.bestemmingsplan.id, data.geoShape)
-    this.apiResponse = response
     const maatvoeringen: any[] = response['_embedded']['maatvoeringen'].filter(
       (maatvoering: any) => maatvoering['naam'] == 'maximum aantal bouwlagen',
     )
@@ -65,6 +65,10 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
   }
 
   bericht({ max }: Data): string {
-    return `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}. <a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen, hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
+    let result = `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}. `
+    if (this.status === true) result += `De aanvraag voldoet hieraan.`
+    else
+      result += `<a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen. Hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
+    return result
   }
 }

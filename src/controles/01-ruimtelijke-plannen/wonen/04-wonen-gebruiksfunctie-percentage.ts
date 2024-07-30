@@ -1,6 +1,6 @@
 import { StepContext } from '@root/core/executeSteps.js'
-import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
-import { Data as RPData } from './common.js'
+import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
+import { Data as RPData } from '../common.js'
 import { Controle } from '@root/core/Controle.js'
 
 type Data = {
@@ -14,8 +14,8 @@ Objecttype BVO en optioneel een IfcSpace Objecttype Nevengebruiksfunctie Name: B
 But: de IfcSpace bedrijfsfunctie niet meer is dan 30% van de space BVO.
 Then: Het gebruik van het gebouw is in overeenstemming met de specifieke gebruiksregels. */
 
-export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
-  public name = 'Wonen: Bedrijfsfunctie'
+export default class _ extends Controle<StepContext & RPData, Data> {
+  public name = 'Bedrijfsfunctie'
   public tekst = `Woningen mogen mede worden gebruikt voor de uitoefening van een aan huis gebonden beroep of bedrijf, mits: de woonfunctie in overwegende mate gehandhaafd blijft, waarbij het bruto vloeroppervlak van de woning voor ten hoogste 30%, mag worden gebruikt voor een aan huis gebonden beroep of bedrijf`
   public verwijzing = `Hoofdstuk 2 Bestemmingsregels 
 		Artikel 23 Wonen lid 
@@ -23,13 +23,13 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
 				23.3.1 Algemeen
 					a. `
 
-  async _run(context: Controle<StepContext, RPData>): Promise<Data> {
-    const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const data = context.data
-    if (!data) throw new Error()
-
-    const response = await ruimtelijkePlannen.bestemmingsvlakZoek(data.bestemmingsplan.id, data.geoShape)
+  async run({ baseIRI, footprintT1, bestemmingsplan }: StepContext & RPData): Promise<Data> {
+    const response = await new RuimtelijkePlannenActivity({
+      url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
+      body: { _geo: { contains: footprintT1 } },
+    }).run({ baseIRI })
     this.apiResponse = response
+
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',
     )
@@ -47,7 +47,7 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
     return { gebruiksfunctie }
   }
 
-  isToepasbaar({ gebruiksfunctie }: Data): boolean {
+  applicable({ gebruiksfunctie }: Data): boolean {
     return gebruiksfunctie.toLowerCase() == 'wonen'
   }
 

@@ -1,20 +1,23 @@
 import { StepContext } from '@root/core/executeSteps.js'
-import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
+import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { Controle } from '@root/core/Controle.js'
+import { dct, rdfs, skos, xsd } from '@core/helpers/namespaces.js'
+import factory from '@rdfjs/data-model'
 
-export type Data = { bestemmingsplan: any; geoShape: any }
+export type Data = { bestemmingsplan: any }
 
-export default class _ extends Controle<Controle<any, StepContext>, Data> {
+export default class _ extends Controle<StepContext, Data> {
   public name = 'Ruimtelijke plannen'
 
-  async _run(context: Controle<any, StepContext>): Promise<Data> {
-    const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const geoShape = { _geo: { contains: this.context?.context?.footprint } }
-    this.log(JSON.stringify(geoShape))
+  async run({ footprintT1, baseIRI }: StepContext): Promise<Data> {
+    const response = await new RuimtelijkePlannenActivity({
+      url: '/plannen/_zoek',
+      body: { _geo: { contains: footprintT1 } },
+      params: { planType: 'bestemmingsplan' },
+    }).run({ baseIRI })
+    this.apiResponse = response
 
-    const apiResponse = await ruimtelijkePlannen.plannen(geoShape, { planType: 'bestemmingsplan' })
-    this.apiResponse = apiResponse
-    let plans = apiResponse['_embedded']['plannen']
+    let plans = response['_embedded']['plannen']
 
     this.log(`Bestemmingsplannen horende bij de voetafdruk: ${plans.map((plan: any) => `${plan.id}`).join('; ')}`)
 
@@ -37,6 +40,12 @@ export default class _ extends Controle<Controle<any, StepContext>, Data> {
 
     this.log(`Geselecteerd: ${bestemmingsplan.id}`)
 
-    return { bestemmingsplan, geoShape }
+    let url: string = bestemmingsplan['heeftOnderdelen'].filter((o: any) => o['type'] == 'toelichting')[0][
+      'externeReferenties'
+    ][0]
+
+    this.info['Bestemmingsplan'] = { text: `${bestemmingsplan.naam} (${bestemmingsplan.id})`, url }
+
+    return { bestemmingsplan }
   }
 }

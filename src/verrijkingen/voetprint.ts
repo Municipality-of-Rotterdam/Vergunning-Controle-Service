@@ -5,9 +5,10 @@ import { Quad } from 'n3'
 import { createExecutor } from '@helpers/executeCommand.js'
 import { createLogger } from '@helpers/logger.js'
 import { StepContext } from '@root/core/executeSteps.js'
-import { qudt } from '@core/helpers/namespaces.js'
+import { qudt, geo } from '@core/helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
+import { wktToGeoJSON } from '@terraformer/wkt'
 
 const executeCommand = createExecutor('verrijking', import.meta, 'voetprint')
 
@@ -27,19 +28,25 @@ export default async function Voetprint({
 
   log(`Data extract gemaakt`, 'Voetprint')
 
-  let polygon = await fs.readFile(filePath, 'utf-8')
+  let footprintFile = await fs.readFile(filePath, 'utf-8')
   const parser = new N3.Parser()
-  const quads = parser.parse(polygon)
+  const quads = parser.parse(footprintFile)
   for (const quad of quads) {
     if (quad) verrijkingenDataset.add(quad as any)
   }
+
+  const footprint: string = grapoi({
+    dataset: verrijkingenDataset,
+    term: factory.namedNode(`${gebouwSubject}/footprint`),
+  }).out(geo('asWKT')).value
 
   const elongationNode = factory.namedNode(`${gebouwSubject}/footprint/elongation`)
   const pointer: GrapoiPointer = grapoi({
     dataset: verrijkingenDataset,
     term: elongationNode,
   })
-  const elongation = pointer.out(qudt('numericValue')).value
+  const elongationValue = pointer.out(qudt('numericValue')).value
+  const elongation: number = typeof elongationValue == 'number' ? elongationValue : parseFloat(elongationValue)
   log(`Elongation: ${elongation}`, 'Elongation')
 
   if (!elongation) {
@@ -48,25 +55,11 @@ export default async function Voetprint({
 
   log(`De voetprint is toegevoegd aan de verrijkingen linked data graaf`, 'Voetprint')
 
-  /**
-   * Temporary stub
-   * TODO remove this when we have better test data.
-   */
-  polygon = `POLYGON ((84116 431825, 84121 431825, 84121 431829, 84116 431829, 84116 431825))`
-  const footprint = {
-    type: 'Polygon',
-    coordinates: [
-      polygon
-        .split('((')
-        .pop()!
-        .replace('))', '')
-        .split(',')
-        .map((pair) => pair.trim().split(' ').map(parseFloat)),
-    ],
-  }
-
   return {
-    footprint,
+    footprint: wktToGeoJSON(footprint.replace(/^<.*>\s/, '').toUpperCase()),
+    // TODO: Remove test footprints once the process is improved
+    footprintT1: wktToGeoJSON(`POLYGON ((84165 431938, 84172 431938, 84172 431943, 84165 431943, 84165 431938))`),
+    footprintT2: wktToGeoJSON(`POLYGON ((84116 431825, 84121 431825, 84121 431829, 84116 431829, 84116 431825))`),
     elongation,
   }
 }

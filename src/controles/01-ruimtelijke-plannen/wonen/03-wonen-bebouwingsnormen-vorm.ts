@@ -1,6 +1,6 @@
 import { StepContext } from '@root/core/executeSteps.js'
-import { RuimtelijkePlannenAPI } from '@bronnen/RuimtelijkePlannen.js'
-import { Data as RPData } from './common.js'
+import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
+import { Data as RPData } from '../common.js'
 import { ifc } from '@helpers/namespaces.js'
 import NamedNode from '@rdfjs/data-model/lib/NamedNode.js'
 import { Controle } from '@root/core/Controle.js'
@@ -32,7 +32,7 @@ function bouwaanduidingTextByIfcCode(ifcCode: NamedNode): string {
   }
 }
 
-export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
+export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bebouwingsnormen: Vorm'
   public tekst = `Ter plaatse van de aanduiding "plat dak" dienen woningen plat te worden afgedekt`
   public verwijzing = ` 
@@ -41,30 +41,13 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
 			23.2 Bebouwingsnormen
 				c.`
 
-  async _run(context: Controle<StepContext, RPData>): Promise<Data> {
-    const ruimtelijkePlannen = new RuimtelijkePlannenAPI(process.env.RP_API_TOKEN ?? '')
-    const data = context.data
-    if (!data) throw new Error()
-
-    // TODO another test footprint
-    const geoShape2 = {
-      _geo: {
-        contains: {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [84165, 431938],
-              [84172, 431938],
-              [84172, 431943],
-              [84165, 431943],
-              [84165, 431938],
-            ],
-          ],
-        },
-      },
-    }
-    const response = await ruimtelijkePlannen.bouwaanduidingenZoek(data.bestemmingsplan.id, geoShape2)
+  async run({ bestemmingsplan, baseIRI, footprintT1 }: StepContext & RPData): Promise<Data> {
+    const response = await new RuimtelijkePlannenActivity({
+      url: `/plannen/${bestemmingsplan.id}/bouwaanduidingen/_zoek`,
+      body: { _geo: { contains: footprintT1 } },
+    }).run({ baseIRI })
     this.apiResponse = response
+
     const bouwaanduidingen: any[] = response['_embedded']['bouwaanduidingen']
 
     this.log(`${bouwaanduidingen.length} bouwaanduidingen gevonden`)
@@ -110,9 +93,11 @@ export default class _ extends Controle<Controle<StepContext, RPData>, Data> {
       'https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#',
       'ifc:',
     )
-    return `De aanvraag heeft een <a href=${bouwaanduiding.value} target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>, hiermee wordt voldaan aan de regels voor de locatie.`
-  }
-  berichtGefaald(invoer: Data): string {
-    return `Dak <a href={?roof} target="_blank">{?roof}</a> heeft het daktype "{?rooftype}". ${this.bericht(invoer)}`
+
+    let result = `Op de locatie geldt een bouwaanduiding <a href=${bouwaanduiding.value} target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>. `
+    if (this.status === true) result += `De aanvraag voldoet hieraan.`
+    // else result += `De aanvraag heeft een dak <a href={?roof} target="_blank">{?roof}</a> met type "{?rooftype}.`
+    else result += `De aanvraag voldoet hier niet aan.`
+    return result
   }
 }
