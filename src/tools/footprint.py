@@ -29,8 +29,23 @@ units of the global (map)CRS.
 References:
 1) For ifcopenshell geometry processing, see https://docs.ifcopenshell.org/ifcopenshell-python/geometry_processing.html
 
-Example:
+Tested with:
+IfcWall
+IfcCurtainWall
+IfcWallStandardCase
+IfcRoof
+IfcSlab
+IfcWindow
+IfcColumn
+IfcBeam
+IfcDoor
+IfcCovering
+IfcMember
+IfcPlate
+
+Examples:
 footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcRoof,IfcSlab
+footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcWall,IfcCurtainWall,IfcWallStandardCase,IfcRoof,IfcSlab,IfcWindow,IfcColumn,IfcBeam,IfcDoor,IfcCovering,IfcMember,IfcPlate
 """
 
 def main(file, building_iri, ifc_classes):
@@ -61,41 +76,15 @@ def main(file, building_iri, ifc_classes):
                 shape = ifcopenshell.geom.create_shape(settings, ifc_object)
             except:
                 print('# Skipping IFC object with name',ifc_object.Name)
-            object_footprint = get_footprint(shape.geometry)
-            
-            #if object_footprint.geom_type != 'Polygon':
-            #    print('geom number:', str(c), 'type:', object_footprint.geom_type)
-            #if not object_footprint.is_valid:
-            #    print('invalid geom number:', str(c), 'type:', object_footprint.geom_type)
-            #if not object_footprint.is_simple:
-            #    print('not simple geom number:', str(c), 'type:', object_footprint.geom_type)
-            #if object_footprint.is_empty:
-            #    print('empty geom number:', str(c), 'type:', object_footprint.geom_type)
-
-            #id2 = shape.name.split(':')[2]
-            #if id2 in ['1339774','1340087']:
-            #    hull = convhull(shape.geometry)
-            #    plot(hull, id2 + ' convex hull')
-             #   wall = georeference(object_footprint.exterior, mc_scale, mc_delta_x, mc_delta_y, mc_rotation)
-                #shape2d = shapely.force_2d(shape.geometry)
-                #plot(shape2d, id2)
-            #    plot(wall,id2 + ' georef')
+            else:
+                object_footprint = get_footprint(shape.geometry)
+                geometries.append(object_footprint)
 
 
-            #if c < 10 or c > 1060:
-            #    wall = georeference(object_footprint.exterior, mc_scale, mc_delta_x, mc_delta_y, mc_rotation)
-            #    plot(wall,str(c))
-            #    print ("ID:",shape.id)
-            #    print ("name:",shape.name)
-            #    print ("ID2",shape.name.split(':')[2])
-
-
-            geometries.append(object_footprint)
-
-
-    print('geometries:', len(geometries))
-    #for g in geometries:
-    #    print('geom number:', geometries.index(g), 'area:', g.area)
+    #print('geometries:', len(geometries))
+    if len(geometries) == 0:
+        print('no suitable geometries were found')
+        exit(5)
 
     unioned_geometry = shapely.ops.unary_union(geometries)
 
@@ -206,7 +195,7 @@ def plot(geometry, title): #plot a geometry (useful for development and debuggin
     pp.title(title)
     pp.show()
 
-def convhull(geometry): #calulate the 2D convex hull of a ifcopenshell geometry, only used for testing
+def convhull(geometry): #calculate the 2D convex hull of a ifcopenshell geometry, only used for testing
     verts = ifcopenshell.util.shape.get_vertices(geometry)
     vertsxy = []
     for vert in verts:
