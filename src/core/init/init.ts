@@ -28,9 +28,7 @@ export const init = //new Activity(
 
     const args = argsParser(process.argv)
 
-    const triggerData = process.env.TRIGGER_PAYLOAD ? JSON.parse(process.env.TRIGGER_PAYLOAD) : null
-
-    console.log(triggerData)
+    console.log(process.env)
 
     const datasetName = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
     const idsName = args.ids.replaceAll('.ids', '').replace(/[^a-zA-Z]+/g, '')
