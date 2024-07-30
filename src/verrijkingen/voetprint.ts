@@ -45,7 +45,8 @@ export default async function Voetprint({
     dataset: verrijkingenDataset,
     term: elongationNode,
   })
-  const elongation = pointer.out(qudt('numericValue')).value
+  const elongationValue = pointer.out(qudt('numericValue')).value
+  const elongation: number = typeof elongationValue == 'number' ? elongationValue : parseFloat(elongationValue)
   log(`Elongation: ${elongation}`, 'Elongation')
 
   if (!elongation) {
