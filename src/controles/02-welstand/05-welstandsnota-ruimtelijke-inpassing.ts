@@ -22,7 +22,7 @@ export default class _ extends Controle<StepContext, Data> {
   public tekst = `Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)`
   public verwijzing = ``
 
-  async run({ elongation, baseIRI, footprint }: StepContext): Promise<Data> {
+  async run({ elongation, baseIRI, footprintT1 }: StepContext): Promise<Data> {
     const wfs = new XmlActivity({
       name: 'Welstand WFS request',
       description: 'Welstand WFS request',
@@ -36,7 +36,7 @@ export default class _ extends Controle<StepContext, Data> {
          <gml:Polygon srsName="urn:ogc:def:crs:EPSG::28992" gml:id="footprint">
            <gml:exterior>
              <gml:LinearRing>
-<gml:posList srsDimension="2">${footprint.coordinates.flat().join(' ')}</gml:posList>
+<gml:posList srsDimension="2">${footprintT1.coordinates.flat().join(' ')}</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>
@@ -107,7 +107,7 @@ export default class _ extends Controle<StepContext, Data> {
           fillOpacity: 0.5,
         },
       },
-      geometry: projectGeoJSON(footprint) as Geometry,
+      geometry: projectGeoJSON(footprintT1) as Geometry,
     }
     this.status = null
 

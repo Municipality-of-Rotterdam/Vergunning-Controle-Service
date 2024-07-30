@@ -41,10 +41,10 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 			23.2 Bebouwingsnormen
 				c.`
 
-  async run({ bestemmingsplan, baseIRI, footprint }: StepContext & RPData): Promise<Data> {
+  async run({ bestemmingsplan, baseIRI, footprintT1 }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: `/plannen/${bestemmingsplan.id}/bouwaanduidingen/_zoek`,
-      body: { _geo: { contains: footprint } },
+      body: { _geo: { contains: footprintT1 } },
     }).run({ baseIRI })
     this.apiResponse = response
 

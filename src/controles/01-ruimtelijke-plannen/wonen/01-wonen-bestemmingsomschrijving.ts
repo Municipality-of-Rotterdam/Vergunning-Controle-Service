@@ -20,11 +20,11 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 			23.1 Bestemmingsomschrijving 
 				a. `
 
-  async run({ baseIRI, bestemmingsplan, footprint }: StepContext & RPData): Promise<Data> {
+  async run({ baseIRI, bestemmingsplan, footprintT1 }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
       params: { expand: 'geometrie' },
-      body: { _geo: { contains: footprint } },
+      body: { _geo: { contains: footprintT1 } },
     }).run({ baseIRI })
     this.apiResponse = response // TODO remove
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
@@ -69,7 +69,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
           fillOpacity: 0.5,
         },
       },
-      geometry: projectGeoJSON(footprint) as Geometry,
+      geometry: projectGeoJSON(footprintT1) as Geometry,
     }
 
     return { gebruiksfunctie, geometry }

@@ -27,8 +27,8 @@ export const valideer = new Activity(
       args,
       baseIRI,
       datasetName,
-      footprint,
-      footprint2,
+      footprintT1,
+      footprintT2,
       elongation,
       ifcAssetBaseUrl,
       rpt,
@@ -41,8 +41,8 @@ export const valideer = new Activity(
       | 'baseIRI'
       | 'datasetName'
       | 'ruleIds'
-      | 'footprint'
-      | 'footprint2'
+      | 'footprintT1'
+      | 'footprintT2'
       | 'elongation'
       | 'ifcAssetBaseUrl'
       | 'rpt'
@@ -52,7 +52,6 @@ export const valideer = new Activity(
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const user = await triply.getAccount(account)
     const dataset = await user.getDataset(datasetName)
-    const { apiUrl } = await triply.getInfo()
 
     const controle = (await Controle.instantiateFromDirectory()) as Controle<Partial<StepContext>, any>
 
@@ -75,7 +74,7 @@ export const valideer = new Activity(
 
     if (!thisActivity.provenance) throw new Error()
     await controle.runAll(
-      { footprint, elongation, footprint2, baseIRI, datasetName, rpt, account },
+      { elongation, footprintT1, footprintT2, baseIRI, datasetName, rpt, account },
       thisActivity.provenance,
     )
 

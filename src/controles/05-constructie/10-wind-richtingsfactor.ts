@@ -11,7 +11,7 @@ export default class _ extends Controle<StepContext, Data> {
   public tekst = `Om de constructie te kunnen berekenen t.o.v. de windbelasting dient een windgebied vastgesteld te worden m.b.v. de NEN 1991-1-4.`
   public verwijzing = ``
 
-  async run({ baseIRI, footprint }: StepContext): Promise<Data> {
+  async run({ baseIRI, footprintT1 }: StepContext): Promise<Data> {
     const wfs = new XmlActivity({
       name: 'Windzones request',
       url: `https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones/WFSServer`,
@@ -30,7 +30,7 @@ export default class _ extends Controle<StepContext, Data> {
          <gml:Polygon srsName="urn:ogc:def:crs:EPSG::28992" gml:id="footprint">
            <gml:exterior>
              <gml:LinearRing>
-              <gml:posList srsDimension="2">${footprint.coordinates.flat().join(' ')}</gml:posList>
+              <gml:posList srsDimension="2">${footprintT1.coordinates.flat().join(' ')}</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>
@@ -103,7 +103,7 @@ export default class _ extends Controle<StepContext, Data> {
           fillOpacity: 0.5,
         },
       },
-      geometry: projectGeoJSON(footprint) as Geometry,
+      geometry: projectGeoJSON(footprintT1) as Geometry,
     }
     this.status = null
 

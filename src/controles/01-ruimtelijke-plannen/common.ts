@@ -9,10 +9,10 @@ export type Data = { bestemmingsplan: any }
 export default class _ extends Controle<StepContext, Data> {
   public name = 'Ruimtelijke plannen'
 
-  async run({ footprint, baseIRI }: StepContext): Promise<Data> {
+  async run({ footprintT1, baseIRI }: StepContext): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: '/plannen/_zoek',
-      body: { _geo: { contains: footprint } },
+      body: { _geo: { contains: footprintT1 } },
       params: { planType: 'bestemmingsplan' },
     }).run({ baseIRI })
     this.apiResponse = response

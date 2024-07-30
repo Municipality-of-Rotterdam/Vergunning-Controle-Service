@@ -21,7 +21,7 @@ export const rapport = new Activity(
       baseIRI,
       datasetName,
       elongation,
-      footprint,
+      footprintT1,
       gebouwAddress,
       gebouwSubject,
       idsControle,
@@ -35,7 +35,7 @@ export const rapport = new Activity(
       | 'baseIRI'
       | 'datasetName'
       | 'elongation'
-      | 'footprint'
+      | 'footprintT1'
       | 'gebouwAddress'
       | 'gebouwSubject'
       | 'idsControle'
@@ -69,7 +69,7 @@ export const rapport = new Activity(
       glbDownload: `${assetBaseUrl}3Dgebouw.glb`,
       footprint: {
         type: 'Feature',
-        geometry: footprint,
+        geometry: footprintT1,
         properties: {
           name: 'Voetafdruk',
           show_on_map: true,
