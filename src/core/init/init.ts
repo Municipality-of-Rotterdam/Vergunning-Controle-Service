@@ -2,7 +2,7 @@ import argsParser from 'args-parser';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { existsSync } from 'fs';
-import { mkdir, writeFile } from 'fs/promises';
+import fs, { mkdir, writeFile } from 'fs/promises';
 import { rimraf } from 'rimraf';
 
 import { Activity } from '@core/Activity.js';
@@ -27,6 +27,16 @@ export const init = //new Activity(
       if (!process.env[variable]) throw new Error(`Missing variable ${variable}`)
 
     const args = argsParser(process.argv)
+
+    if (process.env.TRIGGER_PAYLOAD) {
+      const triggerFileData = await fs.readFile(process.env.TRIGGER_PAYLOAD, 'utf8')
+      const triggerData = JSON.parse(triggerFileData)
+      const triggerAsset = triggerData.assets?.[0]?.assetName
+
+      if (triggerAsset && triggerAsset.endsWith('.ifc')) {
+        args.ifc = triggerAsset
+      }
+    }
 
     const datasetName = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
     const idsName = args.ids.replaceAll('.ids', '').replace(/[^a-zA-Z]+/g, '')
