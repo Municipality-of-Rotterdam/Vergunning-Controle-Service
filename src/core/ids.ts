@@ -1,12 +1,13 @@
-import * as path from 'path'
-import { createExecutor } from '@helpers/executeCommand.js'
-import { createLogger } from '@helpers/logger.js'
-import { StepContext } from './executeSteps.js'
-import { GrapoiPointer } from '@core/helpers/grapoi.js'
-import { Activity } from './Activity.js'
+import * as path from 'path';
 
-import factory from '@rdfjs/data-model'
-import { xsd, rdfs } from '@helpers/namespaces.js'
+import { GrapoiPointer } from '@core/helpers/grapoi.js';
+import { createExecutor } from '@helpers/executeCommand.js';
+import { createLogger } from '@helpers/logger.js';
+import { rdfs, xsd } from '@helpers/namespaces.js';
+import factory from '@rdfjs/data-model';
+
+import { Activity } from './Activity.js';
+import { StepContext } from './executeSteps.js';
 
 const executeCommand = createExecutor('idsControle', import.meta, 'idsControle')
 const log = createLogger('idsControle', import.meta)
@@ -36,11 +37,11 @@ export const idsControle = new Activity(
     }
     thisActivity.provenance?.addOut(
       rdfs('seeAlso'),
-      factory.literal(`${context.assetBaseUrl}htmlFileName`, xsd('anyURI')),
+      factory.literal(`${context.assetBaseUrl}${htmlFileName}`, xsd('anyURI')),
     )
     thisActivity.provenance?.addOut(
       rdfs('seeAlso'),
-      factory.literal(`${context.assetBaseUrl}bcfFileName`, xsd('anyURI')),
+      factory.literal(`${context.assetBaseUrl}${bcfFileName}`, xsd('anyURI')),
     )
     return { idsControle: thisActivity.provenance } // TODO this seems worng
   },
