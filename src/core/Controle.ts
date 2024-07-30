@@ -161,11 +161,13 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     if (message !== undefined) this.pointer.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
     this.pointer.addOut(prov('wasGeneratedBy'), this.activity?.term)
 
-    if (this.apiResponse) {
-      // prep.addOut(context.rpt('apiResponse'), JSON.stringify(this.apiResponse))
-      // prep.addOut(context.rpt('apiCall'), this.apiResponse['_links']['self']['href'])
+    if (this.apiResponse && context.rpt) {
+      prep.addOut(context.rpt('apiResponse'), JSON.stringify(this.apiResponse))
     }
-    // this.log(this.data)
+    // if (this.apiCall && context.rpt) {
+    //   prep.addOut(context.rpt('apiCall'), this.apiCall)
+    // }
+    //this.log(this.data)
 
     // Save anything that was saved to the `info` object also to the RDF report
     for (const [k, v] of Object.entries(this.info)) {
@@ -214,7 +216,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
   sparql?: (inputs: Result) => string
 
   async uitvoering(inputs: Context & Result, url?: string): Promise<{ success: boolean | null; message: string }> {
-    if (!this.sparql || !this.applicable(inputs)) {
+    if (!this.sparql) {
       const result = { success: null, message: this.bericht(inputs) }
       this.status = null
       this.info['Resultaat'] = result.message
@@ -223,7 +225,11 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     if (!url) throw new Error('must have url')
     const sparql = this.sparql(inputs)
     const activity = new SparqlActivity({ name: `SPARQL query ${this.name}`, body: sparql, url })
-    //@ts-ignore TODO
+
+    // TODO This is a hacky way of getting the SPARQL url into the report. To do
+    // it properly, the `Activity` has to be refactored.
+    if (inputs.rpt) this.activity?.addOut(inputs.rpt('sparqlUrl'), this.sparqlUrl ?? 'undefined')
+
     const response = await activity.run({ baseIRI: inputs.baseIRI })
     const result = response[0] ?? null
     const success: boolean = result ? result.success == 'true' ?? false : true

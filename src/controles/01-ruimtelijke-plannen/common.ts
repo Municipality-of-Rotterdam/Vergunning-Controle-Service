@@ -15,6 +15,7 @@ export default class _ extends Controle<StepContext, Data> {
       body: { _geo: { contains: footprint } },
       params: { planType: 'bestemmingsplan' },
     }).run({ baseIRI })
+    this.apiResponse = response
 
     let plans = response['_embedded']['plannen']
 

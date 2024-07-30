@@ -28,6 +28,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
       body: { _geo: { contains: footprint } },
     }).run({ baseIRI })
+    this.apiResponse = response
 
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',

@@ -60,6 +60,7 @@ export default class _ extends Controle<StepContext, Data> {
       },
     })
     const response = await wfs.run({ baseIRI })
+    this.apiResponse = response // TODO remove
 
     this.info['Windzone'] = response.windzone
     this.info['Geometrie van de windzone'] = {
