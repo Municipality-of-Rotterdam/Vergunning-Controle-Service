@@ -104,7 +104,7 @@ def main(file, building_iri, ifc_classes):
         outer_shape = unioned_geometry.exterior
     else: # it's a multipolygon
         outer_rings = []
-        for poly in list(object_footprint.geoms):
+        for poly in list(unioned_geometry.geoms):
             outer_rings.append(poly.exterior) # output: LinearRing
         outer_shape = shapely.ops.unary_union(outer_rings) #output: MultiLineString
 
