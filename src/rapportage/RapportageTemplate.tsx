@@ -1,15 +1,16 @@
-import grapoi from 'grapoi'
-import { readFile } from 'fs/promises'
-import { rdf, rdfs, prov, dct, skos, geo, litre } from '@helpers/namespaces.js'
-import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
-import { Store as TriplyStore } from '@triplydb/data-factory'
-import React from 'react'
-import { wktToGeoJSON } from '@terraformer/wkt'
-import { NamespaceBuilder } from '@rdfjs/namespace'
-import { GeoJSON, Geometry, Feature } from 'geojson'
-import { Controle } from '@root/core/Controle.js'
-import { isGeoJSON, isFeature } from '@root/core/helpers/isGeoJSON.js'
-import * as crypto from 'crypto'
+import * as crypto from 'crypto';
+import { readFile } from 'fs/promises';
+import { Feature, GeoJSON, Geometry } from 'geojson';
+import grapoi from 'grapoi';
+import React, { Fragment } from 'react';
+
+import { dct, geo, litre, prov, rdf, rdfs, skos } from '@helpers/namespaces.js';
+import { NamespaceBuilder } from '@rdfjs/namespace';
+import { Controle } from '@root/core/Controle.js';
+import { GrapoiPointer } from '@root/core/helpers/grapoi.js';
+import { isFeature, isGeoJSON } from '@root/core/helpers/isGeoJSON.js';
+import { wktToGeoJSON } from '@terraformer/wkt';
+import { Store as TriplyStore } from '@triplydb/data-factory';
 
 export type RapportageProps = {
   baseIRI: string
@@ -162,9 +163,9 @@ function ProvenanceHtml(provenancePointer: GrapoiPointer, rpt: NamespaceBuilder)
 }
 
 // Find all georef content from this controle and add to the map if there are any
-function Map(c: Controle<any, any>) {
-  const features: Feature[] = Object.entries(c.info).flatMap(([_, v]) => (isFeature(v) ? [v] : []))
-  const mapID = crypto.createHash('md5').update(c.name.toString()).digest('hex')
+function Map({ controle }: { controle: Controle<any, any> }) {
+  const features: Feature[] = Object.entries(controle.info).flatMap(([_, v]) => (isFeature(v) ? [v] : []))
+  const mapID = crypto.createHash('md5').update(controle.name.toString()).digest('hex')
 
   if (features.length) {
     return (
@@ -188,14 +189,23 @@ L.geoJSON(${JSON.stringify(features)}, {coordsToLatLng, onEachFeature}).addTo(m$
   return <></>
 }
 
-function Icon(status: boolean | null | undefined) {
+function Icon({ status }: { status: boolean | null | undefined }) {
   if (status === true) return '✅'
   if (status === false) return '❌'
   if (status === null) return '⭕'
   return ''
 }
 
-function ControleDiv(controle: Controle<any, any>, rpt: NamespaceBuilder, depth: number = 0) {
+function ControleDiv({
+  controle,
+  rpt,
+  depth,
+}: {
+  controle: Controle<any, any>
+  rpt: NamespaceBuilder
+  depth?: number
+}) {
+  if (!depth) depth = 0
   const subcontroles = controle.children
   const label = controle.name
   const info = controle.info
@@ -204,6 +214,7 @@ function ControleDiv(controle: Controle<any, any>, rpt: NamespaceBuilder, depth:
 
   return (
     <div
+      key={controle.name.toString()}
       id={controle.name.toString()}
       style={
         depth > 0
@@ -211,9 +222,9 @@ function ControleDiv(controle: Controle<any, any>, rpt: NamespaceBuilder, depth:
           : {}
       }
     >
-      <>{Map(controle)}</>
+      <Map controle={controle} />
       <h3 className={controle.status === false ? 'bg-danger-subtle' : ''}>
-        {Icon(controle.status)} {label}
+        <Icon status={controle.status} /> {label}
       </h3>
       <dl>
         {controle.tekst ? (
@@ -235,37 +246,39 @@ function ControleDiv(controle: Controle<any, any>, rpt: NamespaceBuilder, depth:
         {Object.entries(info).map(([k, v]) => {
           if (typeof v == 'number') {
             return (
-              <>
+              <Fragment key={k}>
                 <dt>{k}</dt>
                 <dd>
                   {v.toString().replace('.', ',')}
                   {k == 'Langwerpigheid' ? ElongationExplanation() : ''}
                 </dd>
-              </>
+              </Fragment>
             )
           } else if (typeof v == 'string') {
             return (
-              <>
+              <Fragment key={k}>
                 <dt>{k}</dt>
                 <dd dangerouslySetInnerHTML={{ __html: v }} />
-              </>
+              </Fragment>
             )
           } else if (!isFeature(v)) {
             return (
-              <>
+              <Fragment key={k}>
                 <dt>{k}</dt>
                 <dd>
                   <a href={v.url} target="_blank">
                     {v.text}
                   </a>
                 </dd>
-              </>
+              </Fragment>
             )
-          } else return <></>
+          } else return null
         })}
       </dl>
       {ProvenanceHtml(provenance, rpt)}
-      {subcontroles.map((c) => ControleDiv(c, rpt, depth + 1))}
+      {subcontroles.map((c, index) => (
+        <ControleDiv key={index} controle={c} rpt={rpt} depth={depth + 1} />
+      ))}
     </div>
   )
 }
@@ -452,7 +465,7 @@ function coordsToLatLng(coords){
           </dd>
         </dl>
 
-        {ControleDiv(controle, rpt)}
+        <ControleDiv controle={controle} rpt={rpt} />
 
         <script type="module" dangerouslySetInnerHTML={{ __html: inlineScript }}></script>
       </body>
