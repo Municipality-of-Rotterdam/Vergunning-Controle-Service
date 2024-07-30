@@ -32,7 +32,10 @@ export const init = //new Activity(
       const triggerFileData = await fs.readFile(process.env.TRIGGER_PAYLOAD, 'utf8')
       const triggerData = JSON.parse(triggerFileData)
       const triggerAsset = triggerData.assets?.[0]?.assetName
-      console.log(triggerAsset)
+
+      if (triggerAsset && triggerAsset.endsWith('.ifc')) {
+        args.ifc = triggerAsset
+      }
     }
 
     const datasetName = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
