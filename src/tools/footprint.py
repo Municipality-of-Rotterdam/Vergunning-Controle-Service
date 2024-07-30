@@ -111,7 +111,7 @@ def main(file, building_iri, ifc_classes):
         print('unexpected geometry type')
         exit(3)
 
-    plot(footprint,'footprint')
+    #plot(footprint,'footprint')
     
     #compute a measure for elongation
     elongation = round(math.sqrt(footprint.area)/(footprint.length/4),4)
