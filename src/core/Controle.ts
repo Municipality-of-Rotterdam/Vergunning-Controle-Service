@@ -233,6 +233,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     const response = await activity.run({ baseIRI: inputs.baseIRI })
     const result = response[0] ?? null
     const success: boolean = result ? result.success == 'true' ?? false : true
+    this.status = success
     let message = this.bericht(inputs)
 
     if (result) {
@@ -241,7 +242,6 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
       }
     }
 
-    this.status = success
     this.info['Resultaat'] = message
 
     return { success, message }
