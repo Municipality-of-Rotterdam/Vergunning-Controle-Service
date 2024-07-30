@@ -306,6 +306,8 @@ export default function (
   const idsFiles = idsControle.out(rdfs('seeAlso'))
   const date = new Date().toISOString().split('T')[0]
 
+  console.log(idsFiles.map((i) => i.value))
+
   return (
     <html lang="en">
       <head>
@@ -444,7 +446,7 @@ function coordsToLatLng(coords){
           <dd>
             <div>
               Alle assets:{' '}
-              <a href={baseIRI + '/Assets'} target="_blank">
+              <a href={baseIRI + 'assets'} target="_blank">
                 {baseIRI}Assets
               </a>
             </div>
