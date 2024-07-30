@@ -1,16 +1,16 @@
-import * as crypto from 'crypto';
-import { readFile } from 'fs/promises';
-import { Feature, GeoJSON, Geometry } from 'geojson';
-import grapoi from 'grapoi';
-import React, { Fragment } from 'react';
+import * as crypto from 'crypto'
+import { readFile } from 'fs/promises'
+import { Feature, GeoJSON, Geometry } from 'geojson'
+import grapoi from 'grapoi'
+import React, { Fragment } from 'react'
 
-import { dct, geo, litre, prov, rdf, rdfs, skos } from '@helpers/namespaces.js';
-import { NamespaceBuilder } from '@rdfjs/namespace';
-import { Controle } from '@root/core/Controle.js';
-import { GrapoiPointer } from '@root/core/helpers/grapoi.js';
-import { isFeature, isGeoJSON } from '@root/core/helpers/isGeoJSON.js';
-import { wktToGeoJSON } from '@terraformer/wkt';
-import { Store as TriplyStore } from '@triplydb/data-factory';
+import { dct, geo, litre, prov, rdf, rdfs, skos } from '@helpers/namespaces.js'
+import { NamespaceBuilder } from '@rdfjs/namespace'
+import { Controle } from '@root/core/Controle.js'
+import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
+import { isFeature, isGeoJSON } from '@root/core/helpers/isGeoJSON.js'
+import { wktToGeoJSON } from '@terraformer/wkt'
+import { Store as TriplyStore } from '@triplydb/data-factory'
 
 export type RapportageProps = {
   baseIRI: string
@@ -179,7 +179,7 @@ const tiles${mapID} = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.pn
   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 });
 tiles${mapID}.addTo(m${mapID});
-L.geoJSON(${JSON.stringify(features)}, {coordsToLatLng, onEachFeature}).addTo(m${mapID});
+L.geoJSON(${JSON.stringify(features)}, {onEachFeature}).addTo(m${mapID});
 `,
           }}
         ></script>

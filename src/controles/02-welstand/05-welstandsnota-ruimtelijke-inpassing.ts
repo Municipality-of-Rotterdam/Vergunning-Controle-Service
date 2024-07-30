@@ -1,11 +1,12 @@
 import { Controle } from '@core/Controle.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { XmlActivity } from '@core/Activity.js'
-import { GeoJSON, MultiPolygon, Position } from 'geojson'
+import { GeoJSON, Geometry, MultiPolygon, Position } from 'geojson'
 import { rdf, skos, dct, geo, xsd, sf, litre } from '@core/helpers/namespaces.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 import factory from '@rdfjs/data-model'
 import { geojsonToWKT } from '@terraformer/wkt'
+import { projectGeoJSON } from '@root/core/helpers/crs.js'
 
 type Data = { elongation: number; welstandgebied: string; welstandgebied_id: number; geoJSON: GeoJSON }
 
@@ -67,7 +68,7 @@ export default class _ extends Controle<StepContext, Data> {
         return {
           fid: gebiedstypen['Welstandskaart_tijdelijk_VCS:FID'],
           geb_type: gebiedstypen['Welstandskaart_tijdelijk_VCS:GEB_TYPE'],
-          surface: geoJSON,
+          surface: projectGeoJSON(geoJSON) as Geometry,
         }
       },
     })
@@ -106,7 +107,7 @@ export default class _ extends Controle<StepContext, Data> {
           fillOpacity: 0.5,
         },
       },
-      geometry: footprint,
+      geometry: projectGeoJSON(footprint) as Geometry,
     }
     this.status = null
 
