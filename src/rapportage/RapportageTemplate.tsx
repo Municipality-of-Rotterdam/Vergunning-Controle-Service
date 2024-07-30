@@ -100,7 +100,7 @@ function ElongationExplanation() {
 }
 
 function ProvenanceHtml(provenancePointer: GrapoiPointer, rpt: NamespaceBuilder) {
-  const parts = provenancePointer.out(dct('hasPart'))
+  // const parts = provenancePointer.out(dct('hasPart'))
   const startTime = provenancePointer.out(prov('startedAtTime')).value
   const endTime = provenancePointer.out(prov('endedAtTime')).value
   const sparqlUrl = provenancePointer.out(rpt('sparqlUrl')).value
@@ -110,7 +110,7 @@ function ProvenanceHtml(provenancePointer: GrapoiPointer, rpt: NamespaceBuilder)
   const description = provenancePointer.out(dct('description')).value
   return (
     <details key={provenancePointer.value}>
-      <summary>{prefLabel ?? provenancePointer.value}</summary>
+      <summary>Provenance {prefLabel ?? provenancePointer.value}</summary>
       <dl>
         {description && (
           <>
@@ -155,9 +155,10 @@ function ProvenanceHtml(provenancePointer: GrapoiPointer, rpt: NamespaceBuilder)
           </>
         )}
       </dl>
-      {parts.map((part: GrapoiPointer) => ProvenanceHtml(part, rpt))}
     </details>
   )
+
+  // { {parts.map((part: GrapoiPointer) => ProvenanceHtml(part, rpt))}
 }
 
 // Find all georef content from this controle and add to the map if there are any
@@ -262,10 +263,9 @@ function ControleDiv(controle: Controle<any, any>, rpt: NamespaceBuilder, depth:
             )
           } else return <></>
         })}
-        <dt>Provenance</dt>
-        <dd className="provenance">{ProvenanceHtml(provenance, rpt)}</dd>
       </dl>
-      <>{subcontroles.map((c) => ControleDiv(c, rpt, depth + 1))}</>
+      {ProvenanceHtml(provenance, rpt)}
+      {subcontroles.map((c) => ControleDiv(c, rpt, depth + 1))}
     </div>
   )
 }
