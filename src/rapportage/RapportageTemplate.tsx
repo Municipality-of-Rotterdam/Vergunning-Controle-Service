@@ -306,8 +306,6 @@ export default function (
   const idsFiles = idsControle.out(rdfs('seeAlso'))
   const date = new Date().toISOString().split('T')[0]
 
-  console.log(idsFiles.map((i) => i.value))
-
   return (
     <html lang="en">
       <head>
