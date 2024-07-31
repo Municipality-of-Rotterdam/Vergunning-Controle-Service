@@ -25,6 +25,8 @@ Assumptions:
 and height based on NAP.
 2) The scale parameter in IfcMapconversion is the number to divide the local CRS lengths by to arrive at lenghts in the
 units of the global (map)CRS.
+3) From the IfcOpenShell documentation: "Internally IfcOpenShell uses meters as the global length unit to do calculations".
+Because output uses CRS epsg:28992, there is no need to scale geometry units to global CRS units.
 
 References:
 1) For ifcopenshell geometry processing, see https://docs.ifcopenshell.org/ifcopenshell-python/geometry_processing.html
@@ -54,6 +56,8 @@ def main(file, building_iri, ifc_classes):
     settings = ifcopenshell.geom.settings() # see https://docs.ifcopenshell.org/ifcopenshell/geometry_settings.html
     settings.set(settings.DISABLE_OPENING_SUBTRACTIONS, True) # should speed up 
     settings.set(settings.USE_WORLD_COORDS, True) # important to get geometries properly rotated
+    # the line below is not needed, because IfcOpenShell work in metres
+    #settings.set(settings.CONVERT_BACK_UNITS,True) # set units back from metres to the model lenght units
 
     # get the data needed for georeferencing
     map_conversion = ifc_file.by_type('IfcMapConversion')
@@ -63,9 +67,12 @@ def main(file, building_iri, ifc_classes):
     mc_scale = map_conversion[0][7] # assumption: scale is the number to divide model units by to arrive at map units. For example, if the model uses mm and the geography uses metres, then the scale is 0.001
     if mc_scale is None:
         mc_scale = 1
+
     mc_rotation = -1 * np.arctan(map_conversion[0][6]/map_conversion[0][5])
-    origin_wkt = 'POINT Z(' + str(mc_delta_x / mc_scale) + ' ' + str(mc_delta_y / mc_scale) + ' ' + str(mc_elevation / mc_scale) + ')'
-    
+    # scale is not used, because IfcOpenShell work in metres
+    #origin_wkt = 'POINT Z(' + str(mc_delta_x / mc_scale) + ' ' + str(mc_delta_y / mc_scale) + ' ' + str(mc_elevation / mc_scale) + ')'
+    origin_wkt = 'POINT Z(' + str(mc_delta_x) + ' ' + str(mc_delta_y) + ' ' + str(mc_elevation) + ')'
+ 
     geometries = []
     for ifc_class in ifc_classes:
         ifc_objects = ifc_file.by_type(ifc_class)
@@ -183,8 +190,11 @@ def georeference(lstr, mc_scale, mc_delta_x, mc_delta_y, mc_rotation) -> shapely
     verts_georef = []
     verts = lstr.coords[:]
     for vert in verts :
-        x_georef = (vert[0] / mc_scale * np.cos(mc_rotation) + vert[1] / mc_scale * np.sin(mc_rotation)) + mc_delta_x
-        y_georef = (-1 * vert[0] / mc_scale * np.sin(mc_rotation) + vert[1] / mc_scale * np.cos(mc_rotation)) + mc_delta_y
+        # The scale is not used because IfcOpenShell works in metres
+        #x_georef = (vert[0] / mc_scale * np.cos(mc_rotation) + vert[1] / mc_scale * np.sin(mc_rotation)) + mc_delta_x
+        #y_georef = (-1 * vert[0] / mc_scale * np.sin(mc_rotation) + vert[1] / mc_scale * np.cos(mc_rotation)) + mc_delta_y
+        x_georef = (vert[0] * np.cos(mc_rotation) + vert[1] * np.sin(mc_rotation)) + mc_delta_x
+        y_georef = (-1 * vert[0] * np.sin(mc_rotation) + vert[1] * np.cos(mc_rotation)) + mc_delta_y
         verts_georef.append([round(x_georef,3),round(y_georef,3)])
 
     return shapely.Polygon(verts_georef)
