@@ -39,6 +39,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: `/plannen/${bestemmingsplan.id}/bouwaanduidingen/_zoek`,
       body: { _geo: { intersects: footprintT1 } },
+      params: { expand: 'geometrie' },
     }).run({ baseIRI })
     this.apiResponse = response
 
@@ -54,6 +55,14 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     const bouwaanduiding = bouwaanduidingNode(bouwaanduidingName)
 
     this.log(`Bestemmingsvlak is van type ${bouwaanduiding.value} s`)
+
+    this.info[bouwaanduidingen[0].naam] = {
+      type: 'Feature',
+      properties: {
+        name: `${bouwaanduidingen[0].naam}`,
+      },
+      geometry: bouwaanduidingen[0].geometrie,
+    }
 
     // TODO: No hardcoding
     const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.2.2c`

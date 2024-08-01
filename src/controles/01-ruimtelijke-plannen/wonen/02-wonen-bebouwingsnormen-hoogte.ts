@@ -14,6 +14,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: `/plannen/${bestemmingsplan.id}/maatvoeringen/_zoek`,
       body: { _geo: { contains: footprintT2 } },
+      params: { expand: 'geometrie' },
     }).run({ baseIRI })
     this.apiResponse = response // TODO remove
 
@@ -31,7 +32,16 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       throw new Error('Meerdere waardes voor omvang gegeven.')
     }
 
-    const max: number = parseInt(maatvoeringen[0]['omvang'][0]['waarde'])
+    const maatvoering = maatvoeringen[0]
+    const max: number = parseInt(maatvoering['omvang'][0]['waarde'])
+
+    this.info[maatvoering.naam] = {
+      type: 'Feature',
+      properties: {
+        name: `${maatvoering.naam}: ${maatvoering.omvang[0].waarde}`,
+      },
+      geometry: maatvoering.geometrie,
+    }
 
     // TODO: No hardcoding
     const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.2.2`
