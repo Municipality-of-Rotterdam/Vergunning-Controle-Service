@@ -9,10 +9,10 @@ import { ApiActivity } from '@root/core/Activity.js'
  * For documentation see (can be outdated): https://redocly.github.io/redoc/?url=https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4/
  */
 export class RuimtelijkePlannenActivity extends ApiActivity<any, any> {
-  constructor({ url, body, params }: { url: string; body: any; params?: Record<string, string> }) {
+  constructor({ url, body, params }: { url: string; body?: any; params?: Record<string, string> }) {
     super({
       name: `Ruimtelijke plannen request: ${url}`,
-      body: JSON.stringify(body),
+      body: body ? JSON.stringify(body) : undefined,
       url: 'https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4' + url,
       params,
       headers: {

@@ -229,22 +229,6 @@ function ControleDiv({
         <Icon status={controle.status} /> {label}
       </h3>
       <dl>
-        {controle.tekst ? (
-          <>
-            <dt>Beschrijving</dt>
-            <dd>{controle.tekst}</dd>
-          </>
-        ) : (
-          ''
-        )}
-        {controle.verwijzing ? (
-          <>
-            <dt>Verwijzing</dt>
-            <dd>{controle.verwijzing}</dd>
-          </>
-        ) : (
-          ''
-        )}
         {Object.entries(info).map(([k, v]) => {
           if (typeof v == 'number') {
             return (
@@ -394,6 +378,11 @@ function coordsToLatLng(coords){
           }}
         ></script>
         <style>{`
+
+.article-ref {
+  font-weight: bold;
+  text-decoration: underline;
+}
 .elongation-example table {
   border-collapse: collapse;
   margin: 5px 3px;

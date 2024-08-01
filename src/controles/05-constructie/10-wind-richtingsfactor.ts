@@ -8,8 +8,6 @@ type Data = { windzone: number; geoJSON: GeoJSON }
 
 export default class _ extends Controle<StepContext, Data> {
   public name = 'Windrichtingsfactor'
-  public tekst = `Om de constructie te kunnen berekenen t.o.v. de windbelasting dient een windgebied vastgesteld te worden m.b.v. de NEN 1991-1-4.`
-  public verwijzing = ``
 
   async run({ baseIRI, footprintT1 }: StepContext): Promise<Data> {
     const wfs = new XmlActivity({
@@ -72,6 +70,8 @@ export default class _ extends Controle<StepContext, Data> {
     const response = await wfs.run({ baseIRI })
     this.apiResponse = response // TODO remove
 
+    this.info['Beschrijving'] =
+      `Om de constructie te kunnen berekenen t.o.v. de windbelasting dient een windgebied vastgesteld te worden m.b.v. de NEN 1991-1-4.`
     this.info['Windzone'] = response.windzone
     this.info['Geometrie van de windzone'] = {
       type: 'Feature',

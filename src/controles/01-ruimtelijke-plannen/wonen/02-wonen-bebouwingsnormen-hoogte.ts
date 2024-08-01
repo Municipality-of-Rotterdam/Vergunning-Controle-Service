@@ -9,12 +9,6 @@ type Data = {
 
 export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bebouwingsnormen: Hoogte'
-  public tekst = `Toegestane hoogte verdiepingen. De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven`
-  public verwijzing = `
-	Hoofdstuk 2 Bestemmingsregels 
-		Artikel 23 Wonen lid 
-			23.2.2 Bebouwingsnormen
-				a.`
 
   async run({ baseIRI, bestemmingsplan, footprintT2 }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
@@ -38,6 +32,11 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     }
 
     const max: number = parseInt(maatvoeringen[0]['omvang'][0]['waarde'])
+
+    // TODO: No hardcoding
+    const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.2.2`
+    this.info['Beschrijving'] =
+      `<span class="article-ref">${reference}</span> Toegestane hoogte verdiepingen. De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven.`
 
     this.log(`${max} maximum aantal bouwlagen`)
 

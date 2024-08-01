@@ -34,12 +34,6 @@ function bouwaanduidingTextByIfcCode(ifcCode: NamedNode): string {
 
 export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bebouwingsnormen: Vorm'
-  public tekst = `Ter plaatse van de aanduiding "plat dak" dienen woningen plat te worden afgedekt`
-  public verwijzing = ` 
-  Hoofdstuk 2 Bestemmingsregels 
-		Artikel 23 Wonen lid 
-			23.2 Bebouwingsnormen
-				c.`
 
   async run({ bestemmingsplan, baseIRI, footprintT1 }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
@@ -60,6 +54,11 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     const bouwaanduiding = bouwaanduidingNode(bouwaanduidingName)
 
     this.log(`Bestemmingsvlak is van type ${bouwaanduiding.value} s`)
+
+    // TODO: No hardcoding
+    const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.2.2c`
+    this.info['Beschrijving'] =
+      `<span class="article-ref">${reference}</span> Ter plaatse van de aanduiding "plat dak" dienen woningen plat te worden afgedekt`
 
     return { bouwaanduiding }
   }

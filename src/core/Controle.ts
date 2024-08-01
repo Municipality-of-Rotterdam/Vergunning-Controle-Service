@@ -153,8 +153,6 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     this.pointer.addOut(rdfs('label'), factory.literal(this.name))
     this.pointer.addOut(rdf('type'), rpt('Controle'))
     this.pointer.addOut(rdfs('label'), this.name)
-    if (this.tekst) this.pointer.addOut(dct('description'), factory.literal(this.tekst, 'nl'))
-    if (this.verwijzing) this.pointer.addOut(rpt('verwijzing'), factory.literal(this.verwijzing, 'nl'))
     if (this.sparqlUrl) this.pointer.addOut(rpt('sparqlUrl'), factory.literal(this.sparqlUrl, xsd('anyUri')))
     if (success !== undefined)
       this.pointer.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
@@ -208,8 +206,6 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
   // TODO: Refactor below
   apiResponse?: any
   sparqlUrl?: string
-  tekst?: string
-  verwijzing?: string
   bericht(inputs: Result): string {
     return 'n.v.t.'
   }

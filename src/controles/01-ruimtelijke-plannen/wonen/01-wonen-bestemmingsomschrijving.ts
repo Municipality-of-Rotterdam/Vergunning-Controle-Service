@@ -10,15 +10,11 @@ import { projectGeoJSON } from '@root/core/helpers/crs.js'
 type Data = {
   gebruiksfunctie: string
   geometry: Geometry
+  reference?: string
 }
 
 export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bestemmingsomschrijving'
-  public tekst = `De voor 'Wonen' aangewezen gronden zijn bestemd voor woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
-  public verwijzing = `Hoofdstuk 2 Bestemmingsregels 
-		Artikel 23 Wonen lid 
-			23.1 Bestemmingsomschrijving 
-				a. `
 
   async run({ baseIRI, bestemmingsplan, footprintT1, footprint }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
@@ -77,6 +73,19 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       },
       geometry: projectGeoJSON(footprint) as Geometry,
     }
+
+    // let reference = ``
+    // for (const zone of bestemmingsvlakken) {
+    //   if (zone.naam == 'Wonen') {
+    //     reference = `<a href="${zone.verwijzingNaarTekst}">Artikel ${zone.artikelnummer}</a>`
+    //     break
+    //   }
+    // }
+
+    // TODO: No hardcoding
+    const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.1a`
+    this.info['Beschrijving'] =
+      `<span class="article-ref">${reference}</span> De voor 'Wonen' aangewezen gronden zijn bestemd voor woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
 
     return { gebruiksfunctie, geometry }
   }

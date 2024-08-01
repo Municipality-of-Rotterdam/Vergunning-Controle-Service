@@ -19,8 +19,6 @@ ruimtelijke inpassing. */
 
 export default class _ extends Controle<StepContext, Data> {
   public name = 'Stempel en strokenbouw - Ruimtelijke inpassing'
-  public tekst = `Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)`
-  public verwijzing = ``
 
   async run({ elongation, baseIRI, footprintT1 }: StepContext): Promise<Data> {
     const wfs = new XmlActivity({
@@ -75,6 +73,8 @@ export default class _ extends Controle<StepContext, Data> {
     const response = await wfs.run({ baseIRI })
     this.apiResponse = response // TODO: Remove
 
+    this.info['Beschrijving'] =
+      `Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)`
     this.info['Langwerpigheid'] = elongation
     this.info['Welstandgebied'] = response.geb_type
     this.info['Voetafdruk van het welstandsgebied'] = {
