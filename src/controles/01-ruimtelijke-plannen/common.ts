@@ -13,7 +13,7 @@ export default class _ extends Controle<StepContext, Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: '/plannen/_zoek',
       body: { _geo: { contains: footprintT1 } },
-      params: { planType: 'bestemmingsplan' },
+      params: { planType: 'bestemmingsplan', expand: 'geometrie' },
     }).run({ baseIRI })
 
     let plans = response['_embedded']['plannen']
@@ -44,6 +44,19 @@ export default class _ extends Controle<StepContext, Data> {
     ][0]
 
     this.info['Bestemmingsplan'] = { text: `${bestemmingsplan.naam} (${bestemmingsplan.id})`, url }
+    this.info['Geometrie van bestemmingsplan'] = {
+      type: 'Feature',
+      properties: {
+        name: `Bestemmingsplan "${bestemmingsplan.naam}"`,
+        style: {
+          weight: 2,
+          opacity: 1,
+          color: '#00aa00',
+          fillOpacity: 0,
+        },
+      },
+      geometry: bestemmingsplan.geometrie,
+    }
 
     // TODO: If there are many articles, this will only return the first 100.
     const responseTeksten = await new RuimtelijkePlannenActivity({
