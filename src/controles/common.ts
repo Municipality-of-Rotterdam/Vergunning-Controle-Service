@@ -7,14 +7,6 @@ export default class _ extends Controle<StepContext, {}> {
   public name = 'Vergunningscontroleservice'
 
   async run({ footprint, footprintT1, footprintT2 }: StepContext): Promise<{}> {
-    this.info['Voetafdruk van het gebouw'] = {
-      type: 'Feature',
-      properties: {
-        name: 'Voetafdruk van het gebouw',
-        style: { color: '#000000' },
-      },
-      geometry: projectGeoJSON(footprint) as Geometry,
-    }
     this.info['Testvoetafdruk 1'] = {
       type: 'Feature',
       properties: {
@@ -30,6 +22,14 @@ export default class _ extends Controle<StepContext, {}> {
         style: { color: '#aa0000' },
       },
       geometry: projectGeoJSON(footprintT2) as Geometry,
+    }
+    this.info['Voetafdruk van het gebouw'] = {
+      type: 'Feature',
+      properties: {
+        name: 'Voetafdruk van het gebouw',
+        style: { color: '#000000' },
+      },
+      geometry: projectGeoJSON(footprint) as Geometry,
     }
     return {}
   }

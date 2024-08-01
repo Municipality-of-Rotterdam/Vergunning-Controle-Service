@@ -8,7 +8,7 @@ import { dct, geo, litre, prov, rdf, rdfs, skos } from '@helpers/namespaces.js'
 import { NamespaceBuilder } from '@rdfjs/namespace'
 import { Controle } from '@root/core/Controle.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
-import { isFeature, isFeatureCollection, isGeoJSON } from '@root/core/helpers/isGeoJSON.js'
+import { isFeature, isFeatureCollection, isPolygon, isMultiPolygon } from '@root/core/helpers/isGeoJSON.js'
 import { wktToGeoJSON } from '@terraformer/wkt'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 
@@ -175,13 +175,22 @@ function Map({ controle }: { controle: Controle<any, any> }) {
   const mapID = crypto.createHash('md5').update(controle.name.toString()).digest('hex')
 
   if (features.length) {
+    // Determine starting view. For now, just pick the first coordinates of the last feature
+    let coords = [51.3, 4.9]
+    const geom = features[features.length - 1].geometry
+    if (isPolygon(geom)) {
+      coords = geom.coordinates[0][0]
+    } else if (isMultiPolygon(geom)) {
+      coords = geom.coordinates[0][0][0]
+    }
+
     return (
       <>
         <div id={mapID} style={{ height: '300px', width: '600px', float: 'right' }}></div>
         <script
           dangerouslySetInnerHTML={{
             __html: `
-const m${mapID} = L.map('${mapID}').setView([startView.lat, startView.lng], 20);
+const m${mapID} = L.map('${mapID}').setView([${coords[1]}, ${coords[0]}], 20);
 const tiles${mapID} = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 });
@@ -347,22 +356,6 @@ export default function (
         <script
           dangerouslySetInnerHTML={{
             __html: `
-const RD = new L.Proj.CRS(
-  'EPSG:28992',
-  '+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs',
-  {
-    origin: [-285401.92, 903401.92],
-    resolutions: [
-      3251.206502413005, 1625.6032512065026, 812.8016256032513, 406.40081280162565, 203.20040640081282,
-      101.60020320040641, 50.800101600203206, 25.400050800101603, 12.700025400050801, 6.350012700025401,
-      3.1750063500127004, 1.5875031750063502, 0.7937515875031751, 0.39687579375158755, 0.19843789687579377,
-      0.09921894843789689, 0.04960947421894844,
-    ],
-  },
-);
-var data = JSON.parse(document.getElementById('data').textContent)
-const coords = data.footprint.geometry.coordinates[0][0]
-const startView = RD.unproject(L.point(coords[0], coords[1]))
 const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -377,9 +370,6 @@ function onEachFeature(feature, layer) {
     }
   }
 };
-function coordsToLatLng(coords){
-  return RD.unproject(L.point(coords[0], coords[1]));
-}
 function makeLegend(){
   var legend = L.control({position: "bottomright"});
   legend.onAdd = function(map) {
