@@ -13,6 +13,7 @@ export const epsg28992: proj4.Converter = proj4(
 )
 
 export function projectGeoJSON(source: GeoJSON, from: proj4.Converter = epsg28992): GeoJSON {
+  if (!source) throw new Error(`source evaluates to false`)
   const g = Object.assign({}, source)
   if (isGeometryCollection(g)) {
     g.geometries = g.geometries.map((y) => projectGeoJSON(y, from) as Geometry)

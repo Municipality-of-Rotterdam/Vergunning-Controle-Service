@@ -9,6 +9,7 @@ import { qudt, geo } from '@core/helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
 import { wktToGeoJSON } from '@terraformer/wkt'
+import { isGeoJSON } from '@root/core/helpers/isGeoJSON.js'
 
 const executeCommand = createExecutor('verrijking', import.meta, 'voetprint')
 
@@ -35,7 +36,7 @@ export default async function Voetprint({
     if (quad) verrijkingenDataset.add(quad as any)
   }
 
-  const footprint: string = grapoi({
+  const footprintString: string = grapoi({
     dataset: verrijkingenDataset,
     term: factory.namedNode(`${gebouwSubject}/footprint`),
   }).out(geo('asWKT')).value
@@ -55,8 +56,11 @@ export default async function Voetprint({
 
   log(`De voetprint is toegevoegd aan de verrijkingen linked data graaf`, 'Voetprint')
 
+  const footprint = wktToGeoJSON(footprintString.replace(/^<.*>\s/, '').toUpperCase())
+  if (!isGeoJSON(footprint)) throw new Error(`${JSON.stringify(footprint)} is not a GeoJSON object`)
+
   return {
-    footprint: wktToGeoJSON(footprint.replace(/^<.*>\s/, '').toUpperCase()),
+    footprint,
     // TODO: Remove test footprints once the process is improved
     footprintT1: wktToGeoJSON(`POLYGON ((84165 431938, 84172 431938, 84172 431943, 84165 431943, 84165 431938))`),
     footprintT2: wktToGeoJSON(`POLYGON ((84116 431825, 84121 431825, 84121 431829, 84116 431829, 84116 431825))`),

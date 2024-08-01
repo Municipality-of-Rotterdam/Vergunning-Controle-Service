@@ -1,6 +1,6 @@
 import * as crypto from 'crypto'
 import { readFile } from 'fs/promises'
-import { Feature, GeoJSON, Geometry } from 'geojson'
+import { Feature, FeatureCollection, GeoJSON, Geometry } from 'geojson'
 import grapoi from 'grapoi'
 import React, { Fragment } from 'react'
 
@@ -8,7 +8,7 @@ import { dct, geo, litre, prov, rdf, rdfs, skos } from '@helpers/namespaces.js'
 import { NamespaceBuilder } from '@rdfjs/namespace'
 import { Controle } from '@root/core/Controle.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
-import { isFeature, isGeoJSON } from '@root/core/helpers/isGeoJSON.js'
+import { isFeature, isFeatureCollection, isGeoJSON } from '@root/core/helpers/isGeoJSON.js'
 import { wktToGeoJSON } from '@terraformer/wkt'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 
@@ -164,7 +164,9 @@ function ProvenanceHtml(provenancePointer: GrapoiPointer, rpt: NamespaceBuilder)
 
 // Find all georef content from this controle and add to the map if there are any
 function Map({ controle }: { controle: Controle<any, any> }) {
-  const features: Feature[] = Object.entries(controle.info).flatMap(([_, v]) => (isFeature(v) ? [v] : []))
+  const features: Feature[] = Object.entries(controle.info).flatMap(([_, v]) =>
+    isFeatureCollection(v) ? v.features : isFeature(v) ? [v] : [],
+  )
   const mapID = crypto.createHash('md5').update(controle.name.toString()).digest('hex')
 
   if (features.length) {
@@ -261,7 +263,7 @@ function ControleDiv({
                 <dd dangerouslySetInnerHTML={{ __html: v }} />
               </Fragment>
             )
-          } else if (!isFeature(v)) {
+          } else if (!isFeature(v) && !isFeatureCollection(v)) {
             return (
               <Fragment key={k}>
                 <dt>{k}</dt>
@@ -376,8 +378,13 @@ const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 });
 function onEachFeature(feature, layer) {
-  if (feature.properties && feature.properties.popupContent) {
-    layer.bindPopup(feature.properties.popupContent);
+  if (feature.properties) {
+    if (feature.properties.name) {
+      layer.bindPopup(feature.properties.name);
+    }
+    if (feature.properties.style) {
+      layer.setStyle(feature.properties.style);
+    }
   }
 };
 function coordsToLatLng(coords){

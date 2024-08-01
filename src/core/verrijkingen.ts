@@ -10,6 +10,7 @@ import factory from '@rdfjs/data-model'
 import { Polygon } from 'geojson'
 
 export type Verrijkingen = {
+  footprint: Polygon
   footprintT1: Polygon
   footprintT2: Polygon
   elongation: number

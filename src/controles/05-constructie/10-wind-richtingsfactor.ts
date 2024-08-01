@@ -76,16 +76,7 @@ export default class _ extends Controle<StepContext, Data> {
     this.info['Geometrie van de windzone'] = {
       type: 'Feature',
       properties: {
-        name: 'Windzone',
-        show_on_map: true,
-        popupContent: `Windzone ${response.windzone}`,
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
+        name: `Windzone ${response.windzone}`,
       },
       geometry: projectGeoJSON(response.surface) as Geometry,
     }
@@ -93,15 +84,6 @@ export default class _ extends Controle<StepContext, Data> {
       type: 'Feature',
       properties: {
         name: 'Voetafdruk van het gebouw',
-        show_on_map: true,
-        popupContent: 'Voetafdruk van het gebouw',
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
       },
       geometry: projectGeoJSON(footprintT1) as Geometry,
     }
