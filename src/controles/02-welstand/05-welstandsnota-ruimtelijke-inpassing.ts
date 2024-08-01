@@ -84,14 +84,6 @@ export default class _ extends Controle<StepContext, Data> {
       },
       geometry: response.surface,
     }
-    this.info['Voetafdruk van het gebouw'] = {
-      type: 'Feature',
-      properties: {
-        name: 'Voetafdruk van het gebouw',
-        style: { color: '#000000' },
-      },
-      geometry: projectGeoJSON(footprintT1) as Geometry,
-    }
     this.status = null
 
     return {

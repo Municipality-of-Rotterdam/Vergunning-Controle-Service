@@ -164,9 +164,14 @@ function ProvenanceHtml(provenancePointer: GrapoiPointer, rpt: NamespaceBuilder)
 
 // Find all georef content from this controle and add to the map if there are any
 function Map({ controle }: { controle: Controle<any, any> }) {
-  const features: Feature[] = Object.entries(controle.info).flatMap(([_, v]) =>
-    isFeatureCollection(v) ? v.features : isFeature(v) ? [v] : [],
-  )
+  function getFeatures(c: Controle<any, any>): Feature[] {
+    const features = Object.entries(c.info).flatMap(([_, v]) =>
+      isFeatureCollection(v) ? v.features : isFeature(v) ? [v] : [],
+    )
+    return c.parent ? features.concat(getFeatures(c.parent)) : features
+  }
+
+  const features: Feature[] = getFeatures(controle)
   const mapID = crypto.createHash('md5').update(controle.name.toString()).digest('hex')
 
   if (features.length) {

@@ -66,14 +66,6 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       type: 'FeatureCollection',
       features,
     }
-    this.info['Voetafdruk van het gebouw'] = {
-      type: 'Feature',
-      properties: {
-        name: 'Voetafdruk van het gebouw',
-        style: { color: '#000000' },
-      },
-      geometry: projectGeoJSON(footprint) as Geometry,
-    }
 
     // let reference = ``
     // for (const zone of bestemmingsvlakken) {

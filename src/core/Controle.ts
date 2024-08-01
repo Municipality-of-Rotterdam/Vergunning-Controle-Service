@@ -34,7 +34,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
   public activity?: GrapoiPointer // TODO: To be removed, keeping it while refactoring
 
   public data?: Context & Result
-  public parent?: Controle<any, Context>
+  public parent?: Controle<any, any>
   public children: Controle<Context & Result, any>[]
 
   public status?: boolean | null
@@ -62,6 +62,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
   }
 
   add(controle: Controle<Context & Result, any>) {
+    controle.parent = this
     this.children.push(controle)
     this.pointer.addOut(dct('hasPart'), controle.node)
   }
