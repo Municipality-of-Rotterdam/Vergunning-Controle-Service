@@ -182,6 +182,7 @@ const tiles${mapID} = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.pn
 });
 tiles${mapID}.addTo(m${mapID});
 L.geoJSON(${JSON.stringify(features)}, {onEachFeature}).addTo(m${mapID});
+makeLegend().addTo(m${mapID});
 `,
           }}
         ></script>
@@ -374,11 +375,44 @@ function onEachFeature(feature, layer) {
 function coordsToLatLng(coords){
   return RD.unproject(L.point(coords[0], coords[1]));
 }
+function makeLegend(){
+  var legend = L.control({position: "bottomright"});
+  legend.onAdd = function(map) {
+    const features = [];
+    map.eachLayer((l) => {
+      if (l.feature)
+        features.push(l.feature);
+    })
+    var div = L.DomUtil.create('div', 'legend');
+    for(const f of features) {
+      var props = f.properties;
+      var name = props.name;
+      var style = props.style;
+      var color = style ? style.color : "#3388ff";
+      div.innerHTML += '<i style="background:' + color + '"></i> ' + name + '<br>';
+    }
+    return div;
+  }
+  return legend;
+}
 `,
           }}
         ></script>
         <style>{`
-
+.legend {
+  line-height: 18px;
+  color: #555;
+  background-color: #ffffffaa;
+  border: 1px solid #555;
+  border-radius: 5px;
+  padding: 5px;
+}
+.legend i {
+  width: 16px;
+  height: 16px;
+  float: left;
+  margin: 1px 8px 1px 0px;
+}
 .article-ref {
   font-weight: bold;
   text-decoration: underline;

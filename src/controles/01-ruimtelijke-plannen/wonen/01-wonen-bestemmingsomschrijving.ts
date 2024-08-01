@@ -50,8 +50,8 @@ export default class _ extends Controle<StepContext & RPData, Data> {
             weight: 2,
             opacity: 1,
             color,
+            fillOpacity: 0.3,
             fillColor: color,
-            fillOpacity: 0.1,
           },
         },
         geometry,
@@ -70,6 +70,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       type: 'Feature',
       properties: {
         name: 'Voetafdruk van het gebouw',
+        style: { color: '#000000' },
       },
       geometry: projectGeoJSON(footprint) as Geometry,
     }
