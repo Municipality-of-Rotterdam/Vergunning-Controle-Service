@@ -378,8 +378,13 @@ const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 });
 function onEachFeature(feature, layer) {
-  if (feature.properties && feature.properties.popupContent) {
-    layer.bindPopup(feature.properties.popupContent);
+  if (feature.properties) {
+    if (feature.properties.name) {
+      layer.bindPopup(feature.properties.name);
+    }
+    if (feature.properties.style) {
+      layer.setStyle(feature.properties.style);
+    }
   }
 };
 function coordsToLatLng(coords){

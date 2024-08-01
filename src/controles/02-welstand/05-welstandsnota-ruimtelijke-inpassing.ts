@@ -80,16 +80,7 @@ export default class _ extends Controle<StepContext, Data> {
     this.info['Voetafdruk van het welstandsgebied'] = {
       type: 'Feature',
       properties: {
-        name: response.geb_type,
-        show_on_map: true,
-        popupContent: `Welstandsgebied "${response.geb_type}"`,
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
+        name: `Welstandsgebied "${response.geb_type}"`,
       },
       geometry: response.surface,
     }
@@ -97,15 +88,6 @@ export default class _ extends Controle<StepContext, Data> {
       type: 'Feature',
       properties: {
         name: 'Voetafdruk van het gebouw',
-        show_on_map: true,
-        popupContent: 'Voetafdruk van het gebouw',
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
       },
       geometry: projectGeoJSON(footprintT1) as Geometry,
     }

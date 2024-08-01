@@ -32,25 +32,30 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     )
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
 
+    const colors: Record<string, string> = {
+      Wonen: '#0000aa',
+      'Verkeer - Erf': '#999999',
+      Tuin: '#00aa00',
+    }
+
     // if (bestemmingsvlakken.length > 1) {
     //   throw new Error('Op dit moment mag er maar 1 enkelbestemmingsvlak bestaan.')
     // }
     const features: Feature[] = []
     for (const zone of bestemmingsvlakken) {
+      const color = colors[zone['naam']] ?? '#aa0000'
       const gebruiksfunctie: string = zone['naam']
       const geometry: Geometry = zone['geometrie']
       features.push({
         type: 'Feature',
         properties: {
-          name: `Bestemmingsvlak`,
-          show_on_map: true,
-          popupContent: `Bestemmingsvlak "${gebruiksfunctie}"`,
+          name: `Bestemmingsvlak "${gebruiksfunctie}"`,
           style: {
             weight: 2,
-            color: '#999',
             opacity: 1,
-            fillColor: '#B0DE5C',
-            fillOpacity: 0.5,
+            color,
+            fillColor: color,
+            fillOpacity: 0.1,
           },
         },
         geometry,
@@ -69,15 +74,6 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       type: 'Feature',
       properties: {
         name: 'Voetafdruk van het gebouw',
-        show_on_map: true,
-        popupContent: 'Voetafdruk van het gebouw',
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
       },
       geometry: projectGeoJSON(footprint) as Geometry,
     }
