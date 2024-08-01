@@ -239,7 +239,7 @@ function ControleDiv({
           : {}
       }
     >
-      <Map controle={controle} />
+      {!controle.children.length ? <Map controle={controle} /> : ''}
       <h3 className={controle.status === false ? 'bg-danger-subtle' : ''}>
         <Icon status={controle.status} /> {label}
       </h3>
