@@ -9,7 +9,7 @@ type Data = { windzone: number; geoJSON: GeoJSON }
 export default class _ extends Controle<StepContext, Data> {
   public name = 'Windrichtingsfactor'
 
-  async run({ baseIRI, footprintT1 }: StepContext): Promise<Data> {
+  async run({ baseIRI, footprint }: StepContext): Promise<Data> {
     const wfs = new XmlActivity({
       name: 'Windzones request',
       url: `https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones/WFSServer`,
@@ -28,7 +28,7 @@ export default class _ extends Controle<StepContext, Data> {
          <gml:Polygon srsName="urn:ogc:def:crs:EPSG::28992" gml:id="footprint">
            <gml:exterior>
              <gml:LinearRing>
-              <gml:posList srsDimension="2">${footprintT1.coordinates.flat().join(' ')}</gml:posList>
+              <gml:posList srsDimension="2">${footprint.coordinates.flat().join(' ')}</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>

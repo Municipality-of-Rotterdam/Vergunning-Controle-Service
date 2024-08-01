@@ -20,7 +20,7 @@ ruimtelijke inpassing. */
 export default class _ extends Controle<StepContext, Data> {
   public name = 'Stempel en strokenbouw - Ruimtelijke inpassing'
 
-  async run({ elongation, baseIRI, footprintT1 }: StepContext): Promise<Data> {
+  async run({ elongation, baseIRI, footprint }: StepContext): Promise<Data> {
     const wfs = new XmlActivity({
       name: 'Welstand WFS request',
       description: 'Welstand WFS request',
@@ -34,7 +34,7 @@ export default class _ extends Controle<StepContext, Data> {
          <gml:Polygon srsName="urn:ogc:def:crs:EPSG::28992" gml:id="footprint">
            <gml:exterior>
              <gml:LinearRing>
-<gml:posList srsDimension="2">${footprintT1.coordinates.flat().join(' ')}</gml:posList>
+<gml:posList srsDimension="2">${footprint.coordinates.flat().join(' ')}</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>

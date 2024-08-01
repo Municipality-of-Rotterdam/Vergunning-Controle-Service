@@ -35,10 +35,10 @@ function bouwaanduidingTextByIfcCode(ifcCode: NamedNode): string {
 export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bebouwingsnormen: Vorm'
 
-  async run({ bestemmingsplan, baseIRI, footprintT1 }: StepContext & RPData): Promise<Data> {
+  async run({ bestemmingsplan, baseIRI, footprint }: StepContext & RPData): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: `/plannen/${bestemmingsplan.id}/bouwaanduidingen/_zoek`,
-      body: { _geo: { contains: footprintT1 } },
+      body: { _geo: { intersects: footprint } },
     }).run({ baseIRI })
     this.apiResponse = response
 
