@@ -20,14 +20,25 @@ export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bedrijfsfunctie'
 
   async run(context: StepContext & RPData): Promise<Data> {
+    const { baseIRI, footprintT1, bestemmingsplan } = context
+
     const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.3.1a`
     this.info['Beschrijving'] =
       `<span class="article-ref">${reference}</span> Woningen mogen mede worden gebruikt voor de uitoefening van een aan huis gebonden beroep of bedrijf, mits: de woonfunctie in overwegende mate gehandhaafd blijft, waarbij het bruto vloeroppervlak van de woning voor ten hoogste 30%, mag worden gebruikt voor een aan huis gebonden beroep of bedrijf`
 
-    const { baseIRI, footprintT1, bestemmingsplan } = context
+    this.info['Testvoetafdruk 1'] = {
+      type: 'Feature',
+      properties: {
+        name: 'Testvoetafdruk 1',
+        style: { color: '#ff0000' },
+      },
+      geometry: projectGeoJSON(footprintT1) as Geometry,
+    }
+
     const response = await new RuimtelijkePlannenActivity({
       url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
       body: { _geo: { contains: footprintT1 } },
+      params: { expand: 'geometrie' },
     }).run({ baseIRI })
     this.apiResponse = response
 
@@ -46,17 +57,16 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       this.info['Resultaat'] = `Er zijn meerdere enkelbestemmingsvlakken op deze locatie.`
       return {}
     } else {
-      const gebruiksfunctie: string = bestemmingsvlakken[0]['naam']
-
+      const vlak = bestemmingsvlakken[0]
+      const gebruiksfunctie: string = vlak.naam
       this.log(`Bestemmingsvlak is van type ${gebruiksfunctie}`)
 
-      this.info['Testvoetafdruk 1'] = {
+      this.info['Bestemmingsvlak'] = {
         type: 'Feature',
         properties: {
-          name: 'Testvoetafdruk 1',
-          style: { color: '#ff0000' },
+          name: `Bestemmingsvlak "${gebruiksfunctie}"`,
         },
-        geometry: projectGeoJSON(footprintT1) as Geometry,
+        geometry: projectGeoJSON(vlak.geometrie) as Geometry,
       }
 
       await this.runSparql(context, { gebruiksfunctie })
