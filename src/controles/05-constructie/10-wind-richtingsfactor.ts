@@ -9,7 +9,8 @@ type Data = { windzone: number; geoJSON: GeoJSON }
 export default class _ extends Controle<StepContext, Data> {
   public name = 'Windrichtingsfactor'
 
-  async run({ baseIRI, footprint }: StepContext): Promise<Data> {
+  async run(context: StepContext): Promise<Data> {
+    const { baseIRI, footprint } = context
     const wfs = new XmlActivity({
       name: 'Windzones request',
       url: `https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones/WFSServer`,
@@ -82,10 +83,13 @@ export default class _ extends Controle<StepContext, Data> {
     }
     this.status = null
 
-    return {
+    const result = {
       windzone: response.windzone,
       geoJSON: response.surface,
     }
+
+    await this.runSparql(context, result)
+    return result
   }
 
   bericht({ windzone }: Data): string {

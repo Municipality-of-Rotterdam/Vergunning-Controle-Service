@@ -20,7 +20,8 @@ ruimtelijke inpassing. */
 export default class _ extends Controle<StepContext, Data> {
   public name = 'Stempel en strokenbouw - Ruimtelijke inpassing'
 
-  async run({ elongation, baseIRI, footprint }: StepContext): Promise<Data> {
+  async run(context: StepContext): Promise<Data> {
+    const { elongation, baseIRI, footprint } = context
     const wfs = new XmlActivity({
       name: 'Welstand WFS request',
       description: 'Welstand WFS request',
@@ -86,12 +87,15 @@ export default class _ extends Controle<StepContext, Data> {
     }
     this.status = null
 
-    return {
+    const result = {
       elongation: elongation,
       welstandgebied_id: response.fid,
       welstandgebied: response.geb_type,
       geoJSON: response.surface,
     }
+    await this.runSparql(context, result)
+
+    return result
   }
 
   bericht({ welstandgebied, welstandgebied_id, elongation }: Data): string {

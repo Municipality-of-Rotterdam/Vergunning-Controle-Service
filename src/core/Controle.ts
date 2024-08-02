@@ -116,11 +116,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
   }
 
   async runAll(context: Context, activity: GrapoiPointer): Promise<Result> {
-    const { rpt, account, datasetName } = context as StepContext // TODO
-
-    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
-    const user = await triply.getAccount(account)
-    const { apiUrl } = await triply.getInfo()
+    const { rpt } = context as StepContext //TODO
 
     headerLogBig(`Controle: "${this.name}"`, 'yellowBright')
 
@@ -129,21 +125,16 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
 
     const result = Object.assign({}, context, await this.run(context))
     this.data = result
-
-    let success: boolean | null | undefined = undefined
-    let message: string | undefined = undefined
-    if (this.children.length == 0) {
-      const r = await this.uitvoering(result, `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`)
-      success = r.success
-      message = r.message
-    }
-
     for (const p of this.children) await p.runAll(result, prep)
     finish(prep)
 
+    let success: boolean | null | undefined = this.status
+    let resultContent = this.info['Resultaat']
+    let message: string | undefined = resultContent ? resultContent.toString() : undefined
+
     // Log to console
     if (success === null || success === undefined) {
-      log(message, this.name)
+      if (message) log(message, this.name)
     } else if (success) {
       log(chalk.greenBright(`✅ ${message}`), this.name)
     } else {
@@ -213,12 +204,18 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
 
   sparql?: (inputs: Result) => string
 
-  async uitvoering(inputs: Context & Result, url?: string): Promise<{ success: boolean | null; message: string }> {
+  async runSparql(context: Context, inputs: Result): Promise<{ success: boolean | null; message: string }> {
+    const { account, datasetName } = context as StepContext // TODO
+    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
+    const user = await triply.getAccount(account)
+    const { apiUrl } = await triply.getInfo()
+    const url = `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
+
     if (!this.sparql) {
-      const result = { success: null, message: this.bericht(inputs) }
+      const fresult = { success: null, message: this.bericht(inputs) }
       this.status = null
-      this.info['Resultaat'] = result.message
-      return result
+      this.info['Resultaat'] = fresult.message
+      return fresult
     }
     if (!url) throw new Error('must have url')
     const sparql = this.sparql(inputs)
@@ -226,9 +223,9 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
 
     // TODO This is a hacky way of getting the SPARQL url into the report. To do
     // it properly, the `Activity` has to be refactored.
-    if (inputs.rpt) this.activity?.addOut(inputs.rpt('sparqlUrl'), this.sparqlUrl ?? 'undefined')
+    if (context.rpt) this.activity?.addOut(context.rpt('sparqlUrl'), this.sparqlUrl ?? 'undefined')
 
-    const response = await activity.run({ baseIRI: inputs.baseIRI })
+    const response = await activity.run(context)
     const result = response[0] ?? null
     const success: boolean = result ? result.success == 'true' ?? false : true
     this.status = success

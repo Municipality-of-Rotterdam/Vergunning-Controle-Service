@@ -17,7 +17,8 @@ Then: Het gebruik van het gebouw is in overeenstemming met de specifieke gebruik
 export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bedrijfsfunctie'
 
-  async run({ baseIRI, footprintT1, bestemmingsplan }: StepContext & RPData): Promise<Data> {
+  async run(context: StepContext & RPData): Promise<Data> {
+    const { baseIRI, footprintT1, bestemmingsplan } = context
     const response = await new RuimtelijkePlannenActivity({
       url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
       body: { _geo: { contains: footprintT1 } },

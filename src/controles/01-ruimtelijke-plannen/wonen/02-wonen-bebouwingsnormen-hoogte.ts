@@ -10,7 +10,8 @@ type Data = {
 export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bebouwingsnormen: Hoogte'
 
-  async run({ baseIRI, bestemmingsplan, footprintT2 }: StepContext & RPData): Promise<Data> {
+  async run(context: StepContext & RPData): Promise<Data> {
+    const { baseIRI, bestemmingsplan, footprintT2 } = context
     const response = await new RuimtelijkePlannenActivity({
       url: `/plannen/${bestemmingsplan.id}/maatvoeringen/_zoek`,
       body: { _geo: { contains: footprintT2 } },
@@ -49,6 +50,8 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       `<span class="article-ref">${reference}</span> Toegestane hoogte verdiepingen. De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven.`
 
     this.log(`${max} maximum aantal bouwlagen`)
+
+    await this.runSparql(context, { max })
 
     return { max }
   }
