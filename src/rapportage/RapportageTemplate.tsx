@@ -1,6 +1,6 @@
 import * as crypto from 'crypto'
 import { readFile } from 'fs/promises'
-import { Feature, FeatureCollection, GeoJSON, Geometry } from 'geojson'
+import { Feature, Polygon, FeatureCollection, GeoJSON, Geometry } from 'geojson'
 import grapoi from 'grapoi'
 import React, { Fragment } from 'react'
 
@@ -26,6 +26,14 @@ export type RapportageProps = {
 }
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
+
+function RegelsOpDeKaart(footprint: Polygon) {
+  const [x, y]: number[] = footprint.coordinates[0][0]
+  const url =
+    `https://omgevingswet.overheid.nl/regels-op-de-kaart/documenten` +
+    `?regelsandere=regels&bestuurslaag=gemeente&locatie-stelsel=RD&locatie-x=${Math.round(x)}&locatie-y=${Math.round(y)}`
+  return <a href={url}>Regels op de kaart</a>
+}
 
 function ElongationExplanation() {
   return (
@@ -444,6 +452,8 @@ function makeLegend(){
           </dd>
           <dt>Adres</dt>
           <dd>{gebouwAddress}</dd>
+          <dt>Regels op de kaart</dt>
+          <dd>{RegelsOpDeKaart(footprint)}</dd>
           <dt>Dataset</dt>
           <dd>
             <a href={baseIRI} target="_blank">

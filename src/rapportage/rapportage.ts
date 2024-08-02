@@ -21,6 +21,7 @@ export const rapport = new Activity(
       baseIRI,
       datasetName,
       elongation,
+      footprint,
       footprintT1,
       gebouwAddress,
       gebouwSubject,
@@ -35,6 +36,7 @@ export const rapport = new Activity(
       | 'baseIRI'
       | 'datasetName'
       | 'elongation'
+      | 'footprint'
       | 'footprintT1'
       | 'gebouwAddress'
       | 'gebouwSubject'
@@ -67,22 +69,7 @@ export const rapport = new Activity(
       gebouw: controle.pointer.out(rpt('building')).value.toString(),
       gltfDownload: `${assetBaseUrl}3Dgebouw.gltf`,
       glbDownload: `${assetBaseUrl}3Dgebouw.glb`,
-      footprint: {
-        type: 'Feature',
-        geometry: footprintT1,
-        properties: {
-          name: 'Voetafdruk',
-          show_on_map: true,
-          popupContent: 'Voetafdruk van het gebouw',
-          style: {
-            weight: 2,
-            color: '#999',
-            opacity: 1,
-            fillColor: '#009900',
-            fillOpacity: 0.6,
-          },
-        },
-      },
+      footprint,
     }
     const provenance = thisActivity.provenanceGraph
     if (!provenance) throw new Error()
