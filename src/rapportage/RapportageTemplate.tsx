@@ -249,7 +249,7 @@ function ControleDiv({
     >
       {!controle.children.length ? <Map controle={controle} /> : ''}
       <h3 className={controle.status === false ? 'bg-danger-subtle' : ''}>
-        <Icon status={controle.status} /> {label}
+        <Icon status={controle.status} /> {controle.id ?? ''} {label}
       </h3>
       <dl>
         {Object.entries(info).map(([k, v]) => {
