@@ -75,6 +75,10 @@ export default class _ extends Controle<StepContext & RPData, Data> {
         geometry: bouwaanduiding.geometrie,
       })
     }
+    this.info['Bouwaanduidingen'] = {
+      type: 'FeatureCollection',
+      features: geoBouwaanduidingen,
+    }
 
     if (bouwaanduidingen.length == 0) {
       this.status = true
