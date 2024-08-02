@@ -2,6 +2,8 @@ import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { Data as RPData } from '../common.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { Controle } from '@root/core/Controle.js'
+import { projectGeoJSON } from '@root/core/helpers/crs.js'
+import { Geometry } from 'geojson'
 
 type Data = {
   max: number
@@ -52,6 +54,15 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     this.log(`${max} maximum aantal bouwlagen`)
 
     await this.runSparql(context, { max })
+
+    this.info['Testvoetafdruk 2'] = {
+      type: 'Feature',
+      properties: {
+        name: 'Testvoetafdruk 2',
+        style: { color: '#aa0000' },
+      },
+      geometry: projectGeoJSON(footprintT2) as Geometry,
+    }
 
     return { max }
   }

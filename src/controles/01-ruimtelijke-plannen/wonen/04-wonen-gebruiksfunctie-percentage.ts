@@ -2,6 +2,8 @@ import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { Data as RPData } from '../common.js'
 import { Controle } from '@root/core/Controle.js'
+import { projectGeoJSON } from '@root/core/helpers/crs.js'
+import { Geometry } from 'geojson'
 
 type Data = {
   gebruiksfunctie: string
@@ -42,6 +44,15 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.3.1a`
     this.info['Beschrijving'] =
       `<span class="article-ref">${reference}</span> Woningen mogen mede worden gebruikt voor de uitoefening van een aan huis gebonden beroep of bedrijf, mits: de woonfunctie in overwegende mate gehandhaafd blijft, waarbij het bruto vloeroppervlak van de woning voor ten hoogste 30%, mag worden gebruikt voor een aan huis gebonden beroep of bedrijf`
+
+    this.info['Testvoetafdruk 1'] = {
+      type: 'Feature',
+      properties: {
+        name: 'Testvoetafdruk 1',
+        style: { color: '#ff0000' },
+      },
+      geometry: projectGeoJSON(footprintT1) as Geometry,
+    }
 
     return { gebruiksfunctie }
   }

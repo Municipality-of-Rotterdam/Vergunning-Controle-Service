@@ -4,6 +4,8 @@ import { Data as RPData } from '../common.js'
 import { ifc } from '@helpers/namespaces.js'
 import NamedNode from '@rdfjs/data-model/lib/NamedNode.js'
 import { Controle } from '@root/core/Controle.js'
+import { projectGeoJSON } from '@root/core/helpers/crs.js'
+import { Geometry } from 'geojson'
 
 export type Data = {
   bouwaanduiding: NamedNode
@@ -71,6 +73,15 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       `<span class="article-ref">${reference}</span> Ter plaatse van de aanduiding "plat dak" dienen woningen plat te worden afgedekt`
 
     await this.runSparql(context, { bouwaanduiding })
+
+    this.info['Testvoetafdruk 1'] = {
+      type: 'Feature',
+      properties: {
+        name: 'Testvoetafdruk 1',
+        style: { color: '#ff0000' },
+      },
+      geometry: projectGeoJSON(footprintT1) as Geometry,
+    }
 
     return { bouwaanduiding }
   }
