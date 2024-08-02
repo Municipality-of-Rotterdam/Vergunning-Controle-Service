@@ -7,7 +7,7 @@ import chalk from 'chalk'
 import App from '@triply/triplydb'
 
 import { GrapoiPointer } from '@core/helpers/grapoi.js'
-import { SparqlActivity } from './Activity.js'
+import { RuleRepoActivity, SparqlActivity } from './Activity.js'
 import { StepContext } from './executeSteps.js'
 import { start, finish } from './helpers/provenance.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
@@ -204,7 +204,11 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
 
   sparql?: (inputs: Result) => string
 
-  async runSparql(context: Context, inputs: Result): Promise<{ success: boolean | null; message: string }> {
+  async runSparql(
+    context: Context,
+    inputs: Result,
+    variables: Record<string, string> = {},
+  ): Promise<{ success: boolean | null; message: string }> {
     const { account, datasetName } = context as StepContext // TODO
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const user = await triply.getAccount(account)
@@ -218,8 +222,18 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
       return fresult
     }
     if (!url) throw new Error('must have url')
-    const sparql = this.sparql(inputs)
-    const activity = new SparqlActivity({ name: `SPARQL query ${this.name}`, body: sparql, url })
+    // const sparql = this.sparql(inputs)
+    // const activity = new SparqlActivity({ name: `SPARQL query ${this.name}`, body: sparql, url })
+
+    const querySplit = this.sparqlUrl?.split('/')
+    const queryName = querySplit ? querySplit[querySplit.length - 1] : ''
+    const activity = new RuleRepoActivity({
+      name: `SPARQL query ${this.name}`,
+      query: queryName,
+      version: 'latest',
+      variables: variables,
+      url: url,
+    })
 
     // TODO This is a hacky way of getting the SPARQL url into the report. To do
     // it properly, the `Activity` has to be refactored.

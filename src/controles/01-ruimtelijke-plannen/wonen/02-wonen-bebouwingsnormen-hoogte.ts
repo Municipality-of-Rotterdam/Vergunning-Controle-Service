@@ -56,7 +56,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
       this.log(`${max} maximum aantal bouwlagen`)
 
-      await this.runSparql(context, { max })
+      await this.runSparql(context, { max }, { max: max.toString() })
 
       return { max }
     } else {
@@ -66,7 +66,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     }
   }
 
-  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/2-Wonen-bebouwingsnormen-hoogte'
+  sparqlUrl = 'https://demo.triplydb.com/Rotterdam-Rule-Repository/-/queries/2-Wonen-bebouwingsnormen-hoogte'
   sparql = ({ max }: Data) => {
     return `
       prefix express: <https://w3id.org/express#>

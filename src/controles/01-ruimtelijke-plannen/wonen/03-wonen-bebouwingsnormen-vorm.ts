@@ -94,13 +94,13 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
       this.log(`Bestemmingsvlak is van type ${bouwaanduiding.value} s`)
 
-      await this.runSparql(context, { bouwaanduiding })
+      await this.runSparql(context, { bouwaanduiding }, { bouwaanduiding: bouwaanduiding.value })
 
       return { bouwaanduiding }
     }
   }
 
-  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/3-Wonen-bebouwingsnormen-vorm/'
+  sparqlUrl = 'https://demo.triplydb.com/Rotterdam-Rule-Repository/-/queries/3-Wonen-bebouwingsnormen-vorm'
   sparql = ({ bouwaanduiding }: Data) => {
     if (!bouwaanduiding) throw new Error('Geen bouwaanduiding gegeven')
     return `

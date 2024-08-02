@@ -79,7 +79,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     return gebruiksfunctie ? gebruiksfunctie.toLowerCase() == 'wonen' : false
   }
 
-  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/'
+  sparqlUrl = 'https://demo.triplydb.com/Rotterdam-Rule-Repository/-/queries/4gebruiksfunctiePercentage'
   sparql = () => {
     return `
 prefix express: <https://w3id.org/express#>

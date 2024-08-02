@@ -83,7 +83,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     return { gebruiksfunctie, geometry }
   }
 
-  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/1-Wonen-bestemmingsomschrijving'
+  sparqlUrl = 'https://demo.triplydb.com/Rotterdam-Rule-Repository/-/queries/1-Wonen-bestemmingsomschrijving'
   sparql = ({ gebruiksfunctie }: Data) => `prefix express: <https://w3id.org/express#>
       prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 
