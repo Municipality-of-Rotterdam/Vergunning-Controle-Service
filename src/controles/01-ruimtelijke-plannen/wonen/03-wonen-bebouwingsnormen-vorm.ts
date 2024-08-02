@@ -5,10 +5,10 @@ import { ifc } from '@helpers/namespaces.js'
 import NamedNode from '@rdfjs/data-model/lib/NamedNode.js'
 import { Controle } from '@root/core/Controle.js'
 import { projectGeoJSON } from '@root/core/helpers/crs.js'
-import { Geometry } from 'geojson'
+import { Geometry, Feature } from 'geojson'
 
 export type Data = {
-  bouwaanduiding: NamedNode
+  bouwaanduiding?: NamedNode
 }
 
 const bouwaanduidingMapping: { [key: string]: NamedNode } = {
@@ -39,6 +39,21 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
   async run(context: StepContext & RPData): Promise<Data> {
     const { bestemmingsplan, baseIRI, footprintT1 } = context
+
+    // TODO: No hardcoding
+    const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.2.2c`
+    this.info['Beschrijving'] =
+      `<span class="article-ref">${reference}</span> Ter plaatse van de aanduiding "plat dak" dienen woningen plat te worden afgedekt`
+
+    this.info['Testvoetafdruk 1'] = {
+      type: 'Feature',
+      properties: {
+        name: 'Testvoetafdruk 1',
+        style: { color: '#ff0000' },
+      },
+      geometry: projectGeoJSON(footprintT1) as Geometry,
+    }
+
     const response = await new RuimtelijkePlannenActivity({
       url: `/plannen/${bestemmingsplan.id}/bouwaanduidingen/_zoek`,
       body: { _geo: { intersects: footprintT1 } },
@@ -50,44 +65,40 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
     this.log(`${bouwaanduidingen.length} bouwaanduidingen gevonden`)
 
-    if (bouwaanduidingen.length != 1) {
-      throw new Error('Op dit moment mag er maar 1 bouwaanduiding bestaan.')
+    const geoBouwaanduidingen: Feature[] = []
+    for (const bouwaanduiding of bouwaanduidingen) {
+      geoBouwaanduidingen.push({
+        type: 'Feature',
+        properties: {
+          name: `Bouwaanduiding ${bouwaanduiding.naam}`,
+        },
+        geometry: bouwaanduiding.geometrie,
+      })
     }
 
-    const bouwaanduidingName: string = bouwaanduidingen[0]['naam']
-    const bouwaanduiding = bouwaanduidingNode(bouwaanduidingName)
+    if (bouwaanduidingen.length == 0) {
+      this.status = true
+      this.info['Resultaat'] = 'Niet van toepassing (geen bouwaanduidingen gevonden)'
+      return {}
+    } else if (bouwaanduidingen.length != 1) {
+      this.status = false
+      this.info['Resultaat'] = 'Er zijn meerdere bouwaanduidingen gevonden'
+      return {}
+    } else {
+      const bouwaanduidingName: string = bouwaanduidingen[0]['naam']
+      const bouwaanduiding = bouwaanduidingNode(bouwaanduidingName)
 
-    this.log(`Bestemmingsvlak is van type ${bouwaanduiding.value} s`)
+      this.log(`Bestemmingsvlak is van type ${bouwaanduiding.value} s`)
 
-    this.info[bouwaanduidingen[0].naam] = {
-      type: 'Feature',
-      properties: {
-        name: `${bouwaanduidingen[0].naam}`,
-      },
-      geometry: bouwaanduidingen[0].geometrie,
+      await this.runSparql(context, { bouwaanduiding })
+
+      return { bouwaanduiding }
     }
-
-    // TODO: No hardcoding
-    const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.2.2c`
-    this.info['Beschrijving'] =
-      `<span class="article-ref">${reference}</span> Ter plaatse van de aanduiding "plat dak" dienen woningen plat te worden afgedekt`
-
-    await this.runSparql(context, { bouwaanduiding })
-
-    this.info['Testvoetafdruk 1'] = {
-      type: 'Feature',
-      properties: {
-        name: 'Testvoetafdruk 1',
-        style: { color: '#ff0000' },
-      },
-      geometry: projectGeoJSON(footprintT1) as Geometry,
-    }
-
-    return { bouwaanduiding }
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/3-Wonen-bebouwingsnormen-vorm/'
   sparql = ({ bouwaanduiding }: Data) => {
+    if (!bouwaanduiding) throw new Error('Geen bouwaanduiding gegeven')
     return `
       prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
 
@@ -111,6 +122,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
   }
 
   bericht({ bouwaanduiding }: Data): string {
+    if (!bouwaanduiding) throw new Error('Geen bouwaanduiding gegeven')
     const bouwaanduidingText = bouwaanduiding.value.replace(
       'https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#',
       'ifc:',
