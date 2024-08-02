@@ -6,7 +6,7 @@ import { projectGeoJSON } from '@root/core/helpers/crs.js'
 import { Geometry } from 'geojson'
 
 type Data = {
-  gebruiksfunctie: string
+  gebruiksfunctie?: string
 }
 
 /** Given: Een IFC-model positioneert na georeferentie geheel binnen een IMRO bestemmingsvlak “Wonen”
@@ -37,30 +37,36 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
 
-    if (bestemmingsvlakken.length != 1) {
-      throw new Error('Op dit moment mag er maar 1 enkelbestemmingsvlak bestaan.')
+    if (bestemmingsvlakken.length == 0) {
+      this.status = true
+      this.info['Resultaat'] = 'Niet van toepassing'
+      return {}
+    } else if (bestemmingsvlakken.length != 1) {
+      this.status = false
+      this.info['Resultaat'] = `Er zijn meerdere enkelbestemmingsvlakken op deze locatie.`
+      return {}
+    } else {
+      const gebruiksfunctie: string = bestemmingsvlakken[0]['naam']
+
+      this.log(`Bestemmingsvlak is van type ${gebruiksfunctie}`)
+
+      this.info['Testvoetafdruk 1'] = {
+        type: 'Feature',
+        properties: {
+          name: 'Testvoetafdruk 1',
+          style: { color: '#ff0000' },
+        },
+        geometry: projectGeoJSON(footprintT1) as Geometry,
+      }
+
+      await this.runSparql(context, { gebruiksfunctie })
+
+      return { gebruiksfunctie }
     }
-
-    const gebruiksfunctie: string = bestemmingsvlakken[0]['naam']
-
-    this.log(`Bestemmingsvlak is van type ${gebruiksfunctie}`)
-
-    this.info['Testvoetafdruk 1'] = {
-      type: 'Feature',
-      properties: {
-        name: 'Testvoetafdruk 1',
-        style: { color: '#ff0000' },
-      },
-      geometry: projectGeoJSON(footprintT1) as Geometry,
-    }
-
-    await this.runSparql(context, { gebruiksfunctie })
-
-    return { gebruiksfunctie }
   }
 
   applicable({ gebruiksfunctie }: Data): boolean {
-    return gebruiksfunctie.toLowerCase() == 'wonen'
+    return gebruiksfunctie ? gebruiksfunctie.toLowerCase() == 'wonen' : false
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/'
