@@ -3,7 +3,7 @@ import { Data as RPData } from '../common.js'
 import { StepContext } from '@root/core/executeSteps.js'
 import { Controle } from '@root/core/Controle.js'
 import { projectGeoJSON } from '@root/core/helpers/crs.js'
-import { Geometry } from 'geojson'
+import { Geometry, Feature } from 'geojson'
 
 type Data = {
   max: number
@@ -13,10 +13,10 @@ export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bebouwingsnormen: Hoogte'
 
   async run(context: StepContext & RPData): Promise<Data> {
-    const { baseIRI, bestemmingsplan, footprintT2 } = context
+    const { baseIRI, bestemmingsplan, footprint } = context
     const response = await new RuimtelijkePlannenActivity({
       url: `/plannen/${bestemmingsplan.id}/maatvoeringen/_zoek`,
-      body: { _geo: { contains: footprintT2 } },
+      body: { _geo: { intersects: footprint } },
       params: { expand: 'geometrie' },
     }).run({ baseIRI })
     this.apiResponse = response // TODO remove
@@ -27,44 +27,43 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
     this.log(`${maatvoeringen.length} "maximum aantal bouwlagen" maatvoeringen gevonden`)
 
-    if (maatvoeringen.length === 0) {
-      throw new Error('Er is geen enkele maatvoering voor het gegeven bestemmingsvlak.')
-    } else if (maatvoeringen.length > 1) {
-      throw new Error('Er zijn meerdere maatvoeringen voor het gegeven bestemmingsvlak.')
-    } else if (maatvoeringen[0]['omvang'].length > 1) {
-      throw new Error('Meerdere waardes voor omvang gegeven.')
+    const maxima: number[] = []
+    const geoMaatvoeringen: Feature[] = []
+    for (const maatvoering of maatvoeringen) {
+      const waardes = maatvoering.omvang.map((x: any) => parseInt(x.waarde))
+      maxima.push(...waardes)
+      geoMaatvoeringen.push({
+        type: 'Feature',
+        properties: {
+          name: `${maatvoering.naam}: ${JSON.stringify(waardes)}`,
+        },
+        geometry: maatvoering.geometrie,
+      })
     }
 
-    const maatvoering = maatvoeringen[0]
-    const max: number = parseInt(maatvoering['omvang'][0]['waarde'])
+    if (maxima.length) {
+      const max = Math.min(...maxima)
 
-    this.info[maatvoering.naam] = {
-      type: 'Feature',
-      properties: {
-        name: `${maatvoering.naam}: ${maatvoering.omvang[0].waarde}`,
-      },
-      geometry: maatvoering.geometrie,
+      this.info['Maatvoeringen'] = {
+        type: 'FeatureCollection',
+        features: geoMaatvoeringen,
+      }
+
+      // TODO: No hardcoding
+      const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.2.2`
+      this.info['Beschrijving'] =
+        `<span class="article-ref">${reference}</span> Toegestane hoogte verdiepingen. De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven.`
+
+      this.log(`${max} maximum aantal bouwlagen`)
+
+      await this.runSparql(context, { max })
+
+      return { max }
+    } else {
+      this.status = true
+      this.info['Resultaat'] = `Er zijn geen maatvoeringen gevonden voor de gegeven locatie.`
+      return { max: Number.MAX_VALUE }
     }
-
-    // TODO: No hardcoding
-    const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.2.2`
-    this.info['Beschrijving'] =
-      `<span class="article-ref">${reference}</span> Toegestane hoogte verdiepingen. De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven.`
-
-    this.log(`${max} maximum aantal bouwlagen`)
-
-    await this.runSparql(context, { max })
-
-    this.info['Testvoetafdruk 2'] = {
-      type: 'Feature',
-      properties: {
-        name: 'Testvoetafdruk 2',
-        style: { color: '#aa0000' },
-      },
-      geometry: projectGeoJSON(footprintT2) as Geometry,
-    }
-
-    return { max }
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/2-Wonen-bebouwingsnormen-hoogte'
