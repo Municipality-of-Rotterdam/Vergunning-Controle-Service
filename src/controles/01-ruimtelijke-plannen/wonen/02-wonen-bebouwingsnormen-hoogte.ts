@@ -58,6 +58,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
       const results = await this.runSparql(context, {
         name: '2-Wonen-bebouwingsnormen-hoogte',
+        version: 17,
         params: { max: max.toString() },
       })
 

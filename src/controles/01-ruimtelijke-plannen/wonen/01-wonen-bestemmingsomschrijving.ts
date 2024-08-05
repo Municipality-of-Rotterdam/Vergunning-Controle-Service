@@ -80,6 +80,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
     const results: any[] = await this.runSparql(context, {
       name: '1-Wonen-bestemmingsomschrijving',
+      version: 16,
       params: { allowed: gebruiksfunctie },
     })
 

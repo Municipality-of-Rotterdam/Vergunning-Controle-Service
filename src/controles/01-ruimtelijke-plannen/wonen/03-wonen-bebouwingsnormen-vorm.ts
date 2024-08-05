@@ -96,6 +96,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
       const results = await this.runSparql(context, {
         name: '3-Wonen-bebouwingsnormen-vorm',
+        version: 3,
         params: { bouwaanduiding: bouwaanduiding.value },
       })
 
