@@ -69,7 +69,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
         geometry: projectGeoJSON(vlak.geometrie) as Geometry,
       }
 
-      const results = await this.runSparql(context, { name: '4gebruiksfunctiePercentage', version: 5 })
+      const results = await this.runSparql(context, { name: '04-wonen-gebruiksfunctie-percentage' }) // version: 5
 
       if (results.length) {
         const bedrijfsfunctie = results[0].result

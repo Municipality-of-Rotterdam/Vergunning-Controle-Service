@@ -95,8 +95,8 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       this.log(`Bestemmingsvlak is van type ${bouwaanduiding.value} s`)
 
       const results = await this.runSparql(context, {
-        name: '3-Wonen-bebouwingsnormen-vorm',
-        version: 3,
+        name: '03-wonen-bebouwingsnormen-vorm',
+        // version: 3,
         params: { bouwaanduiding: bouwaanduiding.value },
       })
 

@@ -79,8 +79,8 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       `<span class="article-ref">${reference}</span> De voor 'Wonen' aangewezen gronden zijn bestemd voor woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
 
     const results: any[] = await this.runSparql(context, {
-      name: '1-Wonen-bestemmingsomschrijving',
-      version: 16,
+      name: '01-wonen-bestemmingsomschrijving',
+      // version: 16,
       params: { allowed: gebruiksfunctie },
     })
 
