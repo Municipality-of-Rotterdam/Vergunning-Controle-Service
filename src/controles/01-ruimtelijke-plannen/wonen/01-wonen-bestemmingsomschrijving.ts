@@ -78,47 +78,31 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     this.info['Beschrijving'] =
       `<span class="article-ref">${reference}</span> De voor 'Wonen' aangewezen gronden zijn bestemd voor woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
 
-    await this.runSparql(context, { gebruiksfunctie, geometry })
+    const results: any[] = await this.runSparql(context, {
+      name: '1-Wonen-bestemmingsomschrijving',
+      version: 16,
+      params: { allowed: gebruiksfunctie },
+    })
+
+    if (results.length) {
+      const failures = results.filter((r: any) => r.valid != 'true')
+      let message = ''
+      if (failures.length > 0) {
+        message += '<ul>'
+        for (const { functie, space } of failures) {
+          message += `<li>Ruimte <a href=${space} target="_blank">${space}</a> met de gebruiksfunctie "${functie}" mag niet gepositioneerd worden in een bestemmingsomschrijving "${gebruiksfunctie}".</li>`
+        }
+        message += '</ul>'
+      } else {
+        message = `Op de locatie geldt de bestemmingsomschrijving "${gebruiksfunctie}". De aanvraag voldoet hieraan.`
+      }
+      this.status = failures.length == 0
+      this.info['Resultaat'] = message
+    } else {
+      this.status = false
+      this.info['Resultaat'] = 'Kon geen gebruiksfunctie voor het gebouw vinden.'
+    }
 
     return { gebruiksfunctie, geometry }
-  }
-
-  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/1-Wonen-bestemmingsomschrijving'
-  sparql = ({ gebruiksfunctie }: Data) => `prefix express: <https://w3id.org/express#>
-      prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
-
-      # Aanname: een IfcSpace heeft 1 Gebruiksfunctie
-
-      select distinct ?space ?spacelabel ?functie where {
-        graph ?g {
-        ?this a ifc:IfcBuilding.
-
-        [] ifc:relatingObject_IfcRelAggregates ?this;
-          ifc:relatedObjects_IfcRelAggregates ?storey.
-
-        [] a ifc:IfcRelAggregates ;
-          ifc:relatingObject_IfcRelAggregates ?storey;
-          ifc:relatedObjects_IfcRelAggregates ?space.
-
-        ?space ifc:longName_IfcSpatialElement/express:hasString ?spacelabel .
-
-        [] a ifc:IfcRelDefinesByProperties ;
-          ifc:relatedObjects_IfcRelDefinesByProperties ?space ;
-          ifc:relatingPropertyDefinition_IfcRelDefinesByProperties ?IfcPropertySet .
-
-        ?IfcPropertySet ifc:hasProperties_IfcPropertySet ?IfcPropertySingleValue .
-
-        ?IfcPropertySingleValue ifc:nominalValue_IfcPropertySingleValue/express:hasString ?functie ;
-                                ifc:name_IfcProperty/express:hasString "Gebruiksfunctie" .
-
-        filter(lcase(str(?functie)) != "${gebruiksfunctie.toLowerCase()}")
-        }
-      }`
-
-  bericht({ gebruiksfunctie }: Data): string {
-    if (this.status === true)
-      return `Op de locatie geldt de bestemmingsomschrijving ${gebruiksfunctie}. De aanvraag voldoet hieraan.`
-    else
-      return `Ruimte <a href={?space} target="_blank">{?space}</a> met de gebruiksfunctie "{?functie}" mag niet gepositioneerd worden in een bestemmingsomschrijving "${gebruiksfunctie}".`
   }
 }

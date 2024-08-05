@@ -94,48 +94,33 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
       this.log(`Bestemmingsvlak is van type ${bouwaanduiding.value} s`)
 
-      await this.runSparql(context, { bouwaanduiding })
+      const results = await this.runSparql(context, {
+        name: '3-Wonen-bebouwingsnormen-vorm',
+        version: 3,
+        params: { bouwaanduiding: bouwaanduiding.value },
+      })
+
+      if (results.length) {
+        const failures = results.filter((x) => !x.valid)
+        let message = `Op de locatie geldt een bouwaanduiding <a href="${bouwaanduiding.value}" target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>. `
+
+        if (failures.length) {
+          message += `De aanvraag voldoet hier niet aan: `
+          for (const { roof, rooftype } of failures) {
+            message += `Er is <a href=${roof} target="_blank">een dak</a> met type "${rooftype}. `
+          }
+        } else {
+          message += `De aanvraag voldoet hieraan.`
+        }
+
+        this.status = !failures.length
+        this.info['Resultaat'] = message
+      } else {
+        this.status = false
+        this.info['Resultaat'] = 'Kon geen daken vinden.'
+      }
 
       return { bouwaanduiding }
     }
-  }
-
-  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/3-Wonen-bebouwingsnormen-vorm/'
-  sparql = ({ bouwaanduiding }: Data) => {
-    if (!bouwaanduiding) throw new Error('Geen bouwaanduiding gegeven')
-    return `
-      prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
-
-      select ?roof ?rooftype where {
-      graph ?g {
-
-        ?this a ifc:IfcBuilding.
-
-        [] ifc:relatingObject_IfcRelAggregates ?this;
-          ifc:relatedObjects_IfcRelAggregates ?storey.
-
-        [] ifc:relatingStructure_IfcRelContainedInSpatialStructure ?storey ;
-          ifc:relatedElements_IfcRelContainedInSpatialStructure ?roof .
-
-        ?roof ifc:predefinedType_IfcRoof ?rooftype .
-
-        filter (?rooftype != <${bouwaanduiding.value}>)
-      }
-      }
-    `
-  }
-
-  bericht({ bouwaanduiding }: Data): string {
-    if (!bouwaanduiding) throw new Error('Geen bouwaanduiding gegeven')
-    const bouwaanduidingText = bouwaanduiding.value.replace(
-      'https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#',
-      'ifc:',
-    )
-
-    let result = `Op de locatie geldt een bouwaanduiding <a href=${bouwaanduiding.value} target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>. `
-    if (this.status === true) result += `De aanvraag voldoet hieraan.`
-    // else result += `De aanvraag heeft een dak <a href={?roof} target="_blank">{?roof}</a> met type "{?rooftype}.`
-    else result += `De aanvraag voldoet hier niet aan.`
-    return result
   }
 }

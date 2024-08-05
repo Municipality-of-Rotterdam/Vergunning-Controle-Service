@@ -93,12 +93,10 @@ export default class _ extends Controle<StepContext, Data> {
       welstandgebied: response.geb_type,
       geoJSON: response.surface,
     }
-    await this.runSparql(context, result)
+    this.status = null
+    this.info['Resultaat'] =
+      `De voetafdruk van het gebouw ligt in welstandsgebied ${result.welstandgebied_id}, type "${result.welstandgebied}". De langwerpigheid van het gebouw is L = ${elongation.toString().replace('.', ',')}.`
 
     return result
-  }
-
-  bericht({ welstandgebied, welstandgebied_id, elongation }: Data): string {
-    return `De voetafdruk van het gebouw ligt in welstandsgebied ${welstandgebied_id}, type "${welstandgebied}". De langwerpigheid van het gebouw is L = ${elongation.toString().replace('.', ',')}.`
   }
 }
