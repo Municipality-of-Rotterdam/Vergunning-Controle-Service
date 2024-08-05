@@ -167,18 +167,14 @@ export class RuleRepoActivity extends ActivityA<any, any> {
   query: string
   version: number | 'latest'
   variables: VariableValues
-  rpt: NamespaceBuilder // TODO: Use generic namespaces or make global
-  constructor(
-    {
-      name,
-      description,
-      query,
-      version,
-      variables,
-      url,
-    }: ActivityInfo & { query: string; version: number | 'latest'; variables: VariableValues; url: string },
-    rpt: NamespaceBuilder,
-  ) {
+  constructor({
+    name,
+    description,
+    query,
+    version,
+    variables,
+    url,
+  }: ActivityInfo & { query: string; version: number | 'latest'; variables: VariableValues; url: string }) {
     super({
       name,
       description,
@@ -187,7 +183,6 @@ export class RuleRepoActivity extends ActivityA<any, any> {
     this.query = query
     this.version = version
     this.variables = variables
-    this.rpt = rpt
   }
   async _run() {
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
@@ -195,9 +190,6 @@ export class RuleRepoActivity extends ActivityA<any, any> {
     const query_0 = await orgUser.getQuery(this.query)
     const query_1 = await query_0.useVersion(this.version)
     const sparqlQuery = query_1.getString(this.variables)
-
-    if (this.provenance)
-      this.provenance.addOut(this.rpt('sparqlUrl'), factory.literal(await query_1.getApiUrl(), xsd('anyUri')))
 
     const requestOptions: RequestInit = {
       method: 'POST',

@@ -146,7 +146,6 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     this.pointer.addOut(rdfs('label'), factory.literal(this.name))
     this.pointer.addOut(rdf('type'), rpt('Controle'))
     this.pointer.addOut(rdfs('label'), this.name)
-    // if (this.sparqlUrl) this.pointer.addOut(rpt('sparqlUrl'), factory.literal(this.sparqlUrl, xsd('anyUri')))
     if (success !== undefined)
       this.pointer.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
     if (message !== undefined) this.pointer.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
@@ -212,18 +211,22 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     const { apiUrl } = await triply.getInfo()
     const url = `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
 
-    const activity = new RuleRepoActivity(
-      {
-        name: `SPARQL query ${this.name}`,
-        query: name,
-        version: version ?? 'latest',
-        variables: params ?? {},
-        url: url,
-      },
-      //@ts-ignore TODO this should be removed
-      context.rpt,
-    )
-    return activity.run(context)
+    const activity = new RuleRepoActivity({
+      name: `SPARQL query ${this.name}`,
+      query: name,
+      version: version ?? 'latest',
+      variables: params ?? {},
+      url: url,
+    })
+
+    const results = await activity.run(context)
+
+    // TODO: Remove when possible. This is a hack to get the sparqlUrl associated with a controle and get it into the report
+    let sparql = `https://demo.triplydb.com/Rotterdam-Rule-Repository/-/queries/${name}`
+    if (version && version != 'latest') sparql += `/${version}`
+    this.info['SPARQL'] = `<a href="${sparql}">${sparql}</a>`
+
+    return results
   }
 
   log(message: any) {
