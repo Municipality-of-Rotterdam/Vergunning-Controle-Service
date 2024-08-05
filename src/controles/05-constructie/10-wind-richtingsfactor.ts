@@ -8,10 +8,9 @@ type Data = { windzone: number; geoJSON: GeoJSON }
 
 export default class _ extends Controle<StepContext, Data> {
   public name = 'Windrichtingsfactor'
-  public tekst = `Om de constructie te kunnen berekenen t.o.v. de windbelasting dient een windgebied vastgesteld te worden m.b.v. de NEN 1991-1-4.`
-  public verwijzing = ``
 
-  async run({ baseIRI, footprintT1 }: StepContext): Promise<Data> {
+  async run(context: StepContext): Promise<Data> {
+    const { baseIRI, footprint } = context
     const wfs = new XmlActivity({
       name: 'Windzones request',
       url: `https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones/WFSServer`,
@@ -30,7 +29,7 @@ export default class _ extends Controle<StepContext, Data> {
          <gml:Polygon srsName="urn:ogc:def:crs:EPSG::28992" gml:id="footprint">
            <gml:exterior>
              <gml:LinearRing>
-              <gml:posList srsDimension="2">${footprintT1.coordinates.flat().join(' ')}</gml:posList>
+              <gml:posList srsDimension="2">${footprint.coordinates.flat().join(' ')}</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>
@@ -72,45 +71,25 @@ export default class _ extends Controle<StepContext, Data> {
     const response = await wfs.run({ baseIRI })
     this.apiResponse = response // TODO remove
 
+    this.info['Beschrijving'] =
+      `Om de constructie te kunnen berekenen t.o.v. de windbelasting dient een windgebied vastgesteld te worden m.b.v. de NEN 1991-1-4.`
     this.info['Windzone'] = response.windzone
     this.info['Geometrie van de windzone'] = {
       type: 'Feature',
       properties: {
-        name: 'Windzone',
-        show_on_map: true,
-        popupContent: `Windzone ${response.windzone}`,
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
+        name: `Windzone ${response.windzone}`,
       },
       geometry: projectGeoJSON(response.surface) as Geometry,
     }
-    this.info['Voetafdruk van het gebouw'] = {
-      type: 'Feature',
-      properties: {
-        name: 'Voetafdruk van het gebouw',
-        show_on_map: true,
-        popupContent: 'Voetafdruk van het gebouw',
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
-      },
-      geometry: projectGeoJSON(footprintT1) as Geometry,
-    }
     this.status = null
 
-    return {
+    const result = {
       windzone: response.windzone,
       geoJSON: response.surface,
     }
+
+    await this.runSparql(context, result)
+    return result
   }
 
   bericht({ windzone }: Data): string {

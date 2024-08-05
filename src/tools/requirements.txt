@@ -1,5 +1,5 @@
 ifcopenshell
-ifctester
+ifctester==0.7.10
 bcf-client
 pystache
 numpy==1.26.4

@@ -1,6 +1,6 @@
 import * as crypto from 'crypto'
 import { readFile } from 'fs/promises'
-import { Feature, GeoJSON, Geometry } from 'geojson'
+import { Feature, Polygon, FeatureCollection, GeoJSON, Geometry } from 'geojson'
 import grapoi from 'grapoi'
 import React, { Fragment } from 'react'
 
@@ -8,7 +8,7 @@ import { dct, geo, litre, prov, rdf, rdfs, skos } from '@helpers/namespaces.js'
 import { NamespaceBuilder } from '@rdfjs/namespace'
 import { Controle } from '@root/core/Controle.js'
 import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
-import { isFeature, isGeoJSON } from '@root/core/helpers/isGeoJSON.js'
+import { isFeature, isFeatureCollection, isPolygon, isMultiPolygon } from '@root/core/helpers/isGeoJSON.js'
 import { wktToGeoJSON } from '@terraformer/wkt'
 import { Store as TriplyStore } from '@triplydb/data-factory'
 
@@ -26,6 +26,14 @@ export type RapportageProps = {
 }
 
 const inlineScript = await readFile('./src/rapportage/inlineScript.js')
+
+function RegelsOpDeKaart(footprint: Polygon) {
+  const [x, y]: number[] = footprint.coordinates[0][0]
+  const url =
+    `https://omgevingswet.overheid.nl/regels-op-de-kaart/documenten` +
+    `?regelsandere=regels&bestuurslaag=gemeente&locatie-stelsel=RD&locatie-x=${Math.round(x)}&locatie-y=${Math.round(y)}`
+  return <a href={url}>Regels op de kaart</a>
+}
 
 function ElongationExplanation() {
   return (
@@ -164,22 +172,39 @@ function ProvenanceHtml(provenancePointer: GrapoiPointer, rpt: NamespaceBuilder)
 
 // Find all georef content from this controle and add to the map if there are any
 function Map({ controle }: { controle: Controle<any, any> }) {
-  const features: Feature[] = Object.entries(controle.info).flatMap(([_, v]) => (isFeature(v) ? [v] : []))
+  function getFeatures(c: Controle<any, any>): Feature[] {
+    const features = Object.entries(c.info).flatMap(([_, v]) =>
+      isFeatureCollection(v) ? v.features : isFeature(v) ? [v] : [],
+    )
+    return c.parent ? features.concat(getFeatures(c.parent)) : features
+  }
+
+  const features: Feature[] = getFeatures(controle)
   const mapID = crypto.createHash('md5').update(controle.name.toString()).digest('hex')
 
   if (features.length) {
+    // Determine starting view. For now, just pick the first coordinates of the last feature
+    let coords = [51.3, 4.9]
+    const geom = features[features.length - 1].geometry
+    if (isPolygon(geom)) {
+      coords = geom.coordinates[0][0]
+    } else if (isMultiPolygon(geom)) {
+      coords = geom.coordinates[0][0][0]
+    }
+
     return (
       <>
         <div id={mapID} style={{ height: '300px', width: '600px', float: 'right' }}></div>
         <script
           dangerouslySetInnerHTML={{
             __html: `
-const m${mapID} = L.map('${mapID}').setView([startView.lat, startView.lng], 20);
+const m${mapID} = L.map('${mapID}').setView([${coords[1]}, ${coords[0]}], 20);
 const tiles${mapID} = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 });
 tiles${mapID}.addTo(m${mapID});
 L.geoJSON(${JSON.stringify(features)}, {onEachFeature}).addTo(m${mapID});
+makeLegend().addTo(m${mapID});
 `,
           }}
         ></script>
@@ -222,27 +247,11 @@ function ControleDiv({
           : {}
       }
     >
-      <Map controle={controle} />
+      {!controle.children.length ? <Map controle={controle} /> : ''}
       <h3 className={controle.status === false ? 'bg-danger-subtle' : ''}>
-        <Icon status={controle.status} /> {label}
+        <Icon status={controle.status} /> {controle.id ?? ''} {label}
       </h3>
       <dl>
-        {controle.tekst ? (
-          <>
-            <dt>Beschrijving</dt>
-            <dd>{controle.tekst}</dd>
-          </>
-        ) : (
-          ''
-        )}
-        {controle.verwijzing ? (
-          <>
-            <dt>Verwijzing</dt>
-            <dd>{controle.verwijzing}</dd>
-          </>
-        ) : (
-          ''
-        )}
         {Object.entries(info).map(([k, v]) => {
           if (typeof v == 'number') {
             return (
@@ -261,7 +270,7 @@ function ControleDiv({
                 <dd dangerouslySetInnerHTML={{ __html: v }} />
               </Fragment>
             )
-          } else if (!isFeature(v)) {
+          } else if (!isFeature(v) && !isFeatureCollection(v)) {
             return (
               <Fragment key={k}>
                 <dt>{k}</dt>
@@ -355,38 +364,62 @@ export default function (
         <script
           dangerouslySetInnerHTML={{
             __html: `
-const RD = new L.Proj.CRS(
-  'EPSG:28992',
-  '+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs',
-  {
-    origin: [-285401.92, 903401.92],
-    resolutions: [
-      3251.206502413005, 1625.6032512065026, 812.8016256032513, 406.40081280162565, 203.20040640081282,
-      101.60020320040641, 50.800101600203206, 25.400050800101603, 12.700025400050801, 6.350012700025401,
-      3.1750063500127004, 1.5875031750063502, 0.7937515875031751, 0.39687579375158755, 0.19843789687579377,
-      0.09921894843789689, 0.04960947421894844,
-    ],
-  },
-);
-var data = JSON.parse(document.getElementById('data').textContent)
-const coords = data.footprint.geometry.coordinates[0][0]
-const startView = RD.unproject(L.point(coords[0], coords[1]))
 const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 });
 function onEachFeature(feature, layer) {
-  if (feature.properties && feature.properties.popupContent) {
-    layer.bindPopup(feature.properties.popupContent);
+  if (feature.properties) {
+    if (feature.properties.name) {
+      layer.bindPopup(feature.properties.name);
+    }
+    if (feature.properties.style) {
+      layer.setStyle(feature.properties.style);
+    }
   }
 };
-function coordsToLatLng(coords){
-  return RD.unproject(L.point(coords[0], coords[1]));
+function makeLegend(){
+  var legend = L.control({position: "bottomright"});
+  legend.onAdd = function(map) {
+    const features = [];
+    map.eachLayer((l) => {
+      if (l.feature)
+        features.push(l.feature);
+    })
+    var div = L.DomUtil.create('div', 'legend');
+    for(const f of features) {
+      var props = f.properties;
+      var name = props.name;
+      var style = props.style;
+      var color = style ? style.color : "#3388ff";
+      div.innerHTML += '<i style="background:' + color + '"></i> ' + name + '<br>';
+    }
+    return div;
+  }
+  return legend;
 }
 `,
           }}
         ></script>
         <style>{`
+.legend {
+  line-height: 18px;
+  color: #555;
+  background-color: #ffffffaa;
+  border: 1px solid #555;
+  border-radius: 5px;
+  padding: 5px;
+}
+.legend i {
+  width: 16px;
+  height: 16px;
+  float: left;
+  margin: 1px 8px 1px 0px;
+}
+.article-ref {
+  font-weight: bold;
+  text-decoration: underline;
+}
 .elongation-example table {
   border-collapse: collapse;
   margin: 5px 3px;
@@ -419,6 +452,8 @@ function coordsToLatLng(coords){
           </dd>
           <dt>Adres</dt>
           <dd>{gebouwAddress}</dd>
+          <dt>Regels op de kaart</dt>
+          <dd>{RegelsOpDeKaart(footprint)}</dd>
           <dt>Dataset</dt>
           <dd>
             <a href={baseIRI} target="_blank">

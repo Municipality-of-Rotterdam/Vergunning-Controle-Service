@@ -2,9 +2,11 @@ import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { Data as RPData } from '../common.js'
 import { Controle } from '@root/core/Controle.js'
+import { projectGeoJSON } from '@root/core/helpers/crs.js'
+import { Geometry } from 'geojson'
 
 type Data = {
-  gebruiksfunctie: string
+  gebruiksfunctie?: string
 }
 
 /** Given: Een IFC-model positioneert na georeferentie geheel binnen een IMRO bestemmingsvlak “Wonen”
@@ -16,17 +18,27 @@ Then: Het gebruik van het gebouw is in overeenstemming met de specifieke gebruik
 
 export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bedrijfsfunctie'
-  public tekst = `Woningen mogen mede worden gebruikt voor de uitoefening van een aan huis gebonden beroep of bedrijf, mits: de woonfunctie in overwegende mate gehandhaafd blijft, waarbij het bruto vloeroppervlak van de woning voor ten hoogste 30%, mag worden gebruikt voor een aan huis gebonden beroep of bedrijf`
-  public verwijzing = `Hoofdstuk 2 Bestemmingsregels 
-		Artikel 23 Wonen lid 
-			23.3 Specifieke gebruiksregels
-				23.3.1 Algemeen
-					a. `
 
-  async run({ baseIRI, footprintT1, bestemmingsplan }: StepContext & RPData): Promise<Data> {
+  async run(context: StepContext & RPData): Promise<Data> {
+    const { baseIRI, footprintT1, bestemmingsplan } = context
+
+    const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.3.1a`
+    this.info['Beschrijving'] =
+      `<span class="article-ref">${reference}</span> Woningen mogen mede worden gebruikt voor de uitoefening van een aan huis gebonden beroep of bedrijf, mits: de woonfunctie in overwegende mate gehandhaafd blijft, waarbij het bruto vloeroppervlak van de woning voor ten hoogste 30%, mag worden gebruikt voor een aan huis gebonden beroep of bedrijf`
+
+    this.info['Testvoetafdruk 1'] = {
+      type: 'Feature',
+      properties: {
+        name: 'Testvoetafdruk 1',
+        style: { color: '#ff0000' },
+      },
+      geometry: projectGeoJSON(footprintT1) as Geometry,
+    }
+
     const response = await new RuimtelijkePlannenActivity({
       url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
       body: { _geo: { contains: footprintT1 } },
+      params: { expand: 'geometrie' },
     }).run({ baseIRI })
     this.apiResponse = response
 
@@ -36,19 +48,35 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
 
-    if (bestemmingsvlakken.length != 1) {
-      throw new Error('Op dit moment mag er maar 1 enkelbestemmingsvlak bestaan.')
+    if (bestemmingsvlakken.length == 0) {
+      this.status = true
+      this.info['Resultaat'] = 'Niet van toepassing'
+      return {}
+    } else if (bestemmingsvlakken.length != 1) {
+      this.status = false
+      this.info['Resultaat'] = `Er zijn meerdere enkelbestemmingsvlakken op deze locatie.`
+      return {}
+    } else {
+      const vlak = bestemmingsvlakken[0]
+      const gebruiksfunctie: string = vlak.naam
+      this.log(`Bestemmingsvlak is van type ${gebruiksfunctie}`)
+
+      this.info['Bestemmingsvlak'] = {
+        type: 'Feature',
+        properties: {
+          name: `Bestemmingsvlak "${gebruiksfunctie}"`,
+        },
+        geometry: projectGeoJSON(vlak.geometrie) as Geometry,
+      }
+
+      await this.runSparql(context, { gebruiksfunctie })
+
+      return { gebruiksfunctie }
     }
-
-    const gebruiksfunctie: string = bestemmingsvlakken[0]['naam']
-
-    this.log(`Bestemmingsvlak is van type ${gebruiksfunctie}`)
-
-    return { gebruiksfunctie }
   }
 
   applicable({ gebruiksfunctie }: Data): boolean {
-    return gebruiksfunctie.toLowerCase() == 'wonen'
+    return gebruiksfunctie ? gebruiksfunctie.toLowerCase() == 'wonen' : false
   }
 
   sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/'

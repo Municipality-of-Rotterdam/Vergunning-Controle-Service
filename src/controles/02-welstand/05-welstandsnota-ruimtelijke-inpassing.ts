@@ -19,10 +19,9 @@ ruimtelijke inpassing. */
 
 export default class _ extends Controle<StepContext, Data> {
   public name = 'Stempel en strokenbouw - Ruimtelijke inpassing'
-  public tekst = `Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)`
-  public verwijzing = ``
 
-  async run({ elongation, baseIRI, footprintT1 }: StepContext): Promise<Data> {
+  async run(context: StepContext): Promise<Data> {
+    const { elongation, baseIRI, footprint } = context
     const wfs = new XmlActivity({
       name: 'Welstand WFS request',
       description: 'Welstand WFS request',
@@ -36,7 +35,7 @@ export default class _ extends Controle<StepContext, Data> {
          <gml:Polygon srsName="urn:ogc:def:crs:EPSG::28992" gml:id="footprint">
            <gml:exterior>
              <gml:LinearRing>
-<gml:posList srsDimension="2">${footprintT1.coordinates.flat().join(' ')}</gml:posList>
+<gml:posList srsDimension="2">${footprint.coordinates.flat().join(' ')}</gml:posList>
             </gml:LinearRing>
           </gml:exterior>
         </gml:Polygon>
@@ -75,48 +74,28 @@ export default class _ extends Controle<StepContext, Data> {
     const response = await wfs.run({ baseIRI })
     this.apiResponse = response // TODO: Remove
 
+    this.info['Beschrijving'] =
+      `Er is sprake van een ‘open verkaveling’ (een herkenbaar ensemble van bebouwingsstroken die herhaald worden) of een ‘halfopen verkaveling’ (gesloten bouwblokken samengesteld uit losse bebouwingsstroken met open hoeken)`
     this.info['Langwerpigheid'] = elongation
     this.info['Welstandgebied'] = response.geb_type
     this.info['Voetafdruk van het welstandsgebied'] = {
       type: 'Feature',
       properties: {
-        name: response.geb_type,
-        show_on_map: true,
-        popupContent: `Welstandsgebied "${response.geb_type}"`,
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
+        name: `Welstandsgebied "${response.geb_type}"`,
       },
       geometry: response.surface,
     }
-    this.info['Voetafdruk van het gebouw'] = {
-      type: 'Feature',
-      properties: {
-        name: 'Voetafdruk van het gebouw',
-        show_on_map: true,
-        popupContent: 'Voetafdruk van het gebouw',
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
-      },
-      geometry: projectGeoJSON(footprintT1) as Geometry,
-    }
     this.status = null
 
-    return {
+    const result = {
       elongation: elongation,
       welstandgebied_id: response.fid,
       welstandgebied: response.geb_type,
       geoJSON: response.surface,
     }
+    await this.runSparql(context, result)
+
+    return result
   }
 
   bericht({ welstandgebied, welstandgebied_id, elongation }: Data): string {

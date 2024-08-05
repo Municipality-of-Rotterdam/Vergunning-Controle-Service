@@ -4,73 +4,81 @@ import { StepContext } from '@root/core/executeSteps.js'
 import { RuimtelijkePlannenActivity } from '@bronnen/RuimtelijkePlannen.js'
 import { SparqlActivity } from '@root/core/Activity.js'
 import namespace from '@rdfjs/namespace'
-import { Geometry } from 'geojson'
+import { Geometry, Feature } from 'geojson'
 import { projectGeoJSON } from '@root/core/helpers/crs.js'
 
 type Data = {
   gebruiksfunctie: string
   geometry: Geometry
+  reference?: string
 }
 
 export default class _ extends Controle<StepContext & RPData, Data> {
   public name = 'Bestemmingsomschrijving'
-  public tekst = `De voor 'Wonen' aangewezen gronden zijn bestemd voor woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
-  public verwijzing = `Hoofdstuk 2 Bestemmingsregels 
-		Artikel 23 Wonen lid 
-			23.1 Bestemmingsomschrijving 
-				a. `
 
-  async run({ baseIRI, bestemmingsplan, footprintT1 }: StepContext & RPData): Promise<Data> {
+  async run(context: StepContext & RPData): Promise<Data> {
+    const { baseIRI, bestemmingsplan, footprint } = context
     const response = await new RuimtelijkePlannenActivity({
       url: `plannen/${bestemmingsplan.id}/bestemmingsvlakken/_zoek`,
       params: { expand: 'geometrie' },
-      body: { _geo: { contains: footprintT1 } },
+      body: { _geo: { intersects: footprint } },
     }).run({ baseIRI })
     this.apiResponse = response // TODO remove
+
     const bestemmingsvlakken: any[] = response['_embedded']['bestemmingsvlakken'].filter(
       (f: any) => f.type == 'enkelbestemming',
     )
     this.log(`${bestemmingsvlakken.length} enkelbestemmingsvlakken gevonden`)
 
-    if (bestemmingsvlakken.length != 1) {
-      throw new Error('Op dit moment mag er maar 1 enkelbestemmingsvlak bestaan.')
+    const colors: Record<string, string> = {
+      Wonen: '#0000aa',
+      'Verkeer - Erf': '#999999',
+      Tuin: '#00aa00',
     }
+
+    const features: Feature[] = []
+    for (const zone of bestemmingsvlakken) {
+      const color = colors[zone['naam']] ?? '#aa0000'
+      const gebruiksfunctie: string = zone['naam']
+      const geometry: Geometry = zone['geometrie']
+      features.push({
+        type: 'Feature',
+        properties: {
+          name: `Bestemmingsvlak "${gebruiksfunctie}"`,
+          style: {
+            weight: 2,
+            opacity: 1,
+            color,
+            fillOpacity: 0.3,
+            fillColor: color,
+          },
+        },
+        geometry,
+      })
+    }
+    this.info['Bestemmingsvlakken'] = {
+      type: 'FeatureCollection',
+      features,
+    }
+
     const vlak = bestemmingsvlakken[0]
     const gebruiksfunctie: string = vlak['naam']
     const geometry: Geometry = vlak['geometrie']
 
-    this.info['Bestemmingsvlak'] = {
-      type: 'Feature',
-      properties: {
-        name: `Bestemmingsvlak`,
-        show_on_map: true,
-        popupContent: `Bestemmingsvlak "${gebruiksfunctie}"`,
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
-      },
-      geometry,
-    }
-    this.info['Voetafdruk van het gebouw'] = {
-      type: 'Feature',
-      properties: {
-        name: 'Voetafdruk van het gebouw',
-        show_on_map: true,
-        popupContent: 'Voetafdruk van het gebouw',
-        style: {
-          weight: 2,
-          color: '#999',
-          opacity: 1,
-          fillColor: '#B0DE5C',
-          fillOpacity: 0.5,
-        },
-      },
-      geometry: projectGeoJSON(footprintT1) as Geometry,
-    }
+    // let reference = ``
+    // for (const zone of bestemmingsvlakken) {
+    //   if (zone.naam == 'Wonen') {
+    //     reference = `<a href="${zone.verwijzingNaarTekst}">Artikel ${zone.artikelnummer}</a>`
+    //     break
+    //   }
+    // }
+
+    // TODO: No hardcoding
+    const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.1a`
+    this.info['Beschrijving'] =
+      `<span class="article-ref">${reference}</span> De voor 'Wonen' aangewezen gronden zijn bestemd voor woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
+
+    await this.runSparql(context, { gebruiksfunctie, geometry })
 
     return { gebruiksfunctie, geometry }
   }

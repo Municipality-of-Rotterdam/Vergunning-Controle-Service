@@ -4,18 +4,17 @@ import { Controle } from '@root/core/Controle.js'
 import { dct, rdfs, skos, xsd } from '@core/helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 
-export type Data = { bestemmingsplan: any }
+export type Data = { bestemmingsplan: any; teksten: any }
 
 export default class _ extends Controle<StepContext, Data> {
   public name = 'Ruimtelijke plannen'
 
-  async run({ footprintT1, baseIRI }: StepContext): Promise<Data> {
+  async run({ footprint, baseIRI }: StepContext): Promise<Data> {
     const response = await new RuimtelijkePlannenActivity({
       url: '/plannen/_zoek',
-      body: { _geo: { contains: footprintT1 } },
-      params: { planType: 'bestemmingsplan' },
+      body: { _geo: { contains: footprint } },
+      params: { planType: 'bestemmingsplan', expand: 'geometrie' },
     }).run({ baseIRI })
-    this.apiResponse = response
 
     let plans = response['_embedded']['plannen']
 
@@ -45,7 +44,29 @@ export default class _ extends Controle<StepContext, Data> {
     ][0]
 
     this.info['Bestemmingsplan'] = { text: `${bestemmingsplan.naam} (${bestemmingsplan.id})`, url }
+    this.info['Geometrie van bestemmingsplan'] = {
+      type: 'Feature',
+      properties: {
+        name: `Bestemmingsplan "${bestemmingsplan.naam}"`,
+        style: {
+          weight: 2,
+          opacity: 1,
+          color: '#00aa00',
+          fillOpacity: 0,
+        },
+      },
+      geometry: bestemmingsplan.geometrie,
+    }
 
-    return { bestemmingsplan }
+    // TODO: If there are many articles, this will only return the first 100.
+    const responseTeksten = await new RuimtelijkePlannenActivity({
+      url: `/plannen/${bestemmingsplan.id}/artikelen/_zoek`,
+      body: { _geo: { intersects: footprint } },
+      params: { expand: 'bestemmingsvlakken' },
+    }).run({ baseIRI })
+
+    this.apiResponse = { response, responseTeksten }
+
+    return { bestemmingsplan, teksten: responseTeksten['_embedded']['teksten'] }
   }
 }

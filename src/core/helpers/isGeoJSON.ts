@@ -31,5 +31,5 @@ export function isFeature(x: any): x is Feature {
 }
 
 export function isFeatureCollection(x: any): x is FeatureCollection {
-  return x && x.type && x.type == 'Feature' && x.features && x.features.all(isFeature)
+  return x && x.type && x.type == 'FeatureCollection' && x.features && x.features.every(isFeature)
 }

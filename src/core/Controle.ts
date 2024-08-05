@@ -14,8 +14,8 @@ import { Store as TriplyStore } from '@triplydb/data-factory'
 import { BlankNode, NamedNode } from '@rdfjs/types'
 import { dct, rdfs, skos, geo, sf, rdf, litre, xsd, prov } from './helpers/namespaces.js'
 import grapoi from 'grapoi'
-import { Feature } from 'geojson'
-import { isFeature } from './helpers/isGeoJSON.js'
+import { Feature, FeatureCollection } from 'geojson'
+import { isFeature, isFeatureCollection } from './helpers/isGeoJSON.js'
 import factory from '@rdfjs/data-model'
 import { geojsonToWKT } from '@terraformer/wkt'
 
@@ -34,11 +34,11 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
   public activity?: GrapoiPointer // TODO: To be removed, keeping it while refactoring
 
   public data?: Context & Result
-  public parent?: Controle<any, Context>
+  public parent?: Controle<any, any>
   public children: Controle<Context & Result, any>[]
 
   public status?: boolean | null
-  public info: { [key: string]: number | string | Feature | { text: string; url: string } }
+  public info: { [key: string]: number | string | Feature | FeatureCollection | { text: string; url: string } }
 
   // TODO: Probably more intuitive to define children rather than parent, so as
   // not to rely on side-effects so much, but that is for later
@@ -62,6 +62,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
   }
 
   add(controle: Controle<Context & Result, any>) {
+    controle.parent = this
     this.children.push(controle)
     this.pointer.addOut(dct('hasPart'), controle.node)
   }
@@ -115,11 +116,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
   }
 
   async runAll(context: Context, activity: GrapoiPointer): Promise<Result> {
-    const { rpt, account, datasetName } = context as StepContext // TODO
-
-    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
-    const user = await triply.getAccount(account)
-    const { apiUrl } = await triply.getInfo()
+    const { rpt } = context as StepContext //TODO
 
     headerLogBig(`Controle: "${this.name}"`, 'yellowBright')
 
@@ -128,21 +125,16 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
 
     const result = Object.assign({}, context, await this.run(context))
     this.data = result
-
-    let success: boolean | null | undefined = undefined
-    let message: string | undefined = undefined
-    if (this.children.length == 0) {
-      const r = await this.uitvoering(result, `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`)
-      success = r.success
-      message = r.message
-    }
-
     for (const p of this.children) await p.runAll(result, prep)
     finish(prep)
 
+    let success: boolean | null | undefined = this.status
+    let resultContent = this.info['Resultaat']
+    let message: string | undefined = resultContent ? resultContent.toString() : undefined
+
     // Log to console
     if (success === null || success === undefined) {
-      log(message, this.name)
+      if (message) log(message, this.name)
     } else if (success) {
       log(chalk.greenBright(`✅ ${message}`), this.name)
     } else {
@@ -153,8 +145,6 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     this.pointer.addOut(rdfs('label'), factory.literal(this.name))
     this.pointer.addOut(rdf('type'), rpt('Controle'))
     this.pointer.addOut(rdfs('label'), this.name)
-    if (this.tekst) this.pointer.addOut(dct('description'), factory.literal(this.tekst, 'nl'))
-    if (this.verwijzing) this.pointer.addOut(rpt('verwijzing'), factory.literal(this.verwijzing, 'nl'))
     if (this.sparqlUrl) this.pointer.addOut(rpt('sparqlUrl'), factory.literal(this.sparqlUrl, xsd('anyUri')))
     if (success !== undefined)
       this.pointer.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
@@ -172,6 +162,7 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     // Save anything that was saved to the `info` object also to the RDF report
     for (const [k, v] of Object.entries(this.info)) {
       if (isFeature(v)) {
+        //TODO: isFeatureCollection
         this.pointer.addOut(skos('related'), (p: GrapoiPointer) => {
           const descr = v.properties?.popupContent
           p.addOut(skos('prefLabel'), factory.literal(k, 'nl'))
@@ -207,20 +198,24 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
   // TODO: Refactor below
   apiResponse?: any
   sparqlUrl?: string
-  tekst?: string
-  verwijzing?: string
   bericht(inputs: Result): string {
     return 'n.v.t.'
   }
 
   sparql?: (inputs: Result) => string
 
-  async uitvoering(inputs: Context & Result, url?: string): Promise<{ success: boolean | null; message: string }> {
+  async runSparql(context: Context, inputs: Result): Promise<{ success: boolean | null; message: string }> {
+    const { account, datasetName } = context as StepContext // TODO
+    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
+    const user = await triply.getAccount(account)
+    const { apiUrl } = await triply.getInfo()
+    const url = `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
+
     if (!this.sparql) {
-      const result = { success: null, message: this.bericht(inputs) }
+      const fresult = { success: null, message: this.bericht(inputs) }
       this.status = null
-      this.info['Resultaat'] = result.message
-      return result
+      this.info['Resultaat'] = fresult.message
+      return fresult
     }
     if (!url) throw new Error('must have url')
     const sparql = this.sparql(inputs)
@@ -228,9 +223,9 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
 
     // TODO This is a hacky way of getting the SPARQL url into the report. To do
     // it properly, the `Activity` has to be refactored.
-    if (inputs.rpt) this.activity?.addOut(inputs.rpt('sparqlUrl'), this.sparqlUrl ?? 'undefined')
+    if (context.rpt) this.activity?.addOut(context.rpt('sparqlUrl'), this.sparqlUrl ?? 'undefined')
 
-    const response = await activity.run({ baseIRI: inputs.baseIRI })
+    const response = await activity.run(context)
     const result = response[0] ?? null
     const success: boolean = result ? result.success == 'true' ?? false : true
     this.status = success
