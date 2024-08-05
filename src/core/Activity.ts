@@ -189,7 +189,7 @@ export class RuleRepoActivity extends ActivityA<any, any> {
     const orgUser = await triply.getAccount('rotterdam-rule-repository')
     const query_0 = await orgUser.getQuery(this.query)
     const query_1 = await query_0.useVersion(this.version)
-    const sparqlQuery = query_1.getString(this.variables)
+    const sparqlQuery = await query_1.getString(this.variables)
 
     const requestOptions: RequestInit = {
       method: 'POST',
@@ -202,7 +202,8 @@ export class RuleRepoActivity extends ActivityA<any, any> {
     }
 
     try {
-      return await fetch(this.url, requestOptions)
+      const result = await fetch(this.url, requestOptions)
+      return await result.json()
     } catch (error) {
       throw new Error(`API request failed: ${error instanceof Error ? error.message : error}`)
     }

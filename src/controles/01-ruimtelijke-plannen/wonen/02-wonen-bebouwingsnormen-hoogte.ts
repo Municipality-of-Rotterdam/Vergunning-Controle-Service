@@ -67,7 +67,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
         this.status = aantalVerdiepingen <= max
         if (this.status === true) message += `De aanvraag voldoet hieraan.`
         else
-          message += `bevat ${aantalVerdiepingen} bouwlagen. Hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
+          message += `De aanvraag bevat ${aantalVerdiepingen} bouwlagen. Hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
         this.info['Resultaat'] = message
       } else {
         this.status = false
