@@ -24,6 +24,7 @@ export const idsControle = new Activity(
     const idsReportBcf = path.join(context.outputsDir, bcfFileName)
     log('Uitvoeren van IDS controle', 'IDS Controle')
     try {
+      log('context.inputIfc', context.inputIfc)
       await executeCommand(
         `python3 ${pythonScript} "${context.inputIfc}" "${context.inputIds}" -r "${idsReportHtml}" -b "${idsReportBcf}"`,
       )

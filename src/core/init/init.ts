@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import { existsSync } from 'fs'
 import fs, { mkdir, writeFile } from 'fs/promises'
 import { rimraf } from 'rimraf'
+import path from 'path'
 
 import { Activity } from '@core/Activity.js'
 import { ensureJava } from '@core/init/ensureJava.js'
@@ -125,7 +126,8 @@ export const init = //new Activity(
 
     const ifcAssetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/vcs/assets/download?fileName=`
     const assetBaseUrl = `${consoleUrl}/_api/datasets/${userName}/${datasetName}/assets/download?fileName=`
-    const inputIfc = import.meta.resolve(`../../../input/ifc/${args.ifc}`).replace('file://', '')
+    const inputIfc = path.resolve(__dirname, '../../../input/ifc', args.ifc)
+    log(inputIfc, 'inputIfc')
     const ifcIdentifier = crypto.createHash('md5').update(inputIfc).digest('hex')
     const rpt = namespace(`${baseIRI}rpt/`)
 
