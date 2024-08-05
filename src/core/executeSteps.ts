@@ -16,7 +16,6 @@ export type StepContext = {
   consoleUrl: string
   datasetName: string
   idsIdentifier: string
-  idsName: string
   ifcAssetBaseUrl: string
   ifcIdentifier: string
   inputIds: string

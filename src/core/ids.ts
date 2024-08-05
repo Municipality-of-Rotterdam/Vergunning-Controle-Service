@@ -1,13 +1,13 @@
-import * as path from 'path';
+import * as path from 'path'
 
-import { GrapoiPointer } from '@core/helpers/grapoi.js';
-import { createExecutor } from '@helpers/executeCommand.js';
-import { createLogger } from '@helpers/logger.js';
-import { rdfs, xsd } from '@helpers/namespaces.js';
-import factory from '@rdfjs/data-model';
+import { GrapoiPointer } from '@core/helpers/grapoi.js'
+import { createExecutor } from '@helpers/executeCommand.js'
+import { createLogger } from '@helpers/logger.js'
+import { rdfs, xsd } from '@helpers/namespaces.js'
+import factory from '@rdfjs/data-model'
 
-import { Activity } from './Activity.js';
-import { StepContext } from './executeSteps.js';
+import { Activity } from './Activity.js'
+import { StepContext } from './executeSteps.js'
 
 const executeCommand = createExecutor('idsControle', import.meta, 'idsControle')
 const log = createLogger('idsControle', import.meta)
@@ -15,8 +15,9 @@ const log = createLogger('idsControle', import.meta)
 export const idsControle = new Activity(
   { name: 'IDS Controle', description: 'IDS controle door https://pypi.org/project/ifctester/' },
   async (context: StepContext, thisActivity: Activity<any, any>) => {
-    const htmlFileName = `IDSValidationReport_${context.idsName}.html`
-    const bcfFileName = `IDSValidationReport_${context.idsName}.bcf`
+    const idsName = context.inputIds.replaceAll('.ids', '').replace(/[^a-zA-Z]+/g, '')
+    const htmlFileName = `IDSValidationReport_${idsName}.html`
+    const bcfFileName = `IDSValidationReport_${idsName}.bcf`
 
     const pythonScript = path.join('src', 'tools', 'validate_IFC.py')
     const idsReportHtml = path.join(context.outputsDir, htmlFileName)

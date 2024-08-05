@@ -1,20 +1,20 @@
-import argsParser from 'args-parser';
-import crypto from 'crypto';
-import dotenv from 'dotenv';
-import { existsSync } from 'fs';
-import fs, { mkdir, writeFile } from 'fs/promises';
-import { rimraf } from 'rimraf';
+import argsParser from 'args-parser'
+import crypto from 'crypto'
+import dotenv from 'dotenv'
+import { existsSync } from 'fs'
+import fs, { mkdir, writeFile } from 'fs/promises'
+import { rimraf } from 'rimraf'
 
-import { Activity } from '@core/Activity.js';
-import { ensureJava } from '@core/init/ensureJava.js';
-import { ensurePython } from '@core/init/ensurePython.js';
-import { installPythonDependencies } from '@core/init/installPythonDependencies.js';
-import { getAccount } from '@helpers/getAccount.js';
-import { createLogger } from '@helpers/logger.js';
-import namespace from '@rdfjs/namespace';
-import App from '@triply/triplydb';
-import Asset from '@triply/triplydb/Asset.js';
-import Dataset from '@triply/triplydb/Dataset.js';
+import { Activity } from '@core/Activity.js'
+import { ensureJava } from '@core/init/ensureJava.js'
+import { ensurePython } from '@core/init/ensurePython.js'
+import { installPythonDependencies } from '@core/init/installPythonDependencies.js'
+import { getAccount } from '@helpers/getAccount.js'
+import { createLogger } from '@helpers/logger.js'
+import namespace from '@rdfjs/namespace'
+import App from '@triply/triplydb'
+import Asset from '@triply/triplydb/Asset.js'
+import Dataset from '@triply/triplydb/Dataset.js'
 
 const log = createLogger('init', import.meta)
 
@@ -39,7 +39,6 @@ export const init = //new Activity(
     }
 
     const datasetName = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
-    const idsName = args.ids.replaceAll('.ids', '').replace(/[^a-zA-Z]+/g, '')
 
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const account = getAccount()
@@ -80,11 +79,10 @@ export const init = //new Activity(
       : []
 
     if (!args.ifc) throw new Error('No IFC filename was provided')
-    if (!args.ids) throw new Error('No IDS filename was provided')
 
     log(args, 'Script argumenten')
 
-    const inputIds = import.meta.resolve(`../../../input/${args.ids}`).replace('file://', '')
+    const inputIds = import.meta.resolve(`../../../input/IDS Rotterdam BIM.ids`).replace('file://', '')
     const idsIdentifier = crypto.createHash('md5').update(inputIds).digest('hex')
 
     const outputsDir = import.meta
@@ -139,7 +137,6 @@ export const init = //new Activity(
       consoleUrl,
       datasetName,
       idsIdentifier,
-      idsName,
       ifcAssetBaseUrl,
       ifcIdentifier,
       inputIds,
