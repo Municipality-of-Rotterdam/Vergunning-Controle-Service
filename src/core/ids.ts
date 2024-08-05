@@ -1,31 +1,48 @@
-import { readdir } from 'fs/promises'
-import * as path from 'path'
-import { StepContext } from '@core/executeSteps.js'
-import { Store as TriplyStore } from '@triplydb/data-factory'
-import { GeoData } from '@verrijkingen/geoReference.js'
-import { createExecutor } from '@helpers/executeCommand.js'
-import { createLogger } from '@helpers/logger.js'
+import * as path from 'path';
 
-const executeCommand = createExecutor('idsValidatie', import.meta, 'idsValidatie')
-const log = createLogger('idsValidatie', import.meta)
+import { GrapoiPointer } from '@core/helpers/grapoi.js';
+import { createExecutor } from '@helpers/executeCommand.js';
+import { createLogger } from '@helpers/logger.js';
+import { rdfs, xsd } from '@helpers/namespaces.js';
+import factory from '@rdfjs/data-model';
 
-export const idsValidatie = async ({ inputIfc, inputIds, outputsDir }: StepContext): Promise<{}> => {
-  const pythonScript = path.join('src', 'tools', 'validate_IFC.py')
-  const idsReportHtml = path.join(outputsDir, 'IDSValidationReport.html')
-  const idsReportBcf = path.join(outputsDir, 'IDSValidationReport.bcf')
-  log('Uitvoeren van IDS validatie', 'IDS validate')
-  try {
-    await executeCommand(
-      `python3 ${pythonScript} "${inputIfc}" "${inputIds}" -r "${idsReportHtml}" -b "${idsReportBcf}"`,
-    )
-  } catch (e) {
-    // Just continue if IDS validation fails
-    if (e instanceof Error) {
-      if (!e.message.includes('validation failed')) throw e
-      else log(e.message)
-    } else {
-      throw e
+import { Activity } from './Activity.js';
+import { StepContext } from './executeSteps.js';
+
+const executeCommand = createExecutor('idsControle', import.meta, 'idsControle')
+const log = createLogger('idsControle', import.meta)
+
+export const idsControle = new Activity(
+  { name: 'IDS Controle', description: 'IDS controle door https://pypi.org/project/ifctester/' },
+  async (context: StepContext, thisActivity: Activity<any, any>) => {
+    const htmlFileName = `IDSValidationReport_${context.idsName}.html`
+    const bcfFileName = `IDSValidationReport_${context.idsName}.bcf`
+
+    const pythonScript = path.join('src', 'tools', 'validate_IFC.py')
+    const idsReportHtml = path.join(context.outputsDir, htmlFileName)
+    const idsReportBcf = path.join(context.outputsDir, bcfFileName)
+    log('Uitvoeren van IDS controle', 'IDS Controle')
+    try {
+      await executeCommand(
+        `python3 ${pythonScript} "${context.inputIfc}" "${context.inputIds}" -r "${idsReportHtml}" -b "${idsReportBcf}"`,
+      )
+    } catch (e) {
+      // Just continue if IDS check fails
+      if (e instanceof Error) {
+        if (!e.message.includes('validation failed')) throw e
+        else log(e.message)
+      } else {
+        throw e
+      }
     }
-  }
-  return {}
-}
+    thisActivity.provenance?.addOut(
+      rdfs('seeAlso'),
+      factory.literal(`${context.assetBaseUrl}${htmlFileName}`, xsd('anyURI')),
+    )
+    thisActivity.provenance?.addOut(
+      rdfs('seeAlso'),
+      factory.literal(`${context.assetBaseUrl}${bcfFileName}`, xsd('anyURI')),
+    )
+    return { idsControle: thisActivity.provenance } // TODO this seems worng
+  },
+)

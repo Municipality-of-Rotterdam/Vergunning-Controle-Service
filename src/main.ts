@@ -1,22 +1,19 @@
-import { controles } from '@core/controles.js'
-import { executeSteps } from '@core/executeSteps.js'
 import { init } from '@core/init/init.js'
-import { maakLinkedData } from '@core/init/maakLinkedData.js'
+import { linkedData } from '@core/maakLinkedData.js'
 import { upload } from '@core/upload.js'
 import { valideer } from '@core/valideer.js'
-import { idsValidatie } from '@core/ids.js'
+import { idsControle } from '@core/ids.js'
 import { verrijk } from '@core/verrijkingen.js'
-import { rapportage } from '@root/rapportage/rapportage.js'
+import { rapport } from '@root/rapportage/rapportage.js'
+import { ActivityGroup, Activity } from '@core/Activity.js'
+import { StepContext } from '@core/executeSteps.js'
 
-// TODO IDS nog uitvoeren voordat alles draait.
-
-await executeSteps([
-  ['Initialisatie', init],
-  ['IDS validatie', idsValidatie],
-  ['Linked data', maakLinkedData],
-  ['Verrijkingen', verrijk],
-  ['Opslaan naar TriplyDB database', upload],
-  ['Controles voorbereiden', controles],
-  ['Controles uitvoeren', valideer],
-  ['Rapportage', rapportage],
+const pipeline = new ActivityGroup({ name: 'Vergunningscontroleservice' }, [
+  idsControle,
+  linkedData,
+  verrijk,
+  upload,
+  valideer,
+  rapport,
 ])
+await pipeline.run((await init()) as StepContext)

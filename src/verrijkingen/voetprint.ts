@@ -1,11 +1,17 @@
+import grapoi from 'grapoi'
 import fs from 'fs/promises'
 import N3 from 'n3'
 import { Quad } from 'n3'
 import { createExecutor } from '@helpers/executeCommand.js'
 import { createLogger } from '@helpers/logger.js'
 import { StepContext } from '@root/core/executeSteps.js'
+import { qudt, geo } from '@core/helpers/namespaces.js'
+import factory from '@rdfjs/data-model'
+import { GrapoiPointer } from '@root/core/helpers/grapoi.js'
+import { wktToGeoJSON } from '@terraformer/wkt'
+import { isGeoJSON } from '@root/core/helpers/isGeoJSON.js'
 
-const executeCommand = createExecutor('verrijking', import.meta, 'footprint_approx')
+const executeCommand = createExecutor('verrijking', import.meta, 'voetprint')
 
 const log = createLogger('verrijking', import.meta)
 
@@ -23,39 +29,41 @@ export default async function Voetprint({
 
   log(`Data extract gemaakt`, 'Voetprint')
 
-  let polygon = await fs.readFile(filePath, 'utf-8')
-
-  // const quad = factory.quad(
-  //   gebouwSubject,
-  //   geo('asWKT'),
-  //   factory.literal(`<http://www.opengis.net/def/crs/EPSG/0/28992> ${polygon}`, geo('wktLiteral')),
-  // )
+  let footprintFile = await fs.readFile(filePath, 'utf-8')
   const parser = new N3.Parser()
-  parser.parse(polygon, (error, quad, prefixes) => {
-    if (quad) {
-      verrijkingenDataset.add(quad as any)
-    }
-    if (error) {
-      throw error
-    }
+  const quads = parser.parse(footprintFile)
+  for (const quad of quads) {
+    if (quad) verrijkingenDataset.add(quad as any)
+  }
+
+  const footprintString: string = grapoi({
+    dataset: verrijkingenDataset,
+    term: factory.namedNode(`${gebouwSubject}/footprint`),
+  }).out(geo('asWKT')).value
+
+  const elongationNode = factory.namedNode(`${gebouwSubject}/footprint/elongation`)
+  const pointer: GrapoiPointer = grapoi({
+    dataset: verrijkingenDataset,
+    term: elongationNode,
   })
-  log(`Aantal quads in verrijkingenDataset: ${verrijkingenDataset.size}`)
+  const elongationValue = pointer.out(qudt('numericValue')).value
+  const elongation: number = typeof elongationValue == 'number' ? elongationValue : parseFloat(elongationValue)
+  log(`Elongation: ${elongation}`, 'Elongation')
+
+  if (!elongation) {
+    throw new Error(`could not find elongation for ${elongationNode.value}`)
+  }
 
   log(`De voetprint is toegevoegd aan de verrijkingen linked data graaf`, 'Voetprint')
 
-  /**
-   * Temporary stub
-   * TODO remove this when we have better test data.
-   */
-  polygon = `POLYGON ((84116 431825, 84121 431825, 84121 431829, 84116 431829, 84116 431825))`
-  const voetprintCoordinates = polygon
-    .split('((')
-    .pop()!
-    .replace('))', '')
-    .split(',')
-    .map((pair) => pair.trim().split(' ').map(parseFloat))
+  const footprint = wktToGeoJSON(footprintString.replace(/^<.*>\s/, '').toUpperCase())
+  if (!isGeoJSON(footprint)) throw new Error(`${JSON.stringify(footprint)} is not a GeoJSON object`)
 
   return {
-    voetprintCoordinates,
+    footprint,
+    // TODO: Remove test footprints once the process is improved
+    footprintT1: wktToGeoJSON(`POLYGON ((84165 431938, 84172 431938, 84172 431943, 84165 431943, 84165 431938))`),
+    footprintT2: wktToGeoJSON(`POLYGON ((84116 431825, 84121 431825, 84121 431829, 84116 431829, 84116 431825))`),
+    elongation,
   }
 }

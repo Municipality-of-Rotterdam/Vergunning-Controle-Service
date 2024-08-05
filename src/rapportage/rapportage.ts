@@ -3,77 +3,96 @@ import { renderToStaticMarkup } from 'react-dom/server'
 
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
-import { rpt, rdfs, prov } from '@helpers/namespaces.js'
+import { rdfs, xsd } from '@helpers/namespaces.js'
 import App from '@triply/triplydb'
+import { Activity } from '@core/Activity.js'
 
 import RapportageTemplate from './RapportageTemplate.js'
+import factory from '@rdfjs/data-model'
 
-const log = createLogger('rapportage', import.meta)
+const log = createLogger('rapport', import.meta)
 
-export const rapportage = async ({
-  validationPointer,
-  outputsDir,
-  datasetName,
-  account,
-  voetprintCoordinates,
-  geoData,
-  provenance,
-  gebouwSubject,
-}: Pick<
-  StepContext,
-  | 'validationPointer'
-  | 'outputsDir'
-  | 'datasetName'
-  | 'account'
-  | 'voetprintCoordinates'
-  | 'geoData'
-  | 'provenance'
-  | 'gebouwSubject'
->) => {
-  const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
-  const user = await triply.getAccount(account)
-  const dataset = await user.getDataset(datasetName)
+export const rapport = new Activity(
+  { name: 'VCS Rapport', description: 'Creatie en upload van VCS Rapport' },
+  async (
+    {
+      account,
+      assetBaseUrl,
+      baseIRI,
+      datasetName,
+      elongation,
+      footprint,
+      footprintT1,
+      gebouwAddress,
+      gebouwSubject,
+      idsControle,
+      outputsDir,
+      rpt,
+      controle,
+    }: Pick<
+      StepContext,
+      | 'account'
+      | 'assetBaseUrl'
+      | 'baseIRI'
+      | 'datasetName'
+      | 'elongation'
+      | 'footprint'
+      | 'footprintT1'
+      | 'gebouwAddress'
+      | 'gebouwSubject'
+      | 'idsControle'
+      | 'outputsDir'
+      | 'rpt'
+      | 'controle'
+    >,
+    thisActivity: Activity<any, any>,
+  ) => {
+    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
+    const user = await triply.getAccount(account)
+    const dataset = await user.getDataset(datasetName)
 
-  if (!dataset) throw new Error(`Kon de dataset ${datasetName} niet vinden in TriplyDB`)
+    if (!dataset) throw new Error(`Kon de dataset ${datasetName} niet vinden in TriplyDB`)
 
-  const gltfAsset = await dataset.getAsset('gebouw.gltf')
-  const model = await fetch(gltfAsset.getInfo().url, {
-    headers: {
-      'content-type': 'application/json',
-      Accepts: 'application/sparql-results+json, application/n-triples',
-      Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
-    },
-  })
-  const blob = await model.blob()
-  const buffer = Buffer.from(await blob.arrayBuffer())
-  const urlBase64Encoded = buffer.toString('base64url')
+    // const gltfAsset = await dataset.getAsset('3Dgebouw.gltf')
+    // const blob = await model.blob()
+    // const buffer = Buffer.from(await blob.arrayBuffer())
+    // const urlBase64Encoded = buffer.toString('base64url')
+    log('Genereren van het VCS rapport', 'VCS rapport')
 
-  log('Genereren van het vcs rapport', 'VCS rapport')
+    const props = {
+      datasetName,
+      gebouwAddress,
+      elongation,
+      baseIRI,
+      rpt,
+      footprintUrl: `${gebouwSubject.toString()}/footprint`,
+      gebouw: controle.pointer.out(rpt('building')).value.toString(),
+      gltfDownload: `${assetBaseUrl}3Dgebouw.gltf`,
+      glbDownload: `${assetBaseUrl}3Dgebouw.glb`,
+      footprint,
+    }
+    const provenance = thisActivity.provenanceGraph
+    if (!provenance) throw new Error()
+    const html = renderToStaticMarkup(RapportageTemplate(props, controle, provenance, idsControle))
+    await writeFile(`${outputsDir}/vcs-rapport.html`, html)
+    const fileId = `vcs-rapport.html`
 
-  const props = {
-    footprintUrl: `https://demo.triplydb.com/${account ?? user.slug}/${datasetName}/browser?resource=${encodeURIComponent(gebouwSubject.toString())}`,
-    gebouw: validationPointer.out(rpt('building')).value.toString(),
-    geoData: geoData,
-    gltfUrl: gltfAsset.getInfo().url,
-    polygon: {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: [voetprintCoordinates],
-      },
-    },
-  }
+    try {
+      const existingAsset = await dataset.getAsset(fileId)
+      await existingAsset.delete()
+    } catch {}
 
-  const html = renderToStaticMarkup(RapportageTemplate(props, validationPointer, provenance))
-  await writeFile(`${outputsDir}/vcs-rapport.html`, html)
-  const fileId = `vcs-rapport.html`
+    log('Upload VCS rapport', 'VCS rapport')
+    await dataset.uploadAsset(`${outputsDir}/vcs-rapport.html`, fileId)
+    log('Klaar met upload van het VCS rapport', 'VCS rapport')
 
-  try {
-    const existingAsset = await dataset.getAsset(fileId)
-    await existingAsset.delete()
-  } catch {}
+    thisActivity.provenance?.addOut(rdfs('seeAlso'), factory.literal(`${assetBaseUrl}vcs-rapport.html`, xsd('anyURI')))
 
-  log('Upload vcs rapport', 'VCS rapport')
-  await dataset.uploadAsset(`${outputsDir}/vcs-rapport.html`, fileId)
-  log('Klaar met upload van het vcs rapport', 'VCS rapport')
-}
+    log('Uploaden van het provenance log naar TriplyDB', 'Upload')
+    await dataset.importFromStore(thisActivity.provenanceGraph as any, {
+      defaultGraphName: `${baseIRI}graph/provenance`,
+      overwriteAll: true,
+    })
+    return {}
+  },
+)

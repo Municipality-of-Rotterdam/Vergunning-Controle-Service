@@ -3,90 +3,95 @@ import fs from 'fs/promises'
 import { StepContext } from '@core/executeSteps.js'
 import { createLogger } from '@helpers/logger.js'
 import App from '@triply/triplydb'
+import { Activity } from './Activity.js'
+import { GrapoiPointer } from './helpers/grapoi.js'
+import { rdfs, xsd } from './helpers/namespaces.js'
+import factory from '@rdfjs/data-model'
 
 const log = createLogger('upload', import.meta, 'Upload')
 
-export const upload = async ({
-  outputsDir,
-  gebouwDataset,
-  datasetName,
-  args,
-  baseIRI,
-  account,
-  verrijkingenDataset,
-}: Pick<
-  StepContext,
-  'outputsDir' | 'gebouwDataset' | 'args' | 'datasetName' | 'account' | 'baseIRI' | 'verrijkingenDataset'
->) => {
-  const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
-  const user = await triply.getAccount(account)
-  const dataset = await user.getDataset(datasetName)
+export const upload = new Activity(
+  { name: 'Upload', description: 'Upload assets' },
+  async (
+    {
+      outputsDir,
+      datasetName,
+      args,
+      baseIRI,
+      account,
+      verrijkingenDataset,
+    }: Pick<StepContext, 'outputsDir' | 'args' | 'datasetName' | 'account' | 'baseIRI' | 'verrijkingenDataset'>,
+    thisActivity: Activity<any, any>,
+  ) => {
+    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
+    const user = await triply.getAccount(account)
+    const dataset = await user.getDataset(datasetName)
 
-  const files = await fs.readdir(outputsDir)
+    const files = await fs.readdir(outputsDir)
 
-  for (const file of files) {
-    // We do not want to upload linked data as assets. Also the footprint.txt is added as linked data
-    const extensions = ['.trig', '.ttl', '.txt']
-    if (extensions.some((ext) => file.endsWith(ext))) continue
+    for (const file of files) {
+      // We do not want to upload linked data as assets. Also the footprint.txt is added as linked data
+      const extensions = ['.trig', '.ttl', '.txt']
+      if (extensions.some((ext) => file.endsWith(ext))) continue
 
-    const fileId = file
+      const fileId = file
 
-    if (args.clean) {
-      try {
-        const existingAsset = await dataset.getAsset(fileId)
-        await existingAsset.delete()
-      } catch {}
-      log(`Uploaden van ${fileId}`)
-      await dataset.uploadAsset(`./outputs/${datasetName}/${file}`, fileId)
-      log(`Klaar met uploaden van ${fileId}`)
-    } else {
-      try {
-        await dataset.getAsset(fileId)
-        log(`Bestand ${fileId} gevonden`)
-      } catch {
+      if (args.clean) {
+        try {
+          const existingAsset = await dataset.getAsset(fileId)
+          await existingAsset.delete()
+        } catch {}
         log(`Uploaden van ${fileId}`)
         await dataset.uploadAsset(`./outputs/${datasetName}/${file}`, fileId)
         log(`Klaar met uploaden van ${fileId}`)
+      } else {
+        try {
+          await dataset.getAsset(fileId)
+          log(`Bestand ${fileId} gevonden`)
+        } catch {
+          log(`Uploaden van ${fileId}`)
+          await dataset.uploadAsset(`./outputs/${datasetName}/${file}`, fileId)
+          log(`Klaar met uploaden van ${fileId}`)
+        }
       }
     }
-  }
 
-  const { apiUrl } = await triply.getInfo()
+    thisActivity.provenance?.addOut(rdfs('seeAlso'), factory.literal(`${baseIRI}assets`, xsd('anyUri')))
 
-  let shouldUpload = true
+    // TODO: move to verrijkingen.ts
+    const { apiUrl } = await triply.getInfo()
 
-  if (!args.clean) {
-    const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
-      body: JSON.stringify({
-        query: `ASK WHERE { GRAPH <${baseIRI}${datasetName}/graph/gebouw> { ?s ?p ?o } }`,
-      }),
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        Accepts: 'application/sparql-results+json, application/n-triples',
-        Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
-      },
-    }).then((response) => response.json())
+    let shouldUpload = true
 
-    const graphExists = response.boolean
+    if (!args.clean) {
+      const response = await fetch(`${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`, {
+        body: JSON.stringify({
+          query: `ASK WHERE { GRAPH <${baseIRI}graph/gebouw> { ?s ?p ?o } }`,
+        }),
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          Accepts: 'application/sparql-results+json, application/n-triples',
+          Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
+        },
+      }).then((response) => response.json())
 
-    if (graphExists) shouldUpload = false
-  }
-  if (shouldUpload || true) {
-    log(`Dataset uploaden naar TriplyDB`)
+      const graphExists = response.boolean
 
-    /* TODO We have already done this --- other upload steps should probably also be moved to their respective creation steps
-    await dataset.importFromStore(gebouwDataset as any, {
-      defaultGraphName: `${baseIRI}${datasetName}/graph/gebouw`,
-      overwriteAll: true,
-    })*/
+      if (graphExists) shouldUpload = false
+    }
 
-    await dataset.importFromStore(verrijkingenDataset as any, {
-      defaultGraphName: `${baseIRI}${datasetName}/graph/verrijkingen`,
-      overwriteAll: true,
-    })
+    if (shouldUpload || true) {
+      log(`Graph verrijkingen naar TriplyDB`)
 
-    log(`Klaar met uploaden naar TriplyDB`)
-  } else {
-  }
-}
+      await dataset.importFromStore(verrijkingenDataset as any, {
+        defaultGraphName: `${baseIRI}graph/verrijkingen`,
+        overwriteAll: true,
+      })
+
+      log(`Klaar met uploaden naar TriplyDB`)
+    } else {
+    }
+    return {}
+  },
+)
