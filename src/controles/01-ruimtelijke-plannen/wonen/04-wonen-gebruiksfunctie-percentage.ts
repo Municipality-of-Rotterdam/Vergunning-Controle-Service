@@ -72,13 +72,13 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       const results = await this.runSparql(context, { name: '4gebruiksfunctiePercentage' })
 
       this.status = !results || (Array.isArray(results) && results.every((r: any) => r.valid))
-      let message = this.bericht()
 
-      // TODO generalize
-      if (results) {
-        for (const [key, value] of Object.entries(results[0] ?? [])) {
-          message = message.replaceAll(`{?${key}}`, value as string)
-        }
+      let message: string
+
+      if (results.length) {
+        message = `Bedrijfsfunctie is ${results[0].result}%.`
+      } else {
+        message = `Geen resultaat.`
       }
       this.info['Resultaat'] = message
 
@@ -88,9 +88,5 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
   applicable({ gebruiksfunctie }: Data): boolean {
     return gebruiksfunctie ? gebruiksfunctie.toLowerCase() == 'wonen' : false
-  }
-
-  bericht(): string {
-    return `Bedrijfsfunctie is {?result}%.`
   }
 }

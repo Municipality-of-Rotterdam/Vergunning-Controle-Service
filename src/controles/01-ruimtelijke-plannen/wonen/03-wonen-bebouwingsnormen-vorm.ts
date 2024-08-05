@@ -100,31 +100,14 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       })
 
       this.status = !results || (Array.isArray(results) && results.every((r: any) => r.valid))
-      let message = this.bericht({ bouwaanduiding } as Data)
 
-      // TODO generalize
-      if (results) {
-        for (const [key, value] of Object.entries(results[0] ?? [])) {
-          message = message.replaceAll(`{?${key}}`, value as string)
-        }
-      }
+      let message = `Op de locatie geldt een bouwaanduiding <a href="${bouwaanduiding.value}" target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>. `
+      if (this.status === true) message += `De aanvraag voldoet hieraan.`
+      // else message += `De aanvraag heeft een dak <a href={?roof} target="_blank">{?roof}</a> met type "{?rooftype}.`
+      else message += `De aanvraag voldoet hier niet aan.`
       this.info['Resultaat'] = message
 
       return { bouwaanduiding }
     }
-  }
-
-  bericht({ bouwaanduiding }: Data): string {
-    if (!bouwaanduiding) throw new Error('Geen bouwaanduiding gegeven')
-    const bouwaanduidingText = bouwaanduiding.value.replace(
-      'https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#',
-      'ifc:',
-    )
-
-    let result = `Op de locatie geldt een bouwaanduiding <a href=${bouwaanduiding.value} target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>. `
-    if (this.status === true) result += `De aanvraag voldoet hieraan.`
-    // else result += `De aanvraag heeft een dak <a href={?roof} target="_blank">{?roof}</a> met type "{?rooftype}.`
-    else result += `De aanvraag voldoet hier niet aan.`
-    return result
   }
 }

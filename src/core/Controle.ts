@@ -197,9 +197,6 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
 
   // TODO: Refactor below
   apiResponse?: any
-  bericht(inputs: Result): string {
-    return 'n.v.t.'
-  }
 
   async runSparql(
     context: Context,

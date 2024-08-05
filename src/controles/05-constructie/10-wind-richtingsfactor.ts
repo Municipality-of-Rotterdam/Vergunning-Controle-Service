@@ -89,11 +89,7 @@ export default class _ extends Controle<StepContext, Data> {
     }
 
     this.status = null
-    this.info['Resultaat'] = this.bericht(result)
+    this.info['Resultaat'] = `De aanvraag ligt in windzone ${result.windzone}.`
     return result
-  }
-
-  bericht({ windzone }: Data): string {
-    return `De aanvraag ligt in windzone ${windzone}.`
   }
 }

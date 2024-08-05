@@ -62,13 +62,11 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       })
 
       this.status = !results || (Array.isArray(results) && results.every((r: any) => r.valid))
-      let message = this.bericht({ max } as Data)
 
-      // TODO generalize
-      if (results) {
-        for (const [key, value] of Object.entries(results[0] ?? [])) {
-          message = message.replaceAll(`{?${key}}`, value as string)
-        }
+      let message = `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}. `
+      if (this.status === true) message += `De aanvraag voldoet hieraan.`
+      else {
+        message += `<a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen. Hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
       }
       this.info['Resultaat'] = message
 
@@ -78,13 +76,5 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       this.info['Resultaat'] = `Er zijn geen maatvoeringen gevonden voor de gegeven locatie.`
       return { max: Number.MAX_VALUE }
     }
-  }
-
-  bericht({ max }: Data): string {
-    let result = `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}. `
-    if (this.status === true) result += `De aanvraag voldoet hieraan.`
-    else
-      result += `<a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen. Hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
-    return result
   }
 }
