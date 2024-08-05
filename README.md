@@ -42,14 +42,16 @@ node lib/main.js --ifc="Kievitsweg_R23_MVP_IFC4.ifc" --clean
 
 It might be necessary to work within a virtual environment. To do so, use these commands:
 
+Unix:
+
 ```sh
 python3 -m venv myenv && source myenv/bin/activate
 ```
 
-It might also be necessary to increase the memory:
+Windows:
 
 ```sh
-export NODE_OPTIONS="--max-old-space-size=8192"
+python3 -m venv myenv && source myenv/bin/activate
 ```
 
 ### Output: vcs-rapport.html
