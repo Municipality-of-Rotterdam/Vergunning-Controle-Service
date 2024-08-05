@@ -73,8 +73,10 @@ export default class _ extends Controle<StepContext & RPData, Data> {
     if (bestemmingsvlakken.length == 0) {
       this.status = true
       this.info['Resultaat'] = 'Op de locatie van de aanvraag zijn geen bestemmingsvlakken.'
+      return { gebruiksfunctie: '' }
     } else {
-      const bestemmingen: string[] = bestemmingsvlakken.map((vlak) => vlak['naam'])
+      const bestemmingenSet: Set<string> = new Set(bestemmingsvlakken.map((vlak) => vlak['naam']))
+      const bestemmingen: string[] = [...bestemmingenSet]
       // @ts-ignore
       const gebruiksfuncties = bestemmingen.map((x: string) => mapping[x] ?? x)
 
@@ -87,42 +89,32 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       // }
 
       const results: any[] = await this.runSparql(context, {
-        name: '1-Wonen-bestemmingsomschrijving',
+        name: '01-wonen-bestemmingsomschrijving',
         version: 16,
+        params: { allowed: gebruiksfuncties.join(`;`) },
       })
 
       if (results.length) {
+        const omschrijving = bestemmingen.map((x) => `"${x}"`).join(`, `)
         let message =
           gebruiksfuncties.length > 1
-            ? `Op de locatie gelden de beschemmingsomschrijvingen ${gebruiksfuncties.join(`, `)}. `
-            : `Op de locatie geldt de bestemmingsomschrijving ${gebruiksfuncties[0]}. `
-        this.status = true
+            ? `Op de locatie gelden de beschemmingsomschrijvingen ${omschrijving}. `
+            : `Op de locatie geldt de bestemmingsomschrijving ${omschrijving}. `
 
-        let groupedResults: Record<string, string[]> = results.reduce((group: any, x: any) => {
-          if (gebruiksfuncties.every((y) => y == x.functie)) {
-            ;(group[x.functie] = group[x.functie] || []).push(x)
-          }
-          return group
-        }, {})
-
-        const failures = []
-        for (const [functie, spaces] of Object.entries(groupedResults)) {
-          if (spaces.length > 1)
-            failures.push(
-              `De aanvraag bevat ${spaces.length} ruimtes met een "${functie}" die hier niet gepositioneerd mag worden.`,
-            )
-          else
-            failures.push(`De aanvraag bevat een ruimte met een "${functie}", die hier niet gepositioneerd mag worden.`)
-          // const ruimtes = spaces.map((s: string) => `<a href="${s}" target="_blank">${s}</a>`).join(', ')
-        }
+        const failures = results
+          .filter((x) => x.valid)
+          .map(
+            ({ functie, space }) =>
+              `<li>${`De aanvraag bevat een <a href="${space}">ruimte</a> met de functie "${functie}", die hier niet gepositioneerd mag worden.`}</li>`,
+          )
 
         if (failures.length) {
-          message += `<ul>${failures.map((x) => `<li>${x}</li>`)}</ul>`
+          message += `<ul>${failures.join('')}</ul>`
         } else {
           message += 'De aanvraag voldoet hieraan. '
         }
-        this.status = this.status && failures.length == 0
 
+        this.status = failures.length == 0
         this.info['Resultaat'] = message
       } else {
         this.status = false

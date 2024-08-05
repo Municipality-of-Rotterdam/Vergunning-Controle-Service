@@ -57,7 +57,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       this.log(`${max} maximum aantal bouwlagen`)
 
       const results = await this.runSparql(context, {
-        name: '2-Wonen-bebouwingsnormen-hoogte',
+        name: '02-wonen-bebouwingsnormen-hoogte',
         version: 17,
         params: { max: max.toString() },
       })
