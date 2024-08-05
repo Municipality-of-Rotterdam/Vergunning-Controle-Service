@@ -7,7 +7,7 @@ import chalk from 'chalk'
 import App from '@triply/triplydb'
 
 import { GrapoiPointer } from '@core/helpers/grapoi.js'
-import { SparqlActivity } from './Activity.js'
+import { RuleRepoActivity, SparqlActivity } from './Activity.js'
 import { StepContext } from './executeSteps.js'
 import { start, finish } from './helpers/provenance.js'
 import { Store as TriplyStore } from '@triplydb/data-factory'
@@ -18,6 +18,7 @@ import { Feature, FeatureCollection } from 'geojson'
 import { isFeature, isFeatureCollection } from './helpers/isGeoJSON.js'
 import factory from '@rdfjs/data-model'
 import { geojsonToWKT } from '@terraformer/wkt'
+import { VariableValues } from '@triply/triplydb/Query.js'
 
 const log = createLogger('checks', import.meta)
 
@@ -145,7 +146,6 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
     this.pointer.addOut(rdfs('label'), factory.literal(this.name))
     this.pointer.addOut(rdf('type'), rpt('Controle'))
     this.pointer.addOut(rdfs('label'), this.name)
-    if (this.sparqlUrl) this.pointer.addOut(rpt('sparqlUrl'), factory.literal(this.sparqlUrl, xsd('anyUri')))
     if (success !== undefined)
       this.pointer.addOut(rpt('passed'), factory.literal((success == null ? true : success).toString(), xsd('boolean')))
     if (message !== undefined) this.pointer.addOut(rpt('message'), factory.literal(message, rdf('HTML')))
@@ -197,49 +197,33 @@ export abstract class Controle<Context extends Partial<StepContext>, Result exte
 
   // TODO: Refactor below
   apiResponse?: any
-  sparqlUrl?: string
-  bericht(inputs: Result): string {
-    return 'n.v.t.'
-  }
 
-  sparql?: (inputs: Result) => string
-
-  async runSparql(context: Context, inputs: Result): Promise<{ success: boolean | null; message: string }> {
+  async runSparql(
+    context: Context,
+    { name, params, version }: { name: string; version?: number | 'latest'; params?: VariableValues },
+  ): Promise<any[]> {
     const { account, datasetName } = context as StepContext // TODO
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const user = await triply.getAccount(account)
     const { apiUrl } = await triply.getInfo()
     const url = `${apiUrl}/datasets/${account ?? user.slug}/${datasetName}/sparql`
 
-    if (!this.sparql) {
-      const fresult = { success: null, message: this.bericht(inputs) }
-      this.status = null
-      this.info['Resultaat'] = fresult.message
-      return fresult
-    }
-    if (!url) throw new Error('must have url')
-    const sparql = this.sparql(inputs)
-    const activity = new SparqlActivity({ name: `SPARQL query ${this.name}`, body: sparql, url })
+    const activity = new RuleRepoActivity({
+      name: `SPARQL query ${this.name}`,
+      query: name,
+      version: version ?? 'latest',
+      variables: params ?? {},
+      url: url,
+    })
 
-    // TODO This is a hacky way of getting the SPARQL url into the report. To do
-    // it properly, the `Activity` has to be refactored.
-    if (context.rpt) this.activity?.addOut(context.rpt('sparqlUrl'), this.sparqlUrl ?? 'undefined')
+    const results = await activity.run(context)
 
-    const response = await activity.run(context)
-    const result = response[0] ?? null
-    const success: boolean = result ? result.success == 'true' ?? false : true
-    this.status = success
-    let message = this.bericht(inputs)
+    // TODO: Remove when possible. This is a hack to get the sparqlUrl associated with a controle and get it into the report
+    let sparql = `https://demo.triplydb.com/Rotterdam-Rule-Repository/-/queries/${name}`
+    if (version && version != 'latest') sparql += `/${version}`
+    this.info['SPARQL'] = `<a href="${sparql}">${sparql}</a>`
 
-    if (result) {
-      for (const [key, value] of Object.entries(result)) {
-        message = message.replaceAll(`{?${key}}`, value as string)
-      }
-    }
-
-    this.info['Resultaat'] = message
-
-    return { success, message }
+    return results
   }
 
   log(message: any) {
