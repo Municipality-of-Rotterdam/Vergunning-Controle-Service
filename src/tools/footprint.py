@@ -1,11 +1,11 @@
 import argparse
 import os
-import ifcopenshell
+import ifcopenshell # tested with version 0.7.10
 import ifcopenshell.geom
 import ifcopenshell.util.shape
 import numpy as np
 import math
-import shapely
+import shapely # tested with version 2.0.5
 import matplotlib.pyplot as pp
 import geopandas as gpd
 
@@ -23,40 +23,75 @@ RDF code in Turtle format for the footprint, the perimeter, the area, the elonga
 Assumptions:
 1) The IFC file contains an IfcMapConversion element, with easting and northing values based on RD (espg:28992)
 and height based on NAP.
+2) The scale parameter in IfcMapconversion is the number to divide the local CRS lengths by to arrive at lenghts in the
+units of the global (map)CRS.
+3) From the IfcOpenShell documentation: "Internally IfcOpenShell uses meters as the global length unit to do calculations".
+Because output uses CRS epsg:28992, there is no need to scale geometry units to global CRS units.
 
 References:
 1) For ifcopenshell geometry processing, see https://docs.ifcopenshell.org/ifcopenshell-python/geometry_processing.html
 
-Example:
+Tested with:
+IfcWall
+IfcCurtainWall
+IfcWallStandardCase
+IfcRoof
+IfcSlab
+IfcWindow
+IfcColumn
+IfcBeam
+IfcDoor
+IfcCovering
+IfcMember
+IfcPlate
+
+Examples:
 footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcRoof,IfcSlab
+footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcWall,IfcCurtainWall,IfcWallStandardCase,IfcRoof,IfcSlab,IfcWindow,IfcColumn,IfcBeam,IfcDoor,IfcCovering,IfcMember,IfcPlate
 """
 
 def main(file, building_iri, ifc_classes):
     global ifc_file
     ifc_file = ifcopenshell.open(file)
     settings = ifcopenshell.geom.settings() # see https://docs.ifcopenshell.org/ifcopenshell/geometry_settings.html
+    settings.set(settings.DISABLE_OPENING_SUBTRACTIONS, True) # should speed up 
+    settings.set(settings.USE_WORLD_COORDS, True) # important to get geometries properly rotated
+    # the line below is not needed, because IfcOpenShell work in metres
+    #settings.set(settings.CONVERT_BACK_UNITS,True) # set units back from metres to the model lenght units
 
     # get the data needed for georeferencing
     map_conversion = ifc_file.by_type('IfcMapConversion')
     mc_delta_x = map_conversion[0][2] # should be RD (metres)
     mc_delta_y = map_conversion[0][3] # should be RD (metres)
     mc_elevation = map_conversion[0][4] # needed for 3D geometries; should in metres relative to NAP
-    mc_scale = map_conversion[0][7]
+    mc_scale = map_conversion[0][7] # assumption: scale is the number to divide model units by to arrive at map units. For example, if the model uses mm and the geography uses metres, then the scale is 0.001
     if mc_scale is None:
         mc_scale = 1
+
     mc_rotation = -1 * np.arctan(map_conversion[0][6]/map_conversion[0][5])
-    origin_wkt = 'POINT Z(' + str(mc_delta_x * mc_scale) + ' ' + str(mc_delta_y* mc_scale) + ' ' + str(mc_elevation * mc_scale) + ')'
-    
+    # scale is not used, because IfcOpenShell work in metres
+    #origin_wkt = 'POINT Z(' + str(mc_delta_x / mc_scale) + ' ' + str(mc_delta_y / mc_scale) + ' ' + str(mc_elevation / mc_scale) + ')'
+    origin_wkt = 'POINT Z(' + str(mc_delta_x) + ' ' + str(mc_delta_y) + ' ' + str(mc_elevation) + ')'
+ 
     geometries = []
     for ifc_class in ifc_classes:
         ifc_objects = ifc_file.by_type(ifc_class)
+        c = 0
         for ifc_object in ifc_objects:
+            c = c + 1
             try:
                 shape = ifcopenshell.geom.create_shape(settings, ifc_object)
             except:
                 print('# Skipping IFC object with name',ifc_object.Name)
-            object_footprint = get_footprint(shape.geometry)
-            geometries.append(object_footprint)
+            else:
+                object_footprint = get_footprint(shape.geometry)
+                geometries.append(object_footprint)
+
+
+    #print('geometries:', len(geometries))
+    if len(geometries) == 0:
+        print('no suitable geometries were found')
+        exit(5)
 
     unioned_geometry = shapely.ops.unary_union(geometries)
 
@@ -65,7 +100,7 @@ def main(file, building_iri, ifc_classes):
         outer_shape = unioned_geometry.exterior
     else: # it's a multipolygon
         outer_rings = []
-        for poly in list(object_footprint.geoms):
+        for poly in list(unioned_geometry.geoms):
             outer_rings.append(poly.exterior) # output: LinearRing
         outer_shape = shapely.ops.unary_union(outer_rings) #output: MultiLineString
 
@@ -98,7 +133,7 @@ def main(file, building_iri, ifc_classes):
 @prefix ssn: <http://www.w3.org/ns/ssn/> . # SSN is misused here, but it offers hasProperty, which is used as a substitute for dedicated VCS semantics
 
 <{building_iri}> geo:hasGeometry <{building_iri}/CRS_origin> .
-<{building_iri}> geo:hasGeometry <{building_iri}/footprint> .
+<{building_iri}> geo:hasDefaultGeometry <{building_iri}/footprint> .
 <{building_iri}> ssn:hasProperty <{building_iri}/CRS_rotation> .
 
 <{building_iri}/CRS_origin>
@@ -155,8 +190,11 @@ def georeference(lstr, mc_scale, mc_delta_x, mc_delta_y, mc_rotation) -> shapely
     verts_georef = []
     verts = lstr.coords[:]
     for vert in verts :
-        x_georef = (vert[0] * mc_scale * np.cos(mc_rotation) + vert[1] * mc_scale * np.sin(mc_rotation)) + mc_delta_x
-        y_georef = (-1 * vert[0] * mc_scale * np.sin(mc_rotation) + vert[1] * mc_scale * np.cos(mc_rotation)) + mc_delta_y
+        # The scale is not used because IfcOpenShell works in metres
+        #x_georef = (vert[0] / mc_scale * np.cos(mc_rotation) + vert[1] / mc_scale * np.sin(mc_rotation)) + mc_delta_x
+        #y_georef = (-1 * vert[0] / mc_scale * np.sin(mc_rotation) + vert[1] / mc_scale * np.cos(mc_rotation)) + mc_delta_y
+        x_georef = (vert[0] * np.cos(mc_rotation) + vert[1] * np.sin(mc_rotation)) + mc_delta_x
+        y_georef = (-1 * vert[0] * np.sin(mc_rotation) + vert[1] * np.cos(mc_rotation)) + mc_delta_y
         verts_georef.append([round(x_georef,3),round(y_georef,3)])
 
     return shapely.Polygon(verts_georef)
@@ -166,6 +204,16 @@ def plot(geometry, title): #plot a geometry (useful for development and debuggin
     geom.plot()
     pp.title(title)
     pp.show()
+
+def convhull(geometry): #calculate the 2D convex hull of a ifcopenshell geometry, only used for testing
+    verts = ifcopenshell.util.shape.get_vertices(geometry)
+    vertsxy = []
+    for vert in verts:
+        vertsxy.append([vert[0],vert[1]])
+    mpt = shapely.multipoints(vertsxy)
+    hull = shapely.convex_hull(mpt)
+    return hull
+
 
 def get_footprint(geometry) -> shapely.Geometry: # adapted from ifcopenshell.util.shape.get_footprint_area)
 
