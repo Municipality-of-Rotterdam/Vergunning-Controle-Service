@@ -83,18 +83,22 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       params: { allowed: gebruiksfunctie },
     })
 
-    this.status = !results || (Array.isArray(results) && results.every((r: any) => r.valid))
-
-    let message: string
-    if (this.status === true)
-      message = `Op de locatie geldt de bestemmingsomschrijving ${gebruiksfunctie}. De aanvraag voldoet hieraan.`
-    else if (results.length > 1) {
-      const { functie, space } = results[0]
-      message = `Ruimte <a href=${space} target="_blank">${space}</a> met de gebruiksfunctie "${functie}" mag niet gepositioneerd worden in een bestemmingsomschrijving "${gebruiksfunctie}".`
+    if (results.length) {
+      const failures = results.filter((r: any) => !r.valid)
+      let message = ''
+      if (this.status) {
+        message = `Op de locatie geldt de bestemmingsomschrijving ${gebruiksfunctie}. De aanvraag voldoet hieraan.`
+      } else {
+        for (const { functie, space } of failures) {
+          message += `Ruimte <a href=${space} target="_blank">${space}</a> met de gebruiksfunctie "${functie}" mag niet gepositioneerd worden in een bestemmingsomschrijving "${gebruiksfunctie}". `
+        }
+      }
+      this.status = failures.length == 0
+      this.info['Resultaat'] = message
     } else {
-      message = 'Geen resultaten.'
+      this.status = false
+      this.info['Resultaat'] = 'Kon geen bestemmingsomschrijven voor het gebouw vinden.'
     }
-    this.info['Resultaat'] = message
 
     return { gebruiksfunctie, geometry }
   }

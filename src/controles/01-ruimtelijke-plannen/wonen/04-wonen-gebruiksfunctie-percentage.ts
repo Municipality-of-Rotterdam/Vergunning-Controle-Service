@@ -71,16 +71,14 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
       const results = await this.runSparql(context, { name: '4gebruiksfunctiePercentage' })
 
-      this.status = !results || (Array.isArray(results) && results.every((r: any) => r.valid))
-
-      let message: string
-
       if (results.length) {
-        message = `Bedrijfsfunctie is ${results[0].result}%.`
+        const bedrijfsfunctie = results[0].result
+        this.status = bedrijfsfunctie < 30
+        this.info['Resultaat'] = `Bedrijfsfunctie is ${bedrijfsfunctie}%.`
       } else {
-        message = `Geen resultaat.`
+        this.status = false
+        this.info['Resultaat'] = `Kon de bedrijfsfunctie niet vaststellen.`
       }
-      this.info['Resultaat'] = message
 
       return { gebruiksfunctie }
     }

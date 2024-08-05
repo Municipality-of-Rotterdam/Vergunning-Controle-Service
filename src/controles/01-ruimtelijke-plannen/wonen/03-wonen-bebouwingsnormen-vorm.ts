@@ -99,13 +99,25 @@ export default class _ extends Controle<StepContext & RPData, Data> {
         params: { bouwaanduiding: bouwaanduiding.value },
       })
 
-      this.status = !results || (Array.isArray(results) && results.every((r: any) => r.valid))
+      if (results.length) {
+        const failures = results.filter((x) => !x.valid)
+        let message = `Op de locatie geldt een bouwaanduiding <a href="${bouwaanduiding.value}" target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>. `
 
-      let message = `Op de locatie geldt een bouwaanduiding <a href="${bouwaanduiding.value}" target="_blank">${bouwaanduidingTextByIfcCode(bouwaanduiding)}</a>. `
-      if (this.status === true) message += `De aanvraag voldoet hieraan.`
-      // else message += `De aanvraag heeft een dak <a href={?roof} target="_blank">{?roof}</a> met type "{?rooftype}.`
-      else message += `De aanvraag voldoet hier niet aan.`
-      this.info['Resultaat'] = message
+        if (failures.length) {
+          message += `De aanvraag voldoet hier niet aan: `
+          for (const { roof, rooftype } of failures) {
+            message += `Er is <a href=${roof} target="_blank">een dak</a> met type "${rooftype}. `
+          }
+        } else {
+          message += `De aanvraag voldoet hieraan.`
+        }
+
+        this.status = !failures.length
+        this.info['Resultaat'] = message
+      } else {
+        this.status = false
+        this.info['Resultaat'] = 'Kon geen daken vinden.'
+      }
 
       return { bouwaanduiding }
     }

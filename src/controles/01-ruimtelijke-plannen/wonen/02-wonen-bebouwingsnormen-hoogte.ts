@@ -61,14 +61,18 @@ export default class _ extends Controle<StepContext & RPData, Data> {
         params: { max: max.toString() },
       })
 
-      this.status = !results || (Array.isArray(results) && results.every((r: any) => r.valid))
-
-      let message = `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}. `
-      if (this.status === true) message += `De aanvraag voldoet hieraan.`
-      else {
-        message += `<a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen. Hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
+      if (results.length) {
+        const { aantalVerdiepingen, building } = results[0]
+        let message = `Op de locatie van <a href="${building}" target="_blank">de aanvraag</a> is het maximaal aantal toegestane bouwlagen ${max}. `
+        this.status = aantalVerdiepingen <= max
+        if (this.status === true) message += `De aanvraag voldoet hieraan.`
+        else
+          message += `bevat ${aantalVerdiepingen} bouwlagen. Hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
+        this.info['Resultaat'] = message
+      } else {
+        this.status = false
+        this.info['Resultaat'] = 'Kon het aantal bouwlagen niet vinden.'
       }
-      this.info['Resultaat'] = message
 
       return { max }
     } else {
