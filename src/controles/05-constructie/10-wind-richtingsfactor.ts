@@ -88,7 +88,8 @@ export default class _ extends Controle<StepContext, Data> {
       geoJSON: response.surface,
     }
 
-    await this.runSparql(context, result)
+    this.status = null
+    this.info['Resultaat'] = this.bericht(result)
     return result
   }
 

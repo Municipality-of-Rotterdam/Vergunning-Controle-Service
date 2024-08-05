@@ -56,7 +56,21 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
       this.log(`${max} maximum aantal bouwlagen`)
 
-      await this.runSparql(context, { max }, { max: max.toString() })
+      const results = await this.runSparql(context, {
+        name: '2-Wonen-bebouwingsnormen-hoogte',
+        params: { max: max.toString() },
+      })
+
+      this.status = !results || (Array.isArray(results) && results.every((r: any) => r.valid))
+      let message = this.bericht({ max } as Data)
+
+      // TODO generalize
+      if (results) {
+        for (const [key, value] of Object.entries(results[0] ?? [])) {
+          message = message.replaceAll(`{?${key}}`, value as string)
+        }
+      }
+      this.info['Resultaat'] = message
 
       return { max }
     } else {
@@ -64,26 +78,6 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       this.info['Resultaat'] = `Er zijn geen maatvoeringen gevonden voor de gegeven locatie.`
       return { max: Number.MAX_VALUE }
     }
-  }
-
-  sparqlUrl = 'https://demo.triplydb.com/Rotterdam-Rule-Repository/-/queries/2-Wonen-bebouwingsnormen-hoogte'
-  sparql = ({ max }: Data) => {
-    return `
-      prefix express: <https://w3id.org/express#>
-      prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
-
-      select ?this ((count(?floor)) as ?aantalVerdiepingen) where {
-        graph ?g {
-          ?this a ifc:IfcBuilding.
-          [] ifc:relatingObject_IfcRelAggregates ?this;
-            ifc:relatedObjects_IfcRelAggregates ?storey.
-          ?storey ifc:name_IfcRoot/express:hasString ?floor.
-          filter(regex(?floor, "^00 begane grond|^(0*[1-9][0-9]*) .*verdieping$")) .
-        }
-      }
-      group by ?this ?max
-      having ((count(?floor)) > ${max})
-    `
   }
 
   bericht({ max }: Data): string {

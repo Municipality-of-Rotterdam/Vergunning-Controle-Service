@@ -94,35 +94,24 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
       this.log(`Bestemmingsvlak is van type ${bouwaanduiding.value} s`)
 
-      await this.runSparql(context, { bouwaanduiding }, { bouwaanduiding: bouwaanduiding.value })
+      const results = await this.runSparql(context, {
+        name: '3-Wonen-bebouwingsnormen-vorm',
+        params: { bouwaanduiding: bouwaanduiding.value },
+      })
+
+      this.status = !results || (Array.isArray(results) && results.every((r: any) => r.valid))
+      let message = this.bericht({ bouwaanduiding } as Data)
+
+      // TODO generalize
+      if (results) {
+        for (const [key, value] of Object.entries(results[0] ?? [])) {
+          message = message.replaceAll(`{?${key}}`, value as string)
+        }
+      }
+      this.info['Resultaat'] = message
 
       return { bouwaanduiding }
     }
-  }
-
-  sparqlUrl = 'https://demo.triplydb.com/Rotterdam-Rule-Repository/-/queries/3-Wonen-bebouwingsnormen-vorm'
-  sparql = ({ bouwaanduiding }: Data) => {
-    if (!bouwaanduiding) throw new Error('Geen bouwaanduiding gegeven')
-    return `
-      prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
-
-      select ?roof ?rooftype where {
-      graph ?g {
-
-        ?this a ifc:IfcBuilding.
-
-        [] ifc:relatingObject_IfcRelAggregates ?this;
-          ifc:relatedObjects_IfcRelAggregates ?storey.
-
-        [] ifc:relatingStructure_IfcRelContainedInSpatialStructure ?storey ;
-          ifc:relatedElements_IfcRelContainedInSpatialStructure ?roof .
-
-        ?roof ifc:predefinedType_IfcRoof ?rooftype .
-
-        filter (?rooftype != <${bouwaanduiding.value}>)
-      }
-      }
-    `
   }
 
   bericht({ bouwaanduiding }: Data): string {
