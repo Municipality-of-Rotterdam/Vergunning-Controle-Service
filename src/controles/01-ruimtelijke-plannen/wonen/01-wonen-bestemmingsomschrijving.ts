@@ -9,8 +9,12 @@ import { projectGeoJSON } from '@root/core/helpers/crs.js'
 
 type Data = {
   gebruiksfunctie: string
-  geometry: Geometry
   reference?: string
+}
+
+const mapping = {
+  Wonen: 'Woonfunctie',
+  Kantoor: 'Kantoorfunctie',
 }
 
 export default class _ extends Controle<StepContext & RPData, Data> {
@@ -61,48 +65,71 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       features,
     }
 
-    const vlak = bestemmingsvlakken[0]
-    const gebruiksfunctie: string = vlak['naam']
-    const geometry: Geometry = vlak['geometrie']
-
-    // let reference = ``
-    // for (const zone of bestemmingsvlakken) {
-    //   if (zone.naam == 'Wonen') {
-    //     reference = `<a href="${zone.verwijzingNaarTekst}">Artikel ${zone.artikelnummer}</a>`
-    //     break
-    //   }
-    // }
-
     // TODO: No hardcoding
     const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.1a`
     this.info['Beschrijving'] =
       `<span class="article-ref">${reference}</span> De voor 'Wonen' aangewezen gronden zijn bestemd voor woningen, met de daarbij behorende voorzieningen zoals (inpandige) bergingen en garageboxen, aanbouwen, bijgebouwen, alsmede tuinen, groen, water en ontsluitingswegen en -paden`
 
-    const results: any[] = await this.runSparql(context, {
-      name: '1-Wonen-bestemmingsomschrijving',
-      version: 16,
-      params: { allowed: gebruiksfunctie },
-    })
-
-    if (results.length) {
-      const failures = results.filter((r: any) => r.valid != 'true')
-      let message = ''
-      if (failures.length > 0) {
-        message += '<ul>'
-        for (const { functie, space } of failures) {
-          message += `<li>Ruimte <a href=${space} target="_blank">${space}</a> met de gebruiksfunctie "${functie}" mag niet gepositioneerd worden in een bestemmingsomschrijving "${gebruiksfunctie}".</li>`
-        }
-        message += '</ul>'
-      } else {
-        message = `Op de locatie geldt de bestemmingsomschrijving "${gebruiksfunctie}". De aanvraag voldoet hieraan.`
-      }
-      this.status = failures.length == 0
-      this.info['Resultaat'] = message
+    if (bestemmingsvlakken.length == 0) {
+      this.status = true
+      this.info['Resultaat'] = 'Op de locatie van de aanvraag zijn geen bestemmingsvlakken.'
     } else {
-      this.status = false
-      this.info['Resultaat'] = 'Kon geen gebruiksfunctie voor het gebouw vinden.'
-    }
+      const bestemmingen: string[] = bestemmingsvlakken.map((vlak) => vlak['naam'])
+      // @ts-ignore
+      const gebruiksfuncties = bestemmingen.map((x: string) => mapping[x] ?? x)
 
-    return { gebruiksfunctie, geometry }
+      // let reference = ``
+      // for (const zone of bestemmingsvlakken) {
+      //   if (zone.naam == 'Wonen') {
+      //     reference = `<a href="${zone.verwijzingNaarTekst}">Artikel ${zone.artikelnummer}</a>`
+      //     break
+      //   }
+      // }
+
+      const results: any[] = await this.runSparql(context, {
+        name: '1-Wonen-bestemmingsomschrijving',
+        version: 16,
+      })
+
+      if (results.length) {
+        let message =
+          gebruiksfuncties.length > 1
+            ? `Op de locatie gelden de beschemmingsomschrijvingen ${gebruiksfuncties.join(`, `)}. `
+            : `Op de locatie geldt de bestemmingsomschrijving ${gebruiksfuncties[0]}. `
+        this.status = true
+
+        let groupedResults: Record<string, string[]> = results.reduce((group: any, x: any) => {
+          if (gebruiksfuncties.every((y) => y == x.functie)) {
+            ;(group[x.functie] = group[x.functie] || []).push(x)
+          }
+          return group
+        }, {})
+
+        const failures = []
+        for (const [functie, spaces] of Object.entries(groupedResults)) {
+          if (spaces.length > 1)
+            failures.push(
+              `De aanvraag bevat ${spaces.length} ruimtes met een "${functie}" die hier niet gepositioneerd mag worden.`,
+            )
+          else
+            failures.push(`De aanvraag bevat een ruimte met een "${functie}", die hier niet gepositioneerd mag worden.`)
+          // const ruimtes = spaces.map((s: string) => `<a href="${s}" target="_blank">${s}</a>`).join(', ')
+        }
+
+        if (failures.length) {
+          message += `<ul>${failures.map((x) => `<li>${x}</li>`)}</ul>`
+        } else {
+          message += 'De aanvraag voldoet hieraan. '
+        }
+        this.status = this.status && failures.length == 0
+
+        this.info['Resultaat'] = message
+      } else {
+        this.status = false
+        this.info['Resultaat'] = 'Kon geen gebruiksfunctie voor het gebouw vinden.'
+      }
+
+      return { gebruiksfunctie: gebruiksfuncties.join('; ') }
+    }
   }
 }
