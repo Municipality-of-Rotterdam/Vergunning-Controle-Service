@@ -1,11 +1,14 @@
 import grapoi from 'grapoi'
 import { GrapoiPointer } from './helpers/grapoi.js'
-import { dct, prov, skos, xsd, rdf } from '@helpers/namespaces.js'
+import { dct, prov, skos, xsd, rdf, rdfs } from '@helpers/namespaces.js'
 import factory from '@rdfjs/data-model'
 import { XMLParser } from 'fast-xml-parser'
 import { Store as TriplyStore } from '@triplydb/data-factory'
+import App from '@triply/triplydb'
+import { VariableValues } from '@triply/triplydb/Query.js'
 
 import { headerLog } from '@helpers/headerLog.js'
+import { NamespaceBuilder } from '@rdfjs/namespace'
 
 type ActivityInfo = {
   name: string
@@ -156,6 +159,54 @@ export class SparqlActivity<S> extends ApiActivity<S, any[]> {
       throw new Error(response.statusText)
     }
     return response.json() as unknown as any[]
+  }
+}
+
+export class RuleRepoActivity extends ActivityA<any, any> {
+  url: string
+  query: string
+  version: number | 'latest'
+  variables: VariableValues
+  constructor({
+    name,
+    description,
+    query,
+    version,
+    variables,
+    url,
+  }: ActivityInfo & { query: string; version: number | 'latest'; variables: VariableValues; url: string }) {
+    super({
+      name,
+      description,
+    })
+    this.url = url
+    this.query = query
+    this.version = version
+    this.variables = variables
+  }
+  async _run() {
+    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
+    const orgUser = await triply.getAccount('rotterdam-rule-repository')
+    const query_0 = await orgUser.getQuery(this.query)
+    const query_1 = await query_0.useVersion(this.version)
+    const sparqlQuery = await query_1.getString(this.variables)
+
+    const requestOptions: RequestInit = {
+      method: 'POST',
+      headers: {
+        Accepts: 'application/sparql-results+json, application/n-triples',
+        'content-type': 'application/json',
+        Authorization: 'Bearer ' + process.env.TRIPLYDB_TOKEN!,
+      },
+      body: JSON.stringify({ query: sparqlQuery }),
+    }
+
+    try {
+      const result = await fetch(this.url, requestOptions)
+      return await result.json()
+    } catch (error) {
+      throw new Error(`API request failed: ${error instanceof Error ? error.message : error}`)
+    }
   }
 }
 

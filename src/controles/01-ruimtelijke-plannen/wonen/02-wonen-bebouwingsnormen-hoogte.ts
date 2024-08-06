@@ -56,7 +56,24 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
       this.log(`${max} maximum aantal bouwlagen`)
 
-      await this.runSparql(context, { max })
+      const results = await this.runSparql(context, {
+        name: '02-wonen-bebouwingsnormen-hoogte',
+        // version: 17,
+        params: { max: max.toString() },
+      })
+
+      if (results.length) {
+        const { aantalVerdiepingen, building } = results[0]
+        let message = `Op de locatie van <a href="${building}" target="_blank">de aanvraag</a> is het maximaal aantal toegestane bouwlagen ${max}. `
+        this.status = aantalVerdiepingen <= max
+        if (this.status === true) message += `De aanvraag voldoet hieraan.`
+        else
+          message += `De aanvraag bevat ${aantalVerdiepingen} bouwlagen. Hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
+        this.info['Resultaat'] = message
+      } else {
+        this.status = false
+        this.info['Resultaat'] = 'Kon het aantal bouwlagen niet vinden.'
+      }
 
       return { max }
     } else {
@@ -64,33 +81,5 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       this.info['Resultaat'] = `Er zijn geen maatvoeringen gevonden voor de gegeven locatie.`
       return { max: Number.MAX_VALUE }
     }
-  }
-
-  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/2-Wonen-bebouwingsnormen-hoogte'
-  sparql = ({ max }: Data) => {
-    return `
-      prefix express: <https://w3id.org/express#>
-      prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
-
-      select ?this ((count(?floor)) as ?aantalVerdiepingen) where {
-        graph ?g {
-          ?this a ifc:IfcBuilding.
-          [] ifc:relatingObject_IfcRelAggregates ?this;
-            ifc:relatedObjects_IfcRelAggregates ?storey.
-          ?storey ifc:name_IfcRoot/express:hasString ?floor.
-          filter(regex(?floor, "^00 begane grond|^(0*[1-9][0-9]*) .*verdieping$")) .
-        }
-      }
-      group by ?this ?max
-      having ((count(?floor)) > ${max})
-    `
-  }
-
-  bericht({ max }: Data): string {
-    let result = `Op de locatie van de aanvraag is het maximaal aantal toegestane bouwlagen ${max}. `
-    if (this.status === true) result += `De aanvraag voldoet hieraan.`
-    else
-      result += `<a href={?this} target="_blank">De aanvraag</a> bevat {?aantalVerdiepingen} bouwlagen. Hiermee overschrijdt de aanvraag de maximaal toegestane bouwhoogte.`
-    return result
   }
 }

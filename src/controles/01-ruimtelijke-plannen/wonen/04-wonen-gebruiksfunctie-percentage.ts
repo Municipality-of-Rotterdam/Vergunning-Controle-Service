@@ -69,7 +69,16 @@ export default class _ extends Controle<StepContext & RPData, Data> {
         geometry: projectGeoJSON(vlak.geometrie) as Geometry,
       }
 
-      await this.runSparql(context, { gebruiksfunctie })
+      const results = await this.runSparql(context, { name: '04-wonen-gebruiksfunctie-percentage' }) // version: 5
+
+      if (results.length) {
+        const bedrijfsfunctie = results[0].result
+        this.status = bedrijfsfunctie < 30
+        this.info['Resultaat'] = `Bedrijfsfunctie is ${bedrijfsfunctie}%.`
+      } else {
+        this.status = false
+        this.info['Resultaat'] = `Kon de bedrijfsfunctie niet vaststellen.`
+      }
 
       return { gebruiksfunctie }
     }
@@ -77,85 +86,5 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
   applicable({ gebruiksfunctie }: Data): boolean {
     return gebruiksfunctie ? gebruiksfunctie.toLowerCase() == 'wonen' : false
-  }
-
-  sparqlUrl = 'https://demo.triplydb.com/rotterdam/-/queries/4gebruiksfunctiePercentage/'
-  sparql = () => {
-    return `
-prefix express: <https://w3id.org/express#>
-prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
-prefix xsd: <http://www.w3.org/2001/XMLSchema#>
-
-select ?result ?success where {
-  {
-    #to find a gebruiksdoel
-    {
-      select (count(?space)*100 as ?totalK) where {
-      graph ?g {
-        ?this a ifc:IfcBuilding.
-
-        [] ifc:relatingObject_IfcRelAggregates ?this;
-           ifc:relatedObjects_IfcRelAggregates ?storey.
-
-        [] ifc:relatingStructure_IfcRelContainedInSpatialStructure ?storey.
-        [] ifc:relatedObjects_IfcRelAggregates ?storey.
-        ?storey a ifc:IfcBuildingStorey;
-                ifc:name_IfcRoot/express:hasString ?name.
-        ?related ifc:relatedObjects_IfcRelAggregates ?space.
-        ?space a ifc:IfcSpace;
-               ifc:longName_IfcSpatialElement/express:hasString ?value.
-        filter(regex(str(?value), "BVO", 'i'))
-        ?Property a ifc:IfcRelDefinesByProperties;
-                  ifc:relatedObjects_IfcRelDefinesByProperties ?space;
-                  ifc:relatingPropertyDefinition_IfcRelDefinesByProperties ?set.
-        ?set a ifc:IfcPropertySet;
-             ifc:hasProperties_IfcPropertySet ?single.
-        ?single ifc:nominalValue_IfcPropertySingleValue/express:hasString ?func.
-        # filter(?func!="01")
-        filter(regex(str(?func), "kantoor", 'i'))
-      }
-      }
-      limit 1
-    }
-  }
-
-  {
-    select (count(?space) as ?totalW) where {
-    graph ?g {
-      ?this a ifc:IfcBuilding.
-
-      [] ifc:relatingObject_IfcRelAggregates ?this;
-         ifc:relatedObjects_IfcRelAggregates ?storey.
-
-      [] ifc:relatingStructure_IfcRelContainedInSpatialStructure ?storey.
-      [] ifc:relatedObjects_IfcRelAggregates ?storey.
-      ?storey a ifc:IfcBuildingStorey;
-              ifc:name_IfcRoot/express:hasString ?name.
-      ?related ifc:relatedObjects_IfcRelAggregates ?space.
-      ?space a ifc:IfcSpace;
-             ifc:longName_IfcSpatialElement/express:hasString ?value.
-      filter(regex(str(?value), "BVO", 'i'))
-      {
-        ?Property a ifc:IfcRelDefinesByProperties;
-                  ifc:relatedObjects_IfcRelDefinesByProperties ?space;
-                  ifc:relatingPropertyDefinition_IfcRelDefinesByProperties ?set.
-        ?set a ifc:IfcPropertySet;
-             ifc:hasProperties_IfcPropertySet ?single.
-        ?single ifc:nominalValue_IfcPropertySingleValue/express:hasString ?func.
-        # filter(?func!="01")
-        filter(regex(str(?func), "functie", 'i'))
-      }
-    }
-    }
-  }
-  bind((xsd:decimal(concat(substr(str(?totalK / ?totalW), 1, strlen(strbefore(str(?totalK / ?totalW), ".")) + 3)))) as ?result)
-  bind(IF(?result < 30, true, false) AS ?success)
-  }
-
-  `
-  }
-
-  bericht(): string {
-    return `Bedrijfsfunctie is {?result}%.`
   }
 }
