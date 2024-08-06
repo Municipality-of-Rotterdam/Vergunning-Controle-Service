@@ -75,43 +75,41 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       this.info['Resultaat'] = 'Op de locatie van de aanvraag zijn geen bestemmingsvlakken.'
       return { gebruiksfunctie: '' }
     } else {
-      const bestemmingenSet: Set<string> = new Set(bestemmingsvlakken.map((vlak) => vlak['naam']))
-      const bestemmingen: string[] = [...bestemmingenSet]
+      const uniques = (xs: string[]) => [...new Set<string>(xs)]
+      const natural = (xs: string[]) => xs.map((x) => `"${x}"`).join(', ')
+
+      // Analyse: welke bestemmingen gelden hier?
+      const bestemmingen: string[] = uniques(bestemmingsvlakken.map((vlak) => vlak['naam']))
       // @ts-ignore
-      const gebruiksfuncties = bestemmingen.map((x: string) => mapping[x] ?? x)
+      const bestemmingenMap = bestemmingen.map((x: string) => mapping[x] ?? x)
 
-      // let reference = ``
-      // for (const zone of bestemmingsvlakken) {
-      //   if (zone.naam == 'Wonen') {
-      //     reference = `<a href="${zone.verwijzingNaarTekst}">Artikel ${zone.artikelnummer}</a>`
-      //     break
-      //   }
-      // }
-
+      // Analyse: welke gebruiksfuncties heeft de aanvraag?
       const results: any[] = await this.runSparql(context, {
         name: '01-wonen-bestemmingsomschrijving',
         version: 16,
-        params: { allowed: gebruiksfuncties.join(`;`) },
       })
+      const gebruiksfuncties = uniques(results.map(({ functie }) => functie))
 
       if (results.length) {
-        const omschrijving = bestemmingen.map((x) => `"${x}"`).join(`, `)
+        // Analyse
         let message =
           gebruiksfuncties.length > 1
-            ? `Op de locatie gelden de beschemmingsomschrijvingen ${omschrijving}. `
-            : `Op de locatie geldt de bestemmingsomschrijving ${omschrijving}. `
+            ? `De functies binnen de aanvraag zijn ${natural(gebruiksfuncties)} `
+            : `De functie binnen de aanvraag is ${natural(gebruiksfuncties)} `
 
-        const failures = results
-          .filter((x) => x.valid)
-          .map(
-            ({ functie, space }) =>
-              `<li>${`De aanvraag bevat een <a href="${space}">ruimte</a> met de functie "${functie}", die hier niet gepositioneerd mag worden.`}</li>`,
-          )
+        message +=
+          bestemmingen.length > 1
+            ? `en de toegestane bestemmingen zijn ${natural(bestemmingen)}. `
+            : `en de toegestane bestemming is ${natural(bestemmingen)}. `
+
+        const failures = gebruiksfuncties
+          .filter((x) => !bestemmingenMap.includes(x))
+          .map((x) => `<li>De gebruiksfunctie "${x}" past niet binnen de toegestane bestemmingen op deze locatie.</li>`)
 
         if (failures.length) {
           message += `<ul>${failures.join('')}</ul>`
         } else {
-          message += 'De aanvraag voldoet hieraan. '
+          message += 'De aangevraagde functies passen binnen de toegestame bestemmingen van het bestemmingsplan. '
         }
 
         this.status = failures.length == 0
