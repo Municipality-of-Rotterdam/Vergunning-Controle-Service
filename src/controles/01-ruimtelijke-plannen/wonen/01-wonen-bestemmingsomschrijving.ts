@@ -12,7 +12,7 @@ type Data = {
   reference?: string
 }
 
-const mapping = {
+const mapping: Record<string, string> = {
   Wonen: 'Woonfunctie',
   Kantoor: 'Kantoorfunctie',
 }
@@ -80,8 +80,6 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
       // Analyse: welke bestemmingen gelden hier?
       const bestemmingen: string[] = uniques(bestemmingsvlakken.map((vlak) => vlak['naam']))
-      // @ts-ignore
-      const bestemmingenMap = bestemmingen.map((x: string) => mapping[x] ?? x)
 
       // Analyse: welke gebruiksfuncties heeft de aanvraag?
       const results: any[] = await this.runSparql(context, {
@@ -102,9 +100,16 @@ export default class _ extends Controle<StepContext & RPData, Data> {
             ? `en de toegestane bestemmingen zijn ${natural(bestemmingen)}. `
             : `en de toegestane bestemming is ${natural(bestemmingen)}. `
 
-        const failures = gebruiksfuncties
-          .filter((x) => !bestemmingenMap.includes(x))
-          .map((x) => `<li>De gebruiksfunctie "${x}" past niet binnen de toegestane bestemmingen op deze locatie.</li>`)
+        const failures = []
+        for (const f of gebruiksfuncties) {
+          const conflicts = bestemmingen.filter((x) => f != (mapping[x] ?? x))
+
+          if (conflicts.length) {
+            failures.push(
+              `<li>De gebruiksfunctie ${f} past niet binnen de bestemming(en) ${natural(conflicts)} op deze locatie.</li>`,
+            )
+          }
+        }
 
         if (failures.length) {
           message += `<ul>${failures.join('')}</ul>`
