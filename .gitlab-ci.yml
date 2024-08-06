@@ -33,4 +33,4 @@ main:
   script:
     - npm install
     - npm run build
-    - node --max-old-space-size=16000 lib/main.js --ifc=Kievitsweg_R23_MVP_IFC4.ifc --ids="IDS Rotterdam BIM.ids" --clean
+    - node --max-old-space-size=16000 lib/main.js --ifc=Kievitsweg_R23_MVP_IFC4.ifc --clean
