@@ -15,7 +15,7 @@ const log = createLogger('idsControle', import.meta)
 export const idsControle = new Activity(
   { name: 'IDS Controle', description: 'IDS controle door https://pypi.org/project/ifctester/' },
   async (context: StepContext, thisActivity: Activity<any, any>) => {
-    const idsName = context.inputIds.replaceAll('.ids', '').replace(/[^a-zA-Z]+/g, '')
+    const idsName = path.basename(context.inputIds, '.ids').replace(/[^a-zA-Z]+/g, '')
     const htmlFileName = `IDSValidationReport_${idsName}.html`
     const bcfFileName = `IDSValidationReport_${idsName}.bcf`
 
@@ -24,7 +24,6 @@ export const idsControle = new Activity(
     const idsReportBcf = path.join(context.outputsDir, bcfFileName)
     log('Uitvoeren van IDS controle', 'IDS Controle')
     try {
-      log('context.inputIfc', context.inputIfc)
       await executeCommand(
         `python3 ${pythonScript} "${context.inputIfc}" "${context.inputIds}" -r "${idsReportHtml}" -b "${idsReportBcf}"`,
       )
