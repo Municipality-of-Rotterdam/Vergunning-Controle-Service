@@ -42,16 +42,16 @@ node lib/main.js --ifc="Kievitsweg_R23_MVP_IFC4.ifc" --clean
 
 It might be necessary to work within a virtual environment. To do so, use these commands:
 
-Unix:
+On POSIX using Bash:
 
 ```sh
 python3 -m venv myenv && source myenv/bin/activate
 ```
 
-Windows:
+On Windows using Powershell:
 
 ```sh
-python3 -m venv myenv && source myenv/bin/activate
+python3 -m venv myenv && .\myenv\Scripts\activate
 ```
 
 ### Output: vcs-rapport.html
