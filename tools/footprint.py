@@ -1,5 +1,6 @@
 import argparse
 import os
+import ifcopenshell as ifcos # tested with version 0.7.10
 import ifcopenshell # tested with version 0.7.10
 import ifcopenshell.geom
 import ifcopenshell.util.shape
@@ -50,16 +51,7 @@ footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc http
 footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcWall,IfcCurtainWall,IfcWallStandardCase,IfcRoof,IfcSlab,IfcWindow,IfcColumn,IfcBeam,IfcDoor,IfcCovering,IfcMember,IfcPlate
 """
 
-def main(file, base_iri: str, ifc_classes):
-    global ifc_file
-    ifc_file = ifcopenshell.open(file)
-    settings = ifcopenshell.geom.settings() # see https://docs.ifcopenshell.org/ifcopenshell/geometry_settings.html
-    settings.set(settings.DISABLE_OPENING_SUBTRACTIONS, True) # should speed up 
-    settings.set(settings.USE_WORLD_COORDS, True) # important to get geometries properly rotated
-    # the line below is not needed, because IfcOpenShell work in metres
-    #settings.set(settings.CONVERT_BACK_UNITS,True) # set units back from metres to the model lenght units
-
-    building = ifc_file.by_type('IfcBuilding')[0]
+def building_footprint(ifc_file, building, base_iri: str, ifc_classes: list[str], settings) -> str:
     building_iri = f'{base_iri}/IfcBuilding_{building.id()}'
 
     # get the data needed for georeferencing
@@ -126,16 +118,7 @@ def main(file, base_iri: str, ifc_classes):
     #compute a measure for elongation
     elongation = round(math.sqrt(footprint.area)/(footprint.length/4),4)
 
-    ttl = f'''
-@prefix geo: <http://www.opengis.net/ont/geosparql#> .
-@prefix sf: <http://www.opengis.net/ont/sf#> .
-@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix qudt: <http://qudt.org/schema/qudt/> .
-@prefix unit: <http://qudt.org/vocab/unit/>  .
-@prefix ssn: <http://www.w3.org/ns/ssn/> . # SSN is misused here, but it offers hasProperty, which is used as a substitute for dedicated VCS semantics
-
-<{building_iri}> geo:hasGeometry <{building_iri}/CRS_origin> .
+    return f'''<{building_iri}> geo:hasGeometry <{building_iri}/CRS_origin> .
 <{building_iri}> geo:hasDefaultGeometry <{building_iri}/footprint> .
 <{building_iri}> ssn:hasProperty <{building_iri}/CRS_rotation> .
 
@@ -169,9 +152,39 @@ def main(file, base_iri: str, ifc_classes):
     qudt:numericValue "{elongation}"^^xsd:decimal ; 
     skos:prefLabel "A measure for elongation of the footprint"@en, "Een maat voor de langgerektheid van de voetafdruk"@nl 
 .
-
 '''
 
+def main(file: str, base_iri: str, ifc_classes: list[str]):
+
+    if not os.path.exists(file):
+        print ('file not found:', ifc_file)
+        exit(1)
+
+    if len(ifc_classes) == 0:
+        print ('no IFC classes specified')
+        exit(2)
+
+    ifc_file = ifcopenshell.open(file)
+    settings = ifcopenshell.geom.settings() # see https://docs.ifcopenshell.org/ifcopenshell/geometry_settings.html
+    settings.set(settings.DISABLE_OPENING_SUBTRACTIONS, True) # should speed up 
+    settings.set(settings.USE_WORLD_COORDS, True) # important to get geometries properly rotated
+    # the line below is not needed, because IfcOpenShell work in metres
+    #settings.set(settings.CONVERT_BACK_UNITS,True) # set units back from metres to the model lenght units
+
+    building_footprints = [
+        building_footprint(ifc_file, building, base_iri, ifc_classes, settings)
+        for building in ifc_file.by_type('IfcBuilding')]
+    ttl = f'''
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix sf: <http://www.opengis.net/ont/sf#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix unit: <http://qudt.org/vocab/unit/>  .
+@prefix ssn: <http://www.w3.org/ns/ssn/> . # SSN is misused here, but it offers hasProperty, which is used as a substitute for dedicated VCS semantics
+
+{building_footprints[0]}
+'''
     print (ttl)
     #print('\nfootprint WKT (CRS epsg:28992):',footprint)
     #print('footprint perimeter (metres):', round(footprint.length,3))
@@ -270,22 +283,10 @@ def get_footprint(geometry) -> shapely.Geometry: # adapted from ifcopenshell.uti
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='footprint', description='Returns the building footprint as Turtle (TriG) RDF code')
     parser.add_argument('ifc_file', help='Path to the input IFC file')
-    parser.add_argument('building_iri', help='IRI of the building in the data graph')
+    parser.add_argument('base_iri', help='base IRI of the elements in our graph')
     parser.add_argument('ifc_classes', help='Comma separated list of IFC classes to use to determine the footprint')
     args = parser.parse_args()
 
-    ifc_file = args.ifc_file
-    if not os.path.exists(ifc_file):
-        print ('file not found:', ifc_file)
-        exit(1)
-
-    building_iri = args.building_iri
-
-    ifc_classes = args.ifc_classes.split(',')
-    if len(ifc_classes) == 0:
-        print ('no IFC classes specified')
-        exit(2)
-
-    main(ifc_file, building_iri, ifc_classes)
+    main(args.ifc_file, args.base_iri, args.ifc_classes.split(','))
 
 exit(0)
