@@ -50,7 +50,7 @@ footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc http
 footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcWall,IfcCurtainWall,IfcWallStandardCase,IfcRoof,IfcSlab,IfcWindow,IfcColumn,IfcBeam,IfcDoor,IfcCovering,IfcMember,IfcPlate
 """
 
-def main(file, building_iri, ifc_classes):
+def main(file, base_iri: str, ifc_classes):
     global ifc_file
     ifc_file = ifcopenshell.open(file)
     settings = ifcopenshell.geom.settings() # see https://docs.ifcopenshell.org/ifcopenshell/geometry_settings.html
@@ -58,6 +58,9 @@ def main(file, building_iri, ifc_classes):
     settings.set(settings.USE_WORLD_COORDS, True) # important to get geometries properly rotated
     # the line below is not needed, because IfcOpenShell work in metres
     #settings.set(settings.CONVERT_BACK_UNITS,True) # set units back from metres to the model lenght units
+
+    building = ifc_file.by_type('IfcBuilding')[0]
+    building_iri = f'{base_iri}/IfcBuilding_{building.id()}'
 
     # get the data needed for georeferencing
     map_conversion = ifc_file.by_type('IfcMapConversion')
