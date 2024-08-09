@@ -9,6 +9,7 @@ import math
 import shapely # tested with version 2.0.5
 import matplotlib.pyplot as pp
 import geopandas as gpd
+from typing import Iterator, Iterable, Any
 
 """
 Based on an IFC file and a collection of IFC elements, calculate the following:
@@ -51,39 +52,81 @@ footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc http
 footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcWall,IfcCurtainWall,IfcWallStandardCase,IfcRoof,IfcSlab,IfcWindow,IfcColumn,IfcBeam,IfcDoor,IfcCovering,IfcMember,IfcPlate
 """
 
-def building_footprint(ifc_file, building, base_iri: str, ifc_classes: list[str], settings) -> str:
-    building_iri = f'{base_iri}/IfcBuilding_{building.id()}'
-
+class MapConversion:
     # get the data needed for georeferencing
-    map_conversion = ifc_file.by_type('IfcMapConversion')
-    mc_delta_x = map_conversion[0][2] # should be RD (metres)
-    mc_delta_y = map_conversion[0][3] # should be RD (metres)
-    mc_elevation = map_conversion[0][4] # needed for 3D geometries; should in metres relative to NAP
-    mc_scale = map_conversion[0][7] # assumption: scale is the number to divide model units by to arrive at map units. For example, if the model uses mm and the geography uses metres, then the scale is 0.001
-    if mc_scale is None:
-        mc_scale = 1
+    def __init__(self, model):
+        map_conversion = model.by_type('IfcMapConversion')
+        self.delta_x = map_conversion[0][2] # should be RD (metres)
+        self.delta_y = map_conversion[0][3] # should be RD (metres)
+        self.elevation = map_conversion[0][4] # needed for 3D geometries; should in metres relative to NAP
+        self.scale = map_conversion[0][7] # assumption: scale is the number to divide model units by to arrive at map units. For example, if the model uses mm and the geography uses metres, then the scale is 0.001
+        if not self.scale:
+            self.scale = 1
+        self.rotation = -1 * np.arctan(map_conversion[0][6]/map_conversion[0][5])
 
-    mc_rotation = -1 * np.arctan(map_conversion[0][6]/map_conversion[0][5])
-    # scale is not used, because IfcOpenShell work in metres
-    #origin_wkt = 'POINT Z(' + str(mc_delta_x / mc_scale) + ' ' + str(mc_delta_y / mc_scale) + ' ' + str(mc_elevation / mc_scale) + ')'
-    origin_wkt = 'POINT Z(' + str(mc_delta_x) + ' ' + str(mc_delta_y) + ' ' + str(mc_elevation) + ')'
- 
+    def georeference(self, shape) -> shapely.Polygon | shapely.MultiPolygon:
+        # georeference the coordinates
+        if shape.geom_type == 'LinearRing':
+            return self.georeference_lstr(shape)
+        elif shape.geom_type == 'MultiLineString':
+            return shapely.MultiPolygon([
+                self.georeference_lstr(linestring)
+                for linestring in shape.geoms
+            ])
+        else:
+            raise Exception(f'unexpected geometry type {shape.geom_type}')
+
+    def georeference_lstr(self, lstr) -> shapely.Polygon:
+        """"
+        Georefence the X and Y coordinates, drop the Z coordinate and round to 3 decimals (milimetres).
+        First do the rotation, then the translation, using the parameters from IfcMapConversion.
+
+        Input is expected to be a LinearRing or LineString
+        """
+        # Substract half pi (90 degrees) from the rotation. This gets the footprint in the right position.
+        # Somehow this extra rotation is needed because of geometry processing in get_footprint().
+        # To do: find out if the extra rotation is required independent of the input IFC file.
+        r = self.rotation - (np.pi / 2)
+
+        verts_georef = []
+        verts = lstr.coords[:]
+        for vert in verts:
+            # The scale is not used because IfcOpenShell works in metres
+            #x_georef = (vert[0] / mc_scale * np.cos(mc_rotation) + vert[1] / mc_scale * np.sin(mc_rotation)) + mc_delta_x
+            #y_georef = (-1 * vert[0] / mc_scale * np.sin(mc_rotation) + vert[1] / mc_scale * np.cos(mc_rotation)) + mc_delta_y
+            x_georef = (vert[0] * np.cos(r) + vert[1] * np.sin(r)) + self.delta_x
+            y_georef = (-1 * vert[0] * np.sin(r) + vert[1] * np.cos(r)) + self.delta_y
+            verts_georef.append([round(x_georef, 3), round(y_georef, 3)])
+
+        return shapely.Polygon(verts_georef)
+
+
+
+def iri(base_iri: str, entity) -> str:
+    "Get the IRI associated with an IFC entity, like `https://example.org/IfcBuilding_113`"
+    return f'{base_iri}/{entity.get_info()["type"]}_{entity.id()}'
+
+
+def footprint_space(mc: MapConversion, settings, entity) -> str:
+    try:
+        shape = ifcopenshell.geom.create_shape(settings, entity)
+    except:
+        print('# Skipping IFC object with name', entity.Name)
+    else:
+        return mc.georeference(get_footprint(shape.geometry).exterior)
+
+
+def footprint_building(mc: MapConversion, settings, entities) -> str:
     geometries = []
-    for ifc_class in ifc_classes:
-        ifc_objects = ifc_file.by_type(ifc_class)
-        c = 0
-        for ifc_object in ifc_objects:
-            c = c + 1
-            try:
-                shape = ifcopenshell.geom.create_shape(settings, ifc_object)
-            except:
-                print('# Skipping IFC object with name',ifc_object.Name)
-            else:
-                object_footprint = get_footprint(shape.geometry)
-                geometries.append(object_footprint)
+    for ifc_object in entities:
+        try:
+            shape = ifcopenshell.geom.create_shape(settings, ifc_object)
+        except:
+            print('# Skipping IFC object with name', ifc_object.Name)
+        else:
+            object_footprint = get_footprint(shape.geometry)
+            geometries.append(object_footprint)
 
-
-    #print('geometries:', len(geometries))
     if len(geometries) == 0:
         print('no suitable geometries were found')
         exit(5)
@@ -99,127 +142,121 @@ def building_footprint(ifc_file, building, base_iri: str, ifc_classes: list[str]
             outer_rings.append(poly.exterior) # output: LinearRing
         outer_shape = shapely.ops.unary_union(outer_rings) #output: MultiLineString
 
-    # georeference the coordinates
-    if outer_shape.geom_type == 'LinearRing':
-        footprint = georeference(outer_shape, mc_scale, mc_delta_x, mc_delta_y, mc_rotation)
-        footprint_geomtype = 'Polygon'
-    elif outer_shape.geom_type == 'MultiLineString':
-        polys = []
-        for linestring in list(outer_shape.geoms):
-            polys.append(georeference(linestring, mc_scale, mc_delta_x, mc_delta_y, mc_rotation))
-        footprint = shapely.MultiPolygon(polys)
-        footprint_geomtype = 'MultiPolygon'
-    else:
-        print('unexpected geometry type')
-        exit(3)
+    return mc.georeference(outer_shape)
 
-    #plot(footprint,'footprint')
-    
-    #compute a measure for elongation
-    elongation = round(math.sqrt(footprint.area)/(footprint.length/4),4)
 
-    return f'''<{building_iri}> geo:hasGeometry <{building_iri}/CRS_origin> .
-<{building_iri}> geo:hasDefaultGeometry <{building_iri}/footprint> .
-<{building_iri}> ssn:hasProperty <{building_iri}/CRS_rotation> .
 
-<{building_iri}/CRS_origin>
-    a sf:Point ;
-    geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/7415> {origin_wkt}"^^geo:wktLiteral ;
-    geo:coordinateDimension "3"^^xsd:integer ;
-    skos:prefLabel "CRS origin from IfcMapConversion"@en, "oorsprong CRS uit IfcMapConversion"@nl
-.
-
-<{building_iri}/CRS_rotation>
-    a qudt:Quantity ;
-    qudt:hasUnit unit:RAD ;
-    qudt:numericValue "{mc_rotation}"^^xsd:decimal ;
-    skos:prefLabel "rotation angle for georeferencing geometry, from IfcMapConversion"@en,
-               "rotatiehoek voor georeferentie, uit IfcMapConversion"@nl
-.
-
-<{building_iri}/footprint>
-    a sf:{footprint_geomtype} ;
-    geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {footprint}"^^geo:wktLiteral ;
-    geo:coordinateDimension "2"^^xsd:integer ;
-    geo:hasMetricPerimeterLength "{round(footprint.length)}"^^xsd:double ;
-    geo:hasMetricArea "{round(footprint.area, 3)}"^^xsd:double ;
-    ssn:hasProperty <{building_iri}/footprint/elongation> ;
-    skos:prefLabel "2D footprint of the building"@en, "2D-voetafdruk van het gebouw"@nl
-.
-
-<{building_iri}/footprint/elongation>
-    a qudt:Quantity, ssn:Property ; 
-    qudt:numericValue "{elongation}"^^xsd:decimal ; 
-    skos:prefLabel "A measure for elongation of the footprint"@en, "Een maat voor de langgerektheid van de voetafdruk"@nl 
-.
-'''
 
 def main(file: str, base_iri: str, ifc_classes: list[str]):
 
     if not os.path.exists(file):
-        print ('file not found:', ifc_file)
+        print('file not found:', file)
         exit(1)
 
     if len(ifc_classes) == 0:
-        print ('no IFC classes specified')
+        print('no IFC classes specified')
         exit(2)
 
-    ifc_file = ifcopenshell.open(file)
+    model = ifcopenshell.open(file)
     settings = ifcopenshell.geom.settings() # see https://docs.ifcopenshell.org/ifcopenshell/geometry_settings.html
     settings.set(settings.DISABLE_OPENING_SUBTRACTIONS, True) # should speed up 
     settings.set(settings.USE_WORLD_COORDS, True) # important to get geometries properly rotated
     # the line below is not needed, because IfcOpenShell work in metres
     #settings.set(settings.CONVERT_BACK_UNITS,True) # set units back from metres to the model lenght units
 
-    building_footprints = [
-        building_footprint(ifc_file, building, base_iri, ifc_classes, settings)
-        for building in ifc_file.by_type('IfcBuilding')]
-    ttl = f'''
+    mc = MapConversion(model)
+
+    # Header
+    print('''
 @prefix geo: <http://www.opengis.net/ont/geosparql#> .
 @prefix sf: <http://www.opengis.net/ont/sf#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix qudt: <http://qudt.org/schema/qudt/> .
 @prefix unit: <http://qudt.org/vocab/unit/>  .
-@prefix ssn: <http://www.w3.org/ns/ssn/> . # SSN is misused here, but it offers hasProperty, which is used as a substitute for dedicated VCS semantics
+@prefix ssn: <http://www.w3.org/ns/ssn/> . # SSN is misused here, but it offers hasProperty, which is used as a substitute for dedicated VCS semantics''')
 
-{building_footprints[0]}
-'''
-    print (ttl)
+    # Ifc spaces
+    for s in model.by_type("IfcSpace"):
+        node = iri(base_iri, s)
+        print(f'<{node}> geo:hasDefaultGeometry <{node}/footprint>.')
+        print(f'<{node}/footprint> geo:asWKT {footprint_space(mc, settings, s)}.')
+
+
+
+
+    # Building footprint
+    buildings = model.by_type("IfcBuilding")
+    assert len(buildings) == 1
+
+    ifc_objects = [o for ifc_class in ifc_classes for o in model.by_type(ifc_class)]
+    footprint = footprint_building(mc, settings, ifc_objects)
+    building_iri = iri(base_iri, buildings[0])
+
+    print(f'''
+    <{building_iri}> geo:hasDefaultGeometry <{building_iri}/footprint> .
+    <{building_iri}/footprint>
+        a sf:{footprint.geom_type} ;
+        geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {footprint}"^^geo:wktLiteral ;
+        geo:coordinateDimension "2"^^xsd:integer ;
+        geo:hasMetricPerimeterLength "{round(footprint.length)}"^^xsd:double ;
+        geo:hasMetricArea "{round(footprint.area, 3)}"^^xsd:double ;
+        ssn:hasProperty <{building_iri}/footprint/elongation> ;
+        skos:prefLabel "2D footprint of the building"@en, "2D-voetafdruk van het gebouw"@nl
+    .
+    ''')
+
+    #plot(footprint,'footprint')
+    
+    #compute a measure for elongation
+    elongation = round(math.sqrt(footprint.area)/(footprint.length/4),4)
+    print(f'''
+<{building_iri}/footprint/elongation>
+    a qudt:Quantity, ssn:Property ; 
+    qudt:numericValue "{elongation}"^^xsd:decimal ; 
+    skos:prefLabel "A measure for elongation of the footprint"@en, "Een maat voor de langgerektheid van de voetafdruk"@nl 
+.
+''')
+
+    # Add origin
+    # scale is not used, because IfcOpenShell work in metres
+    #origin_wkt = 'POINT Z(' + str(mc_delta_x / mc_scale) + ' ' + str(mc_delta_y / mc_scale) + ' ' + str(mc_elevation / mc_scale) + ')'
+    origin_wkt = 'POINT Z(' + str(mc.delta_x) + ' ' + str(mc.delta_y) + ' ' + str(mc.elevation) + ')'
+    print(f'''
+<{building_iri}> geo:hasGeometry <{building_iri}/CRS_origin> .
+<{building_iri}/CRS_origin>
+    a sf:Point ;
+    geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/7415> {origin_wkt}"^^geo:wktLiteral ;
+    geo:coordinateDimension "3"^^xsd:integer ;
+    skos:prefLabel "CRS origin from IfcMapConversion"@en, "oorsprong CRS uit IfcMapConversion"@nl
+.''') 
+
+    # Add rotation
+    print(f'''
+    <{building_iri}> ssn:hasProperty <{building_iri}/CRS_rotation> .
+    <{building_iri}/CRS_rotation>
+        a qudt:Quantity ;
+        qudt:hasUnit unit:RAD ;
+        qudt:numericValue "{mc.rotation}"^^xsd:decimal ;
+        skos:prefLabel "rotation angle for georeferencing geometry, from IfcMapConversion"@en,
+                "rotatiehoek voor georeferentie, uit IfcMapConversion"@nl
+    .
+    '''
+    )
+
+    # building_footprints[0]
     #print('\nfootprint WKT (CRS epsg:28992):',footprint)
     #print('footprint perimeter (metres):', round(footprint.length,3))
     #print('footprint area (square metres):', round(footprint.area,3))
 
 
-def georeference(lstr, mc_scale, mc_delta_x, mc_delta_y, mc_rotation) -> shapely.Polygon:
-    """"
-    Georefence the X and Y coordinates, drop the Z coordinate and round to 3 decimals (milimetres).
-    First do the rotation, then the translation, using the parameters from IfcMapConversion.
-
-    Input is expected to be a LinearRing or LineString
-    """
-    # Substract half pi (90 degrees) from the rotation. This gets the footprint in the right position.
-    # Somehow this extra rotation is needed because of geometry processing in get_footprint().
-    # To do: find out if the extra rotation is required independent of the input IFC file.
-    mc_rotation = mc_rotation - (np.pi / 2)
-
-    verts_georef = []
-    verts = lstr.coords[:]
-    for vert in verts :
-        # The scale is not used because IfcOpenShell works in metres
-        #x_georef = (vert[0] / mc_scale * np.cos(mc_rotation) + vert[1] / mc_scale * np.sin(mc_rotation)) + mc_delta_x
-        #y_georef = (-1 * vert[0] / mc_scale * np.sin(mc_rotation) + vert[1] / mc_scale * np.cos(mc_rotation)) + mc_delta_y
-        x_georef = (vert[0] * np.cos(mc_rotation) + vert[1] * np.sin(mc_rotation)) + mc_delta_x
-        y_georef = (-1 * vert[0] * np.sin(mc_rotation) + vert[1] * np.cos(mc_rotation)) + mc_delta_y
-        verts_georef.append([round(x_georef,3),round(y_georef,3)])
-
-    return shapely.Polygon(verts_georef)
 
 def plot(geometry, title): #plot a geometry (useful for development and debugging)
     geom = gpd.GeoSeries([geometry])
     geom.plot()
     pp.title(title)
     pp.show()
+
 
 def convhull(geometry): #calculate the 2D convex hull of a ifcopenshell geometry, only used for testing
     verts = ifcopenshell.util.shape.get_vertices(geometry)
@@ -279,6 +316,7 @@ def get_footprint(geometry) -> shapely.Geometry: # adapted from ifcopenshell.uti
     unioned_geometry = shapely.ops.unary_union(polygons)
 
     return unioned_geometry
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='footprint', description='Returns the building footprint as Turtle (TriG) RDF code')
