@@ -2,6 +2,7 @@
   "author": "Triply <info@triply.cc>",
   "type": "module",
   "dependencies": {
+    "@jeswr/pretty-turtle": "^1.5.0",
     "@rdfjs/data-model": "^2.0.2",
     "@rdfjs/dataset": "^2.0.2",
     "@rdfjs/namespace": "^2.0.1",
