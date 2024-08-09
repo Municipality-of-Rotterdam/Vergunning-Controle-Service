@@ -50,7 +50,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
       }
 
       // TODO: No hardcoding
-      const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.2.2`
+      const reference = `<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_2_BESTEMMINGSREGELS">2</a>.<a href="https://www.ruimtelijkeplannen.nl/documents/NL.IMRO.0599.BP1133HvtNoord-on01/r_NL.IMRO.0599.BP1133HvtNoord-on01.html#_23_Wonen">23</a>.2.2a`
       this.info['Beschrijving'] =
         `<span class="article-ref">${reference}</span> Toegestane hoogte verdiepingen. De bouwhoogte van gebouwen mag niet meer bedragen dan met de aanduiding "maximum aantal bouwlagen" op de verbeelding is aangegeven.`
 
@@ -64,7 +64,7 @@ export default class _ extends Controle<StepContext & RPData, Data> {
 
       if (results.length) {
         const { aantalVerdiepingen, building } = results[0]
-        let message = `Op de locatie van <a href="${building}" target="_blank">de aanvraag</a> is het maximaal aantal toegestane bouwlagen ${max}. `
+        let message = `Er geldt voor wonen een maximimaal toegstaan aantal bouwlagen. Op de locatie van <a href="${building}" target="_blank">de aanvraag</a> is het maximaal aantal toegestane bouwlagen ${max}. `
         this.status = aantalVerdiepingen <= max
         if (this.status === true) message += `De aanvraag voldoet hieraan.`
         else
