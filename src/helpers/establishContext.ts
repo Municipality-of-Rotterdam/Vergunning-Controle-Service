@@ -20,6 +20,7 @@ export const establishContext = async (): Promise<Context> => {
   }
 
   const buildingName: string = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
+
   const now = new Date()
   const year = now.getFullYear()
   const month = (now.getMonth() + 1).toString().padStart(2, '0')

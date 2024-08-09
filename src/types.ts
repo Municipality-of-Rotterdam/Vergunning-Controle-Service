@@ -1,7 +1,6 @@
 export type Step = {
   name: string
   description: string
-  weight: number
   run(context: Context): Promise<any>
 }
 

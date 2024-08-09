@@ -4,7 +4,6 @@ import { execWithProvenance } from '@root/provenance/execWithProvenance.js'
 import { Context, Step } from '@root/types.js'
 
 export default {
-  weight: 0,
   name: 'IDS validatie',
   description: 'Valideer de gegeven .ifc tegen de .ids bestanden',
   async run(context: Context) {
