@@ -1,10 +1,9 @@
 import grapoi from 'grapoi'
 
-import { write } from '@jeswr/pretty-turtle'
 import dataFactory from '@rdfjs/data-model'
 import datasetFactory from '@rdfjs/dataset'
 
-import { prefixes, prov, rdf, rdfs, xsd } from '../namespaces.js'
+import { prov, rdf, rdfs, xsd } from '../helpers/namespaces.js'
 
 const base = dataFactory.namedNode('http://triplydb.com/rotterdam/huisje-1231') // TODO Must be replaced by the baseIRI
 const baseQuad = dataFactory.quad(base, rdf('type'), prov('Collection'))
@@ -38,12 +37,7 @@ export const setPhase = (newPhase: string) => {
   provenancePointer.addOut(prov('startTime'), dataFactory.literal(startTime.toString(), xsd('double')))
 }
 
-export const printProvenance = async () => {
+export const finishProvenance = async () => {
   endPhase()
-
-  console.log(
-    await write([...provenanceGraph], {
-      prefixes,
-    }),
-  )
+  return [...provenanceGraph]
 }

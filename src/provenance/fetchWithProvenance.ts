@@ -1,6 +1,6 @@
 import dataFactory from '@rdfjs/data-model'
 
-import { prov, rdf, rdfs, xsd } from '../namespaces.js'
+import { http, prov, rdf, rdfs, xsd } from '../helpers/namespaces.js'
 import { provenancePointer } from './provenance.js'
 
 export const fetchWithProvenance = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -32,7 +32,7 @@ export const fetchWithProvenance = async (input: RequestInfo | URL, init?: Reque
                 activity.addOut(prov('startTime'), dataFactory.literal(startTime.toString(), xsd('double')))
                 activity.addOut(prov('endTime'), dataFactory.literal(endTime.toString(), xsd('double')))
                 if (errorMessage) activity.addOut(prov('error'), dataFactory.literal(errorMessage))
-                if (result) activity.addOut(prov('response'), dataFactory.literal(result))
+                if (result) activity.addOut(http('resp'), dataFactory.literal(result))
               })
             }
           }

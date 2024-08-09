@@ -1,23 +1,41 @@
-import { execWithProvenance } from './provenance/execWithProvenance.js'
-import { fetchWithProvenance } from './provenance/fetchWithProvenance.js'
-import { printProvenance, setPhase } from './provenance/provenance.js'
+import fs, { mkdir } from 'fs/promises'
+import * as path from 'path'
+import { rimraf } from 'rimraf'
 
-console.log('A fresh start.')
+import { write } from '@jeswr/pretty-turtle'
 
-try {
-  setPhase('Getting first fetch')
-  const response = await fetchWithProvenance('http://example.com/test')
-  const html = await response.text()
-  // console.log(html)
+import { prefixes } from './helpers/namespaces.js'
+import { finishProvenance, setPhase } from './provenance/provenance.js'
+import { Context, Step } from './types.js'
 
-  setPhase('Getting second fetch')
-  const response2 = await fetchWithProvenance('http://example.com')
-  const json = await response2.json()
-  // console.log(json)
-} catch (error) {}
+const steps = (
+  (await Promise.all(
+    (await fs.readdir('./src/steps')).map((stepFile) =>
+      import(`./steps/${stepFile}`).then((stepModule) => stepModule.default),
+    ),
+  )) as Step[]
+).sort((a, b) => b.weight - a.weight)
 
-setPhase('Executing ls -la')
-const { stdout, stderr } = await execWithProvenance('ls -la')
-console.log(stdout, stderr)
+const context: Context = {
+  ifcFile: path.join('input', 'ifc', 'Kievitsweg_R23_MVP_IFC4.ifc'),
+  idsFile: path.join('input', 'IDS Rotterdam BIM.ids'),
+  outputsDir: path.join('outputs', 'KievitswegRMVPIFC'),
+}
 
-await printProvenance()
+await rimraf(context.outputsDir!)
+await mkdir(context.outputsDir!)
+
+for (const step of steps) {
+  try {
+    setPhase(step.name)
+    await step.run(context)
+  } catch {
+    break // When a fatal happens we can not finish the VCS.
+  }
+}
+
+console.log(
+  await write([...(await finishProvenance())], {
+    prefixes,
+  }),
+)
