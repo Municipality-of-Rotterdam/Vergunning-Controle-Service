@@ -16,8 +16,8 @@ export default {
     const idsReportBcf = path.join(context.outputsDir!, `IDSValidationReport_${idsName}.bcf`)
     const validateScript = path.join('src', 'tools', 'validate_IFC.py')
 
-    await execWithProvenance(
-      `python3 ${validateScript} "${context.ifcFile}" "${context.idsFile!}" -r "${idsReportHtml}" -b "${idsReportBcf}"`,
-    )
+    const command = `python3 ${validateScript} "${context.ifcFile}" "${context.idsFile!}" -r "${idsReportHtml}" -b "${idsReportBcf}"`
+    console.log(command)
+    await execWithProvenance(command)
   },
 } satisfies Step

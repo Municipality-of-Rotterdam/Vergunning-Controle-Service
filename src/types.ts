@@ -5,8 +5,9 @@ export type Step = {
   run(context: Context): Promise<any>
 }
 
-export type Context = Partial<{
+export type Context = {
   ifcFile: string
   idsFile: string
+  inputsDir: string
   outputsDir: string
-}>
+}

@@ -1,12 +1,11 @@
-import fs, { mkdir } from 'fs/promises'
-import * as path from 'path'
-import { rimraf } from 'rimraf'
+import fs from 'fs/promises'
 
 import { write } from '@jeswr/pretty-turtle'
 
+import { establishContext } from './helpers/establishContext.js'
 import { prefixes } from './helpers/namespaces.js'
 import { finishProvenance, setPhase } from './provenance/provenance.js'
-import { Context, Step } from './types.js'
+import { Step } from './types.js'
 
 const steps = (
   (await Promise.all(
@@ -16,14 +15,7 @@ const steps = (
   )) as Step[]
 ).sort((a, b) => b.weight - a.weight)
 
-const context: Context = {
-  ifcFile: path.join('input', 'ifc', 'Kievitsweg_R23_MVP_IFC4.ifc'),
-  idsFile: path.join('input', 'IDS Rotterdam BIM.ids'),
-  outputsDir: path.join('outputs', 'KievitswegRMVPIFC'),
-}
-
-await rimraf(context.outputsDir!)
-await mkdir(context.outputsDir!)
+const context = await establishContext()
 
 for (const step of steps) {
   try {
