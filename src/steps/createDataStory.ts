@@ -61,9 +61,11 @@ export default {
     const account = await triply.getAccount(getAccount())
 
     const content = []
+    const queriesInfo = (await Promise.all(queries.map((query) => query.getInfo()))).sort((a, b) =>
+      b.name.localeCompare(a.name),
+    )
 
-    for (const query of queries) {
-      const queryInfo = await query.getInfo()
+    for (const queryInfo of queriesInfo) {
       content.push({
         type: 'query' as const,
         query: queryInfo.id,
