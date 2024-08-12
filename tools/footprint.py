@@ -38,7 +38,7 @@ Tested with:
 IfcWall
 IfcCurtainWall
 IfcWallStandardCase
-IfcRoof
+IfcRoofik laat je weten
 IfcSlab
 IfcWindow
 IfcColumn
@@ -49,8 +49,8 @@ IfcMember
 IfcPlate
 
 Examples:
-footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcRoof,IfcSlab
-footprint.py /home/frans/Projects/VCS_Rotterdam/Kievitsweg_R23_MVP_IFC4.ifc https://www.rotterdam.nl/vcs/IfcBuilding_113 IfcWall,IfcCurtainWall,IfcWallStandardCase,IfcRoof,IfcSlab,IfcWindow,IfcColumn,IfcBeam,IfcDoor,IfcCovering,IfcMember,IfcPlate
+footprint.py Kievitsweg_R23_MVP_IFC4.ifc -u=https://www.rotterdam.nl/vcs/ IfcRoof,IfcSlab
+footprint.py Kievitsweg_R23_MVP_IFC4.ifc -u=https://www.rotterdam.nl/vcs/ IfcWall,IfcCurtainWall,IfcWallStandardCase,IfcRoof,IfcSlab,IfcWindow,IfcColumn,IfcBeam,IfcDoor,IfcCovering,IfcMember,IfcPlate
 """
 
 class MapConversion:
@@ -104,7 +104,7 @@ class MapConversion:
 
 def iri(base_iri: str, entity) -> str:
     "Get the IRI associated with an IFC entity, like `https://example.org/IfcBuilding_113`"
-    return f'{base_iri}/{entity.get_info()["type"]}_{entity.id()}'
+    return f'{base_iri}{entity.get_info()["type"]}_{entity.id()}'
 
 
 def exterior(*geometries: geom.ShapeElementType) -> shapely.Geometry:
@@ -130,13 +130,9 @@ def exterior(*geometries: geom.ShapeElementType) -> shapely.Geometry:
 
 
 def footprint_space(mc: MapConversion, settings: geom.settings, entity) -> str:
-    try:
-        shape = ifcopenshell.geom.create_shape(settings, entity)
-        assert(isinstance(shape, geom.ShapeElementType))
-    except:
-        print('# Skipping IFC object with name', entity.Name)
-    else:
-        return mc.georeference(exterior(get_footprint(shape.geometry)))
+    shape = ifcopenshell.geom.create_shape(settings, entity)
+    assert(isinstance(shape, geom.ShapeElementType))
+    return mc.georeference(exterior(get_footprint(shape.geometry)))
 
 
 def footprint_building(mc: MapConversion, settings: geom.settings, entities: Iterable) -> str:
@@ -239,15 +235,15 @@ def main(file: str, base_iri: str, ifc_classes: list[str]):
         skos:prefLabel "rotation angle for georeferencing geometry, from IfcMapConversion"@en,
                 "rotatiehoek voor georeferentie, uit IfcMapConversion"@nl
     .
-    '''
-    )
+    ''')
 
     # Ifc spaces
-    for s in model.by_type("IfcSpace"):
-        node = iri(base_iri, s)
-        print(f'<{node}> geo:hasDefaultGeometry <{node}/footprint>.')
-        print(f'<{node}/footprint> geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {footprint_space(mc, settings, s)}"^^xsd:integer.')
-        print(f'<{node}/footprint> geo:coordinateDimension "2"^^xsd:integer.')
+    for space in model.by_type("IfcSpace"):
+        node = iri(base_iri, space)
+        print(f'<{node}> geo:hasDefaultGeometry <{node}/footprint> .')
+        print(f'<{node}/footprint> a sf:{footprint.geom_type} ;')
+        print(f'\tgeo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {footprint_space(mc, settings, space)}"^^xsd:integer ;')
+        print('\tgeo:coordinateDimension "2"^^xsd:integer.')
 
     #print('\nfootprint WKT (CRS epsg:28992):',footprint)
     #print('footprint perimeter (metres):', round(footprint.length,3))
@@ -325,8 +321,8 @@ def get_footprint(geometry) -> shapely.Geometry: # adapted from ifcopenshell.uti
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='footprint', description='Returns the building footprint as Turtle (TriG) RDF code')
     parser.add_argument('ifc_file', help='Path to the input IFC file')
-    parser.add_argument('base_iri', help='base IRI of the elements in our graph')
-    parser.add_argument('ifc_classes', help='Comma separated list of IFC classes to use to determine the footprint')
+    parser.add_argument('ifc_classes', help='Comma separated list of IFC classes to use to determine the footprint of the building')
+    parser.add_argument('-u', '--base_iri', help='base IRI of the elements in our graph', default="https://example.org/")
     args = parser.parse_args()
 
     main(args.ifc_file, args.base_iri, args.ifc_classes.split(','))
