@@ -1,3 +1,5 @@
+import Dataset from '@triply/triplydb/Dataset.js'
+
 export type Step = {
   name: string
   description: string
@@ -9,4 +11,8 @@ export type Context = {
   idsFile: string
   inputsDir: string
   outputsDir: string
+  cache: boolean
+  baseIRI: string
+  buildingDataset: Dataset
+  datasetName: string
 }

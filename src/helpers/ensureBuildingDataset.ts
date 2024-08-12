@@ -13,4 +13,6 @@ export const ensureBuildingDataset = async (datasetName: string) => {
     dataset = await account.addDataset(datasetName)
   }
   if (!dataset) throw new Error(`Kon de dataset ${datasetName} niet aanmaken in TriplyDB`)
+
+  return dataset
 }
