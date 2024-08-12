@@ -14,4 +14,5 @@ export type Context = {
   cache: boolean
   baseIRI: string
   buildingDataset: Dataset
+  datasetName: string
 }

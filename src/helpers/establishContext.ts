@@ -52,6 +52,7 @@ export const establishContext = async (): Promise<Context> => {
     cache: args.cache,
     buildingDataset: await ensureBuildingDataset(datasetName),
     baseIRI,
+    datasetName,
   }
 
   if (!context.cache || !existsSync(context.outputsDir)) {
