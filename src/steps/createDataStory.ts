@@ -11,6 +11,7 @@ import { getAccount } from '@root/helpers/getAccount.js'
 import { Context, Step } from '@root/types.js'
 import App from '@triply/triplydb'
 import Query from '@triply/triplydb/Query.js'
+import Story from '@triply/triplydb/Story.js'
 
 const ensureQueries = async (context: Context) => {
   const ruleRepository = App.get({ token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
@@ -71,6 +72,13 @@ export default {
         query: queryInfo.id,
       })
     }
+
+    let existingStory
+    try {
+      existingStory = await account.getStory(context.datasetName)
+    } catch {}
+
+    if (context.cache && existingStory) return
 
     await account.addStory(context.datasetName, { content })
   },
