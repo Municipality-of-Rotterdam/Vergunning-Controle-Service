@@ -31,7 +31,7 @@ export default async function Voetprint({
   if (gebouwSubject === undefined) {
     throw new Error(`undefined gebouwSubject`)
   }
-  if (!gebouwSubject.startsWith(baseIRI)){
+  if (!gebouwSubject.toString().startsWith(baseIRI)){
     throw new Error(`${gebouwSubject} does not start with base IRI ${baseIRI}`)
   }
 
