@@ -19,6 +19,7 @@ Based on an IFC file and a collection of IFC elements, calculate the following:
 2) The perimeter of the footprint in metres.
 3) The area of the footprint in square metres.
 4) A measure of elongation of the footprint.
+5) A 2D footprint of each space within the building.
 
 Output:
 RDF code in Turtle format for the footprint, the perimeter, the area, the elongation and the IfcMapConversion parameters
@@ -38,7 +39,7 @@ Tested with:
 IfcWall
 IfcCurtainWall
 IfcWallStandardCase
-IfcRoofik laat je weten
+IfcRoof
 IfcSlab
 IfcWindow
 IfcColumn
@@ -242,7 +243,7 @@ def main(file: str, base_iri: str, ifc_classes: list[str]):
         node = iri(base_iri, space)
         print(f'<{node}> geo:hasDefaultGeometry <{node}/footprint> .')
         print(f'<{node}/footprint> a sf:{footprint.geom_type} ;')
-        print(f'\tgeo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {footprint_space(mc, settings, space)}"^^xsd:integer ;')
+        print(f'\tgeo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {footprint_space(mc, settings, space)}"^^geo:wktLiteral ;')
         print('\tgeo:coordinateDimension "2"^^xsd:integer.')
 
     #print('\nfootprint WKT (CRS epsg:28992):',footprint)
