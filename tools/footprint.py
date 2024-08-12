@@ -4,12 +4,13 @@ import ifcopenshell as ifcos # tested with version 0.7.10
 import ifcopenshell # tested with version 0.7.10
 import ifcopenshell.geom
 import ifcopenshell.util.shape
+import ifcopenshell.geom as geom
 import numpy as np
 import math
 import shapely # tested with version 2.0.5
 import matplotlib.pyplot as pp
 import geopandas as gpd
-from typing import Iterator, Iterable, Any
+from typing import Sized, Iterator, Iterable, Any
 
 """
 Based on an IFC file and a collection of IFC elements, calculate the following:
@@ -101,50 +102,56 @@ class MapConversion:
         return shapely.Polygon(verts_georef)
 
 
-
 def iri(base_iri: str, entity) -> str:
     "Get the IRI associated with an IFC entity, like `https://example.org/IfcBuilding_113`"
     return f'{base_iri}/{entity.get_info()["type"]}_{entity.id()}'
 
 
-def footprint_space(mc: MapConversion, settings, entity) -> str:
+def exterior(*geometries: geom.ShapeElementType) -> shapely.Geometry:
+    "Find the exterior geometry of one or more shapes."
+
+    if len(geometries) == 0:
+        raise Exception('no geometries were provided')
+    elif len(geometries) == 1:
+        geometry = geometries[0]
+    else:
+        geometry = shapely.ops.unary_union(geometries)
+
+    # get rid of interior polygons
+    if geometry.geom_type == 'Polygon':
+        outer_shape = geometry.exterior
+    else: # it's a multipolygon
+        outer_rings = []
+        for poly in list(geometry.geoms):
+            outer_rings.append(poly.exterior) # output: LinearRing
+        outer_shape = shapely.ops.unary_union(outer_rings) #output: MultiLineString
+
+    return outer_shape
+
+
+def footprint_space(mc: MapConversion, settings: geom.settings, entity) -> str:
     try:
         shape = ifcopenshell.geom.create_shape(settings, entity)
+        assert(isinstance(shape, geom.ShapeElementType))
     except:
         print('# Skipping IFC object with name', entity.Name)
     else:
-        return mc.georeference(get_footprint(shape.geometry).exterior)
+        return mc.georeference(exterior(get_footprint(shape.geometry)))
 
 
-def footprint_building(mc: MapConversion, settings, entities) -> str:
+def footprint_building(mc: MapConversion, settings: geom.settings, entities: Iterable) -> str:
     geometries = []
     for ifc_object in entities:
         try:
             shape = ifcopenshell.geom.create_shape(settings, ifc_object)
+            assert(isinstance(shape, geom.ShapeElementType))
         except:
             print('# Skipping IFC object with name', ifc_object.Name)
         else:
             object_footprint = get_footprint(shape.geometry)
             geometries.append(object_footprint)
 
-    if len(geometries) == 0:
-        print('no suitable geometries were found')
-        exit(5)
-
-    unioned_geometry = shapely.ops.unary_union(geometries)
-
-    # get rid of interior polygons
-    if unioned_geometry.geom_type == 'Polygon':
-        outer_shape = unioned_geometry.exterior
-    else: # it's a multipolygon
-        outer_rings = []
-        for poly in list(unioned_geometry.geoms):
-            outer_rings.append(poly.exterior) # output: LinearRing
-        outer_shape = shapely.ops.unary_union(outer_rings) #output: MultiLineString
-
-    return mc.georeference(outer_shape)
-
-
+    return mc.georeference(exterior(*geometries))
 
 
 def main(file: str, base_iri: str, ifc_classes: list[str]):
@@ -175,15 +182,6 @@ def main(file: str, base_iri: str, ifc_classes: list[str]):
 @prefix qudt: <http://qudt.org/schema/qudt/> .
 @prefix unit: <http://qudt.org/vocab/unit/>  .
 @prefix ssn: <http://www.w3.org/ns/ssn/> . # SSN is misused here, but it offers hasProperty, which is used as a substitute for dedicated VCS semantics''')
-
-    # Ifc spaces
-    for s in model.by_type("IfcSpace"):
-        node = iri(base_iri, s)
-        print(f'<{node}> geo:hasDefaultGeometry <{node}/footprint>.')
-        print(f'<{node}/footprint> geo:asWKT {footprint_space(mc, settings, s)}.')
-
-
-
 
     # Building footprint
     buildings = model.by_type("IfcBuilding")
@@ -244,7 +242,13 @@ def main(file: str, base_iri: str, ifc_classes: list[str]):
     '''
     )
 
-    # building_footprints[0]
+    # Ifc spaces
+    for s in model.by_type("IfcSpace"):
+        node = iri(base_iri, s)
+        print(f'<{node}> geo:hasDefaultGeometry <{node}/footprint>.')
+        print(f'<{node}/footprint> geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {footprint_space(mc, settings, s)}"^^xsd:integer.')
+        print(f'<{node}/footprint> geo:coordinateDimension "2"^^xsd:integer.')
+
     #print('\nfootprint WKT (CRS epsg:28992):',footprint)
     #print('footprint perimeter (metres):', round(footprint.length,3))
     #print('footprint area (square metres):', round(footprint.area,3))
