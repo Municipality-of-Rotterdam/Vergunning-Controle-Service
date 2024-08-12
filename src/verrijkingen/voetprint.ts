@@ -20,12 +20,20 @@ export default async function Voetprint({
   inputIfc,
   gebouwSubject,
   verrijkingenDataset,
-}: Pick<StepContext, 'outputsDir' | 'inputIfc' | 'gebouwSubject' | 'verrijkingenDataset'>) {
+  baseIRI,
+}: Pick<StepContext, 'outputsDir' | 'inputIfc' | 'gebouwSubject' | 'verrijkingenDataset' | 'baseIRI'>) {
   const filePath = `${outputsDir}/footprint.ttl`
 
   await executeCommand(
-    `python3 ./src/tools/footprint.py "${inputIfc}" "${gebouwSubject}" IfcRoof,IfcSlab > ${filePath}`,
+    `python3 ./src/tools/footprint.py "${inputIfc}" -u="${baseIRI}" IfcRoof,IfcSlab > ${filePath}`,
   )
+
+  if (gebouwSubject === undefined) {
+    throw new Error(`undefined gebouwSubject`)
+  }
+  if (!gebouwSubject.startsWith(baseIRI)){
+    throw new Error(`${gebouwSubject} does not start with base IRI ${baseIRI}`)
+  }
 
   log(`Data extract gemaakt`, 'Voetprint')
 
