@@ -20,7 +20,7 @@ export default {
 
     await fetchAssetByName(context.idsFile.split('/').pop()!, context.inputsDir, context.cache)
     await execWithProvenance('python3 --version')
-    const validateScript = path.join('src', 'tools', 'validate_IFC.py')
+    const validateScript = path.join('tools', 'validate_IFC.py')
 
     const command = `python3 ${validateScript} "${context.ifcFile}" "${context.idsFile!}" -r "${idsReportHtml}" -b "${idsReportBcf}"`
     await execWithProvenance(command)

@@ -14,6 +14,11 @@ export const establishContext = async (): Promise<Context> => {
   const args = argsParser(process.argv)
 
   let ifcFileName = args.ifc
+  let idsFileName = args.ids
+
+  if (!ifcFileName) throw new Error('IFC filename not provided')
+  if (!idsFileName) throw new Error('IDS filename not provided')
+
   // An .ifc has been uploaded and an HTTP calls has been done to GitLab.
   if (process.env.TRIGGER_PAYLOAD) {
     const triggerFileData = await fs.readFile(process.env.TRIGGER_PAYLOAD, 'utf8')
@@ -48,7 +53,7 @@ export const establishContext = async (): Promise<Context> => {
     outputsDir: path.join('outputs', datasetName),
     inputsDir: path.join('inputs', buildingName),
     ifcFile: path.join('inputs', buildingName, ifcFileName),
-    idsFile: path.join('inputs', buildingName, args.ids),
+    idsFile: path.join('inputs', buildingName, idsFileName),
     cache: args.cache,
     buildingDataset: await ensureBuildingDataset(datasetName),
     baseIRI,
@@ -57,12 +62,12 @@ export const establishContext = async (): Promise<Context> => {
 
   if (!context.cache || !existsSync(context.outputsDir)) {
     await rimraf(context.outputsDir!)
-    await mkdir(context.outputsDir!)
+    await mkdir(context.outputsDir!, { recursive: true })
   }
 
   if (!context.cache || !existsSync(context.inputsDir)) {
     await rimraf(context.inputsDir!)
-    await mkdir(context.inputsDir!)
+    await mkdir(context.inputsDir!, { recursive: true })
   }
 
   await fetchAssetByName(ifcFileName, context.inputsDir, context.cache)
