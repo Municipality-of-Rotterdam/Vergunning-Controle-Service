@@ -9,6 +9,8 @@ import { SKIP_STEP, skipStep } from './helpers/skipStep.js'
 import { finishProvenance, initProvenance, provenancePointer, setPhase } from './provenance/provenance.js'
 import createDataStory from './steps/createDataStory.js'
 import executeIds from './steps/executeIds.js'
+import gltf from './steps/gltf.js'
+import footprint from './steps/footprint.js'
 import linkedBuildingData from './steps/linkedBuildingData.js'
 import { Step } from './types.js'
 
@@ -20,7 +22,7 @@ import { Step } from './types.js'
 const context = await establishContext()
 initProvenance(context)
 
-const steps: Step[] = [executeIds, linkedBuildingData, createDataStory]
+const steps: Step[] = [executeIds, linkedBuildingData, gltf, footprint, createDataStory]
 for (const step of steps) {
   try {
     setPhase(step.name)
