@@ -3,23 +3,15 @@ import * as path from 'path'
 import { SKIP_STEP } from '@root/helpers/skipStep.js'
 import { execWithProvenance } from '@root/provenance/execWithProvenance.js'
 import { Context, Step } from '@root/types.js'
+import { graphExists } from '@root/helpers/existence.js'
 
 export default {
   name: 'Linked Building Data',
   description: 'Converteert de .ifc naar Linked Data',
   async run(context: Context) {
-    if (context.cache) {
-      const endpoint = `${context.buildingDataset.api.url}/sparql?query=${encodeURIComponent(`select * where { ?s ?p ?o } limit 1`)}`
-      const response = await fetch(endpoint, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${process.env.TRIPLYDB_TOKEN}`,
-        },
-      })
+    const graph = `${context.baseIRI}graph/gebouw`
 
-      const result = await response.json()
-      if (response.status === 200 && result.length) return SKIP_STEP
-    }
+    if (context.cache && (await graphExists(context.buildingDataset, graph))) return SKIP_STEP
 
     await execWithProvenance('java --version')
 
@@ -35,7 +27,7 @@ export default {
         path.join(context.outputsDir, 'building_ifcOWL.ttl'),
       ],
       {
-        defaultGraphName: `${context.baseIRI}graph/gebouw`,
+        defaultGraphName: graph,
         overwriteAll: true,
       },
     )
