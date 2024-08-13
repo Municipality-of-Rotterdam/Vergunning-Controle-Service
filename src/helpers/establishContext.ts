@@ -57,12 +57,12 @@ export const establishContext = async (): Promise<Context> => {
 
   if (!context.cache || !existsSync(context.outputsDir)) {
     await rimraf(context.outputsDir!)
-    await mkdir(context.outputsDir!)
+    await mkdir(context.outputsDir!, { recursive: true })
   }
 
   if (!context.cache || !existsSync(context.inputsDir)) {
     await rimraf(context.inputsDir!)
-    await mkdir(context.inputsDir!)
+    await mkdir(context.inputsDir!, { recursive: true })
   }
 
   await fetchAssetByName(ifcFileName, context.inputsDir, context.cache)
