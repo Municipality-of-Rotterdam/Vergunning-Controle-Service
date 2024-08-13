@@ -24,7 +24,7 @@ export default {
     await execWithProvenance('java --version')
 
     const outputFile = path.join(context.outputsDir, 'building.ttl')
-    const command = `java -Xms2g -Xmx8g -jar "./src/tools/IFCtoLBD_CLI.jar" "${context.ifcFile}" --hasBuildingElements --hasBuildingElementProperties --hasSeparateBuildingElementsModel --hasSeparatePropertiesModel --ifcOWL -u="${context.baseIRI}" -t="${outputFile}"`
+    const command = `java -Xms2g -Xmx8g -jar "./tools/IFCtoLBD_CLI.jar" "${context.ifcFile}" --hasBuildingElements --hasBuildingElementProperties --hasSeparateBuildingElementsModel --hasSeparatePropertiesModel --ifcOWL -u="${context.baseIRI}" -t="${outputFile}"`
     await execWithProvenance(command)
 
     await context.buildingDataset.importFromFiles(
