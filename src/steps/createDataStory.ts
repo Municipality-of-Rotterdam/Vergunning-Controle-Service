@@ -7,21 +7,86 @@
  * - We need to generate the data story for these copied queries.
  */
 
-import { getAccount } from '@root/helpers/getAccount.js'
-import { Context, Step } from '@root/types.js'
-import App from '@triply/triplydb'
-import Query from '@triply/triplydb/Query.js'
-import Story from '@triply/triplydb/Story.js'
+import { parseHTML } from 'linkedom';
 
-const ensureQueries = async (context: Context) => {
+import { getAccount } from '@root/helpers/getAccount.js';
+import { getGitRevision } from '@root/helpers/getGitRevision.js';
+import { Context, Step } from '@root/types.js';
+import App from '@triply/triplydb';
+
+export default {
+  name: 'Maak data verhaal',
+  description: 'Maak het data verhaal aan de hand van de queries in de rule repository',
+  async run(context: Context) {
+    await ensureQueriesForDataset(context)
+    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
+    const account = await triply.getAccount(getAccount())
+    const ruleRepository = App.get({ token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
+    const organization = await ruleRepository.getOrganization('Rotterdam-Rule-Repository')
+    const template = await organization.getStory('template')
+    const templateContent = (await template.getInfo()).content
+    let [header, ...rest] = templateContent.map((item) => {
+      /** @ts-ignore */
+      delete item.id
+
+      /** @ts-ignore */
+      if (item.query) item.query = item.query.id
+
+      return item
+    })
+
+    // Fetches all data-TOKENs
+    // const dataAttributes = header.paragraph!.split(/ |\>|\n/g).filter((attribute) => attribute.startsWith('data-'))
+
+    const tokens = {
+      'data-revision': await getGitRevision(),
+      'data-street-city': 'lorem',
+      'data-regels-op-de-kaart': 'lorem',
+      'data-dataset': 'lorem',
+      'data-voetafdruk': 'lorem',
+      'data-3d-model-bestemmingsvlakken': 'lorem',
+      'data-assets': 'lorem',
+      'data-3d-model': 'lorem',
+      'data-ifc-bestand': 'lorem',
+      'data-ids-rapport-html': 'lorem',
+      'data-ids-rapport-bcf': 'lorem',
+    }
+
+    const { document } = parseHTML(header.paragraph!)
+    for (const [key, value] of Object.entries(tokens)) {
+      const elementsWithDataAttribute = [...document.querySelectorAll(`[${key}]`)]
+      for (const element of elementsWithDataAttribute) {
+        element.innerHTML = value
+        if (element.nodeName === 'A') element.setAttribute('href', value)
+      }
+    }
+
+    const changedHeader = document.toString()
+    header.paragraph = changedHeader
+
+    let existingStory
+    try {
+      existingStory = await account.getStory(context.datasetName)
+      await existingStory.delete()
+    } catch {}
+
+    const story = { content: [header, ...rest] as any[] }
+
+    const savedStory = await account.addStory(context.datasetName, story)
+    console.log(savedStory)
+  },
+} satisfies Step
+
+/**
+ * Copies over the queries from the rule repository for the usage of a data story and a building dataset.
+ */
+const ensureQueriesForDataset = async (context: Context) => {
   const ruleRepository = App.get({ token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
   const organization = await ruleRepository.getOrganization('Rotterdam-Rule-Repository')
   const queries = organization.getQueries()
 
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const account = await triply.getAccount(getAccount())
-
-  const storyQueries: Query[] = []
 
   for await (const query of queries) {
     const info = await query.getInfo()
@@ -35,51 +100,14 @@ const ensureQueries = async (context: Context) => {
       existingQuery = await account.getQuery(queryName)
     } catch {}
 
-    if (context.cache && existingQuery) {
-      storyQueries.push(existingQuery)
-      continue
-    }
+    if (context.cache && existingQuery) continue
 
     if (existingQuery) await existingQuery.delete()
-    const newQuery = await account.addQuery(queryName, {
+    console.log(account)
+    await account.addQuery(queryName, {
       queryString: queryText,
       dataset: context.buildingDataset,
       serviceType: 'speedy',
     })
-
-    storyQueries.push(newQuery)
   }
-
-  return storyQueries
 }
-
-export default {
-  name: 'Maak data verhaal',
-  description: 'Maak het data verhaal aan de hand van de queries in de rule repository',
-  async run(context: Context) {
-    const queries = await ensureQueries(context)
-    const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
-    const account = await triply.getAccount(getAccount())
-
-    const content = []
-    const queriesInfo = (await Promise.all(queries.map((query) => query.getInfo()))).sort((a, b) =>
-      b.name.localeCompare(a.name),
-    )
-
-    for (const queryInfo of queriesInfo) {
-      content.push({
-        type: 'query' as const,
-        query: queryInfo.id,
-      })
-    }
-
-    let existingStory
-    try {
-      existingStory = await account.getStory(context.datasetName)
-    } catch {}
-
-    if (context.cache && existingStory) return
-
-    await account.addStory(context.datasetName, { content })
-  },
-} satisfies Step
