@@ -23,6 +23,7 @@ export async function assetExists(dataset: Dataset, name: string): Promise<boole
   try {
     await dataset.getAsset(name)
   } catch (error) {
+    console.log(error)
     return false
   }
   return true

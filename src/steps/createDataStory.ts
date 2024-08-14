@@ -1,10 +1,7 @@
 /**
  * Phase: Creating the data story in the database.
  *
- * - We need to fetch saved queries from the rule repository (https://demo.triplydb.com/Rotterdam-Rule-Repository/-/queries)
- *   and save copies of them attached to the current dataset.
- *
- * - We need to generate the data story for these copied queries.
+ * - We need to generate the data story for according to the template in the rule repository.
  */
 
 import crypto from 'crypto';
