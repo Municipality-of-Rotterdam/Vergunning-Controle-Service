@@ -3,7 +3,7 @@ import { readFile, unlink, writeFile } from 'fs/promises';
 import gltfPipeline from 'gltf-pipeline';
 import path from 'path';
 
-import { assetExists, checkAssetExistence } from '@root/helpers/existence.js';
+import { checkAssetExistence } from '@root/helpers/existence.js';
 import { getOperatingSystem } from '@root/helpers/getOperatingSystem.js';
 import { SKIP_STEP } from '@root/helpers/skipStep.js';
 import { uploadAsset } from '@root/helpers/uploadAsset.js';
@@ -17,9 +17,7 @@ export default {
   description: '',
   run: async (context: Context) => {
     const allAssetsExists = await checkAssetExistence(context.buildingDataset, ['model-3d.glb', 'model-3d.gltf'])
-    if (context.cache && allAssetsExists) {
-      return SKIP_STEP
-    }
+    if (context.cache && allAssetsExists) return SKIP_STEP
 
     const operatingSystem = getOperatingSystem()
     const ifConvertPath = path.join('tools', 'ifc-convert', operatingSystem, 'IfcConvert')
