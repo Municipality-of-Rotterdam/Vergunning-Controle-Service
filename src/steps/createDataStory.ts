@@ -23,8 +23,15 @@ export default {
     const account = await triply.getAccount(getAccount())
     const ruleRepository = App.get({ token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
     const organization = await ruleRepository.getOrganization('Rotterdam-Rule-Repository')
+    const vcsDataset = await account.getDataset('vcs')
     const template = await organization.getStory('template')
     const templateContent = (await template.getInfo()).content
+    const consoleUrl = (await triply.getInfo()).consoleUrl
+
+    const sourceAssetUrl = (file: string) =>
+      `${consoleUrl}/${account.slug}/${vcsDataset.slug}/assets/download?fileName=${file}`
+    const outputAssetUrl = (file: string) =>
+      `${consoleUrl}/${account.slug}/${context.buildingDataset.slug}/assets/download?fileName=${file}`
 
     // Fetches all data-TOKENs
     // const dataAttributes = header.paragraph!.split(/ |\>|\n/g).filter((attribute) => attribute.startsWith('data-'))
@@ -38,7 +45,8 @@ export default {
       'data-3d-model-bestemmingsvlakken': 'lorem',
       'data-assets': 'lorem',
       'data-3d-model': 'lorem',
-      'data-ifc-bestand': 'lorem',
+      'data-ifc-bestand': sourceAssetUrl(context.sourceIfcFileName),
+      'data-ids-bestand': sourceAssetUrl(context.sourceIdsFileName),
       'data-ids-rapport-html': 'lorem',
       'data-ids-rapport-bcf': 'lorem',
     }
@@ -70,11 +78,14 @@ export default {
         for (const [key, value] of Object.entries(tokens)) {
           const elementsWithDataAttribute = [...document.querySelectorAll(`[${key}]`)]
           for (const element of elementsWithDataAttribute) {
-            element.innerHTML = value
-            if (element.nodeName === 'A') element.setAttribute('href', value)
+            if (element.nodeName === 'A') {
+              element.innerHTML = value.split(/\=|\//g).pop()!
+              element.setAttribute('href', value)
+            } else {
+              element.innerHTML = value
+            }
           }
         }
-
         item.paragraph = document.toString()
       }
     }
@@ -86,7 +97,6 @@ export default {
     } catch {}
 
     const story = { content: templateContent as any[] }
-
     const savedStory = await account.addStory(context.datasetName, story)
   },
 } satisfies Step

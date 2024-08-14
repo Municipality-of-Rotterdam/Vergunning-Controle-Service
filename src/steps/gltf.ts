@@ -3,7 +3,7 @@ import { readFile, unlink, writeFile } from 'fs/promises';
 import gltfPipeline from 'gltf-pipeline';
 import path from 'path';
 
-import { assetExists } from '@root/helpers/existence.js';
+import { assetExists, checkAssetExistence } from '@root/helpers/existence.js';
 import { getOperatingSystem } from '@root/helpers/getOperatingSystem.js';
 import { SKIP_STEP } from '@root/helpers/skipStep.js';
 import { uploadAsset } from '@root/helpers/uploadAsset.js';
@@ -16,8 +16,8 @@ export default {
   name: '3D model bouwen',
   description: '',
   run: async (context: Context) => {
-    const ds = context.buildingDataset
-    if (context.cache && (await Promise.all(['model-3d.glb', 'model-3d.gltf'].map((f) => assetExists(ds, f))))) {
+    const allAssetsExists = await checkAssetExistence(context.buildingDataset, ['model-3d.glb', 'model-3d.gltf'])
+    if (context.cache && allAssetsExists) {
       return SKIP_STEP
     }
 
@@ -34,7 +34,7 @@ export default {
     const { gltf } = await glbToGltf(glb)
     await writeFile(gltfOutput, JSON.stringify(gltf), 'utf8')
 
-    await uploadAsset(ds, glbOutput)
-    await uploadAsset(ds, gltfOutput)
+    await uploadAsset(context.buildingDataset, glbOutput)
+    await uploadAsset(context.buildingDataset, gltfOutput)
   },
 } satisfies Step

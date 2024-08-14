@@ -1,14 +1,14 @@
-import argsParser from 'args-parser'
-import { existsSync } from 'fs'
-import fs, { mkdir } from 'fs/promises'
-import * as path from 'path'
-import { rimraf } from 'rimraf'
+import argsParser from 'args-parser';
+import { existsSync } from 'fs';
+import fs, { mkdir } from 'fs/promises';
+import * as path from 'path';
+import { rimraf } from 'rimraf';
 
-import App from '@triply/triplydb'
+import App from '@triply/triplydb';
 
-import { Context } from '../types.js'
-import { ensureBuildingDataset } from './ensureBuildingDataset.js'
-import { fetchAssetByName } from './fetchAssetByName.js'
+import { Context } from '../types.js';
+import { ensureBuildingDataset } from './ensureBuildingDataset.js';
+import { fetchAssetByName } from './fetchAssetByName.js';
 
 export const establishContext = async (): Promise<Context> => {
   const args = argsParser(process.argv)
@@ -52,6 +52,8 @@ export const establishContext = async (): Promise<Context> => {
   const context: Context = {
     outputsDir: path.join('outputs', datasetName),
     inputsDir: path.join('inputs', buildingName),
+    sourceIfcFileName: ifcFileName,
+    sourceIdsFileName: idsFileName,
     ifcFile: path.join('inputs', buildingName, ifcFileName),
     idsFile: path.join('inputs', buildingName, idsFileName),
     cache: args.cache,
