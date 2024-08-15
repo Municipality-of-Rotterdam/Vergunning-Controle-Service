@@ -4,13 +4,15 @@
  * - We need to generate the data story for according to the template in the rule repository.
  */
 
-import crypto from 'crypto';
-import { parseHTML } from 'linkedom';
+import crypto from 'crypto'
+import { parseHTML } from 'linkedom'
 
-import { getAccount } from '@root/helpers/getAccount.js';
-import { getGitRevision } from '@root/helpers/getGitRevision.js';
-import { Context, Step } from '@root/types.js';
-import App from '@triply/triplydb';
+import { getAccount } from '@root/helpers/getAccount.js'
+import { getGitRevision } from '@root/helpers/getGitRevision.js'
+import { getAddress } from '@root/sparql/getAddress.js'
+import { getVoetprint } from '@root/sparql/getVoetprint.js'
+import { Context, Step } from '@root/types.js'
+import App from '@triply/triplydb'
 
 export default {
   name: 'Maak data verhaal',
@@ -33,9 +35,14 @@ export default {
     // Fetches all data-TOKENs
     // const dataAttributes = header.paragraph!.split(/ |\>|\n/g).filter((attribute) => attribute.startsWith('data-'))
 
+    const address = await getAddress(context)
+    const voetprint = await getVoetprint(context)
+
+    console.log(voetprint)
+
     const tokens = {
       'data-revision': await getGitRevision(),
-      'data-street-city': 'lorem',
+      'data-street-city': address,
       'data-regels-op-de-kaart': 'lorem',
       'data-dataset': 'lorem',
       'data-voetafdruk': 'lorem',

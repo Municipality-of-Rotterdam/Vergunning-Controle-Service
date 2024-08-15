@@ -33,3 +33,7 @@ export const prefixes = Object.fromEntries(
     http,
   }).map(([alias, namespace]) => [alias, namespace().value]),
 )
+
+export const prefixString = Object.entries(prefixes)
+  .map(([alias, prefix]) => `prefix ${alias}: <${prefix}>\n`)
+  .join('')

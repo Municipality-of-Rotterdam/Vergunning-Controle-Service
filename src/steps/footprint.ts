@@ -1,17 +1,17 @@
-import path from 'path';
+import path from 'path'
 
-import { graphExists } from '@root/helpers/existence.js';
-import { SKIP_STEP } from '@root/helpers/skipStep.js';
-import { execWithProvenance } from '@root/provenance/execWithProvenance.js';
-import { Context, Step } from '@root/types.js';
+import { graphExists } from '@root/helpers/existence.js'
+import { SKIP_STEP } from '@root/helpers/skipStep.js'
+import { execWithProvenance } from '@root/provenance/execWithProvenance.js'
+import { Context, Step } from '@root/types.js'
 
 export default {
   name: 'Voetafdrukken berekenen',
   description: '',
   run: async (context: Context) => {
-    const graph = `${context.baseIRI}graph/voetafdruk`
+    const voetprintGraph = `${context.baseIRI}graph/voetafdruk`
 
-    if (context.cache && (await graphExists(context.buildingDataset, graph))) {
+    if (context.cache && (await graphExists(context.buildingDataset, voetprintGraph))) {
       return SKIP_STEP
     }
 
@@ -23,7 +23,7 @@ export default {
     await execWithProvenance(command)
 
     await context.buildingDataset.importFromFiles([turtlePath], {
-      defaultGraphName: graph,
+      defaultGraphName: voetprintGraph,
       overwriteAll: true,
     })
   },
