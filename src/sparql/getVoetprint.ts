@@ -8,16 +8,11 @@ export const getVoetprint = async (context: Context) => {
     context.datasetName,
     `
     ${prefixString}
-
-    SELECT ?address
+    SELECT ?wkt
     WHERE { 
-      GRAPH <${context.baseIRI}/graph/gebouw> {
-        ?building a ifc:IfcBuilding .
-        ?building ifc:buildingAddress_IfcBuilding ?addressNode .
-        ?addressNode ifc:addressLines_IfcPostalAddress ?list.
-        ?list list:hasContents ?line.
-        ?line express:hasString ?address.
-      }
+      ?building a ifc:IfcBuilding .
+      ?building geo:hasDefaultGeometry ?geometry .
+      ?geometry geo:asWKT ?wkt
     }
   `,
   )

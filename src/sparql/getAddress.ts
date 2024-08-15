@@ -4,11 +4,9 @@ import { prefixString } from '../helpers/namespaces.js'
 import { sparqlRequest } from '../helpers/sparqlRequest.js'
 
 export const getAddress = async (context: Context) => {
-  // Determine the address of the building
-  const responseAddress = await sparqlRequest(
+  const response = await sparqlRequest(
     context.datasetName,
-    `
-    ${prefixString}
+    `${prefixString}
 
     SELECT ?address
     WHERE { 
@@ -23,9 +21,9 @@ export const getAddress = async (context: Context) => {
   `,
   )
 
-  const gebouwAddress = responseAddress.length == 1 ? responseAddress[0]['address'] : null
+  const gebouwAddress = response.length == 1 ? response[0]['address'] : null
   if (!gebouwAddress)
-    throw new Error(`Kon het adres van het gebouw niet vinden; response was ${JSON.stringify(responseAddress)}`)
+    throw new Error(`Kon het adres van het gebouw niet vinden; response was ${JSON.stringify(response)}`)
 
   return gebouwAddress
 }

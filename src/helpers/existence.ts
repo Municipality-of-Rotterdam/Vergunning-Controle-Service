@@ -1,4 +1,4 @@
-import Dataset from '@triply/triplydb/Dataset.js';
+import Dataset from '@triply/triplydb/Dataset.js'
 
 export async function graphExists(dataset: Dataset, name: string): Promise<boolean> {
   const endpoint = `${dataset.api.url}/sparql?query=${encodeURIComponent(`select * where { graph <${name}> { ?s ?p ?o } } limit 1`)}`

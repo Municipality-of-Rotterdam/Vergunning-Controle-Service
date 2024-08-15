@@ -14,6 +14,7 @@ export const xsd = namespace('http://www.w3.org/2001/XMLSchema#')
 export const qudt = namespace('http://qudt.org/schema/qudt/')
 export const litre = namespace('http://purl.org/spar/literal#')
 export const http = namespace('http://www.w3.org/2011/http#')
+export const list = namespace('https://w3id.org/list#')
 
 export const prefixes = Object.fromEntries(
   Object.entries({
@@ -31,6 +32,7 @@ export const prefixes = Object.fromEntries(
     qudt,
     litre,
     http,
+    list,
   }).map(([alias, namespace]) => [alias, namespace().value]),
 )
 
