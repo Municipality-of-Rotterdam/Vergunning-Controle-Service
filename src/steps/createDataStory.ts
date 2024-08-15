@@ -5,7 +5,7 @@
  */
 
 import crypto from 'crypto'
-import { parseHTML } from 'linkedom'
+import mustache from 'mustache'
 
 import { getAccount } from '@root/helpers/getAccount.js'
 import { getGitRevision } from '@root/helpers/getGitRevision.js'
@@ -22,38 +22,24 @@ export default {
     const account = await triply.getAccount(getAccount())
     const ruleRepository = App.get({ token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
     const organization = await ruleRepository.getOrganization('Rotterdam-Rule-Repository')
-    const vcsDataset = await account.getDataset('vcs')
     const template = await organization.getStory('template')
     const templateContent = (await template.getInfo()).content
-    const consoleUrl = (await triply.getInfo()).consoleUrl
-
-    const sourceAssetUrl = (file: string) =>
-      `${consoleUrl}/${account.slug}/${vcsDataset.slug}/assets/download?fileName=${file}`
-    const outputAssetUrl = (file: string) =>
-      `${consoleUrl}/${account.slug}/${context.buildingDataset.slug}/assets/download?fileName=${file}`
-
-    // Fetches all data-TOKENs
-    // const dataAttributes = header.paragraph!.split(/ |\>|\n/g).filter((attribute) => attribute.startsWith('data-'))
 
     const address = await getAddress(context)
     const voetprint = await getVoetprint(context)
 
-    console.log(voetprint)
+    const [lng, lat] = voetprint.wkt.split('Polygon ((')[1].split(',')[0].split(' ')
 
-    // TODO make dutch, remove data- and convert to mustache
     const tokens = {
-      'data-revision': await getGitRevision(),
-      'data-street-city': address,
-      'data-regels-op-de-kaart': 'lorem',
-      'data-dataset': 'lorem',
-      'data-voetafdruk': 'lorem',
-      'data-3d-model-bestemmingsvlakken': 'lorem',
-      'data-assets': 'lorem',
-      'data-3d-model': 'lorem',
-      'data-ifc-bestand': sourceAssetUrl(context.sourceIfcFileName),
-      'data-ids-bestand': sourceAssetUrl(context.sourceIdsFileName),
-      'data-ids-rapport-html': 'lorem',
-      'data-ids-rapport-bcf': 'lorem',
+      revisie: await getGitRevision(),
+      adres: address,
+      lat,
+      lng,
+      'gebouw-dataset-url': context.baseIRI.substring(0, context.baseIRI.length - 1),
+      'voetafdruk-url': voetprint.geometry,
+      '3d-model-met-bestemmingsvlakken-url': 'lorem',
+      'ifc-naam': context.sourceIfcFileName,
+      'ids-naam': context.sourceIdsFileName,
     }
 
     for (const item of templateContent) {
@@ -78,21 +64,7 @@ export default {
         item.query = (await addedQuery.getInfo()).id
       }
 
-      if (item.type === 'paragraph') {
-        // const { document } = parseHTML(item.paragraph!)
-        // for (const [key, value] of Object.entries(tokens)) {
-        //   const elementsWithDataAttribute = [...document.querySelectorAll(`[${key}]`)]
-        //   for (const element of elementsWithDataAttribute) {
-        //     if (element.nodeName === 'A') {
-        //       element.innerHTML = value.split(/\=|\//g).pop()!
-        //       element.setAttribute('href', value)
-        //     } else {
-        //       element.innerHTML = value
-        //     }
-        //   }
-        // }
-        item.paragraph = document.toString()
-      }
+      if (item.type === 'paragraph') item.paragraph = mustache.render(item.paragraph!, tokens)
     }
 
     let existingStory

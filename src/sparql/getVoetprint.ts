@@ -1,19 +1,21 @@
 import { Context } from '@root/types.js'
 
-import { ifc, prefixString } from '../helpers/namespaces.js'
+import { prefixString } from '../helpers/namespaces.js'
 import { sparqlRequest } from '../helpers/sparqlRequest.js'
 
-export const getVoetprint = async (context: Context) => {
-  const response = await sparqlRequest(
-    context.datasetName,
-    `
+export const getVoetprint = async (context: Context): Promise<{ wkt: string; geometry: string }> => {
+  const query = `
     ${prefixString}
-    SELECT ?wkt
+    SELECT ?wkt ?geometry
     WHERE { 
       ?building a ifc:IfcBuilding .
       ?building geo:hasDefaultGeometry ?geometry .
       ?geometry geo:asWKT ?wkt
     }
-  `,
-  )
+  `
+
+  const response = await sparqlRequest(context.datasetName, query)
+  const wkt = response.length == 1 ? response[0] : null
+  if (!wkt) throw new Error('Could not get the footprint')
+  return wkt
 }
