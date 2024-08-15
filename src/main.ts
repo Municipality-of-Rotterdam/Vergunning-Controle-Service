@@ -1,20 +1,18 @@
-import 'dotenv/config';
+import 'dotenv/config'
 
-import { write } from '@jeswr/pretty-turtle';
-import { prov, rdf } from '@root/helpers/namespaces.js';
+import { write } from '@jeswr/pretty-turtle'
+import { prov, rdf } from '@root/helpers/namespaces.js'
 
-import { establishContext } from './helpers/establishContext.js';
-import { prefixes } from './helpers/namespaces.js';
-import { SKIP_STEP, skipStep } from './helpers/skipStep.js';
-import {
-    finishProvenance, initProvenance, provenancePointer, setPhase
-} from './provenance/provenance.js';
-import createDataStory from './steps/createDataStory.js';
-import executeIds from './steps/executeIds.js';
-import footprint from './steps/footprint.js';
-import gltf from './steps/gltf.js';
-import linkedBuildingData from './steps/linkedBuildingData.js';
-import { Step } from './types.js';
+import { establishContext } from './helpers/establishContext.js'
+import { prefixes } from './helpers/namespaces.js'
+import { SKIP_STEP, skipStep } from './helpers/skipStep.js'
+import { finishProvenance, initProvenance, provenancePointer, setPhase } from './provenance/provenance.js'
+import createDataStory from './steps/createDataStory.js'
+import executeIds from './steps/executeIds.js'
+import footprint from './steps/footprint.js'
+import gltf from './steps/gltf.js'
+import linkedBuildingData from './steps/linkedBuildingData.js'
+import { Step } from './types.js'
 
 /**
  * Phase: Preprocessing data

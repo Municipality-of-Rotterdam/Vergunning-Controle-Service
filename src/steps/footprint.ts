@@ -9,9 +9,9 @@ export default {
   name: 'Voetafdrukken berekenen',
   description: '',
   run: async (context: Context) => {
-    const voetprintGraph = `${context.baseIRI}graph/voetafdruk`
+    const footprintGraph = `${context.baseIRI}graph/voetafdruk`
 
-    if (context.cache && (await graphExists(context.buildingDataset, voetprintGraph))) {
+    if (context.cache && (await graphExists(context.buildingDataset, footprintGraph))) {
       return SKIP_STEP
     }
 
@@ -23,7 +23,7 @@ export default {
     await execWithProvenance(command)
 
     await context.buildingDataset.importFromFiles([turtlePath], {
-      defaultGraphName: voetprintGraph,
+      defaultGraphName: footprintGraph,
       overwriteAll: true,
     })
   },
