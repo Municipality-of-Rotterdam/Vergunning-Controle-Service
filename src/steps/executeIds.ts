@@ -1,10 +1,10 @@
-import { existsSync } from 'fs';
-import * as path from 'path';
+import { existsSync } from 'fs'
+import * as path from 'path'
 
-import { fetchAssetByName } from '@root/helpers/fetchAssetByName.js';
-import { SKIP_STEP } from '@root/helpers/skipStep.js';
-import { execWithProvenance } from '@root/provenance/execWithProvenance.js';
-import { Context, Step } from '@root/types.js';
+import { fetchAssetByName } from '@root/helpers/fetchAssetByName.js'
+import { SKIP_STEP } from '@root/helpers/skipStep.js'
+import { execWithProvenance } from '@root/provenance/execWithProvenance.js'
+import { Context, Step } from '@root/types.js'
 
 export default {
   name: 'IDS validatie',

@@ -40,6 +40,7 @@ export default {
 
     console.log(voetprint)
 
+    // TODO make dutch, remove data- and convert to mustache
     const tokens = {
       'data-revision': await getGitRevision(),
       'data-street-city': address,
@@ -78,18 +79,18 @@ export default {
       }
 
       if (item.type === 'paragraph') {
-        const { document } = parseHTML(item.paragraph!)
-        for (const [key, value] of Object.entries(tokens)) {
-          const elementsWithDataAttribute = [...document.querySelectorAll(`[${key}]`)]
-          for (const element of elementsWithDataAttribute) {
-            if (element.nodeName === 'A') {
-              element.innerHTML = value.split(/\=|\//g).pop()!
-              element.setAttribute('href', value)
-            } else {
-              element.innerHTML = value
-            }
-          }
-        }
+        // const { document } = parseHTML(item.paragraph!)
+        // for (const [key, value] of Object.entries(tokens)) {
+        //   const elementsWithDataAttribute = [...document.querySelectorAll(`[${key}]`)]
+        //   for (const element of elementsWithDataAttribute) {
+        //     if (element.nodeName === 'A') {
+        //       element.innerHTML = value.split(/\=|\//g).pop()!
+        //       element.setAttribute('href', value)
+        //     } else {
+        //       element.innerHTML = value
+        //     }
+        //   }
+        // }
         item.paragraph = document.toString()
       }
     }
