@@ -52,6 +52,8 @@ export const establishContext = async (): Promise<Context> => {
   const context: Context = {
     outputsDir: path.join('outputs', datasetName),
     inputsDir: path.join('inputs', buildingName),
+    sourceIfcFileName: ifcFileName,
+    sourceIdsFileName: idsFileName,
     ifcFile: path.join('inputs', buildingName, ifcFileName),
     idsFile: path.join('inputs', buildingName, idsFileName),
     cache: args.cache,

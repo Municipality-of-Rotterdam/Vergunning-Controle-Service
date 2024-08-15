@@ -14,6 +14,11 @@ export async function graphExists(dataset: Dataset, name: string): Promise<boole
   return false
 }
 
+export async function checkAssetExistence(dataset: Dataset, fileNames: string[]) {
+  const exists = await Promise.all(fileNames.map((filename) => assetExists(dataset, filename)))
+  return exists.every(Boolean)
+}
+
 export async function assetExists(dataset: Dataset, name: string): Promise<boolean> {
   try {
     await dataset.getAsset(name)
