@@ -1,14 +1,14 @@
-import { existsSync } from 'fs';
-import { readFile, unlink, writeFile } from 'fs/promises';
-import gltfPipeline from 'gltf-pipeline';
-import path from 'path';
+import { existsSync } from 'fs'
+import { readFile, unlink, writeFile } from 'fs/promises'
+import gltfPipeline from 'gltf-pipeline'
+import path from 'path'
 
-import { checkAssetExistence } from '@root/helpers/existence.js';
-import { getOperatingSystem } from '@root/helpers/getOperatingSystem.js';
-import { SKIP_STEP } from '@root/helpers/skipStep.js';
-import { uploadAsset } from '@root/helpers/uploadAsset.js';
-import { execWithProvenance } from '@root/provenance/execWithProvenance.js';
-import { Context, Step } from '@root/types.js';
+import { checkAssetExistence } from '@root/helpers/existence.js'
+import { getOperatingSystem } from '@root/helpers/getOperatingSystem.js'
+import { SKIP_STEP } from '@root/helpers/skipStep.js'
+import { uploadAsset } from '@root/helpers/uploadAsset.js'
+import { execWithProvenance } from '@root/provenance/execWithProvenance.js'
+import { Context, Step } from '@root/types.js'
 
 const { glbToGltf } = gltfPipeline
 
