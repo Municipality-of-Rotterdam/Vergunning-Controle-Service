@@ -12,6 +12,7 @@ import executeIds from './steps/executeIds.js'
 import footprint from './steps/footprint.js'
 import gltf from './steps/gltf.js'
 import linkedBuildingData from './steps/linkedBuildingData.js'
+import ruimtelijkePlannen from './steps/ruimtelijkePlannen.js'
 import { Step } from './types.js'
 
 /**
@@ -22,7 +23,20 @@ import { Step } from './types.js'
 const context = await establishContext()
 initProvenance(context)
 
-const steps: Step[] = [executeIds, linkedBuildingData, gltf, footprint, createDataStory]
+const steps: Step[] = [
+  executeIds,
+
+  // Building data
+  linkedBuildingData, // convert IFC model to linked data
+  gltf, // extract 3d model from IFC model
+  footprint, // calculate footprint geometries from IFC model
+
+  // API calls
+  ruimtelijkePlannen,
+
+  createDataStory,
+]
+
 for (const step of steps) {
   try {
     console.info(step.name)
