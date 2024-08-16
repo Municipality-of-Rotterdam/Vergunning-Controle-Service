@@ -3,7 +3,7 @@ export * as api from './api.js'
 
 type ApiArgs = {
   headers?: HeadersInit
-  params: Record<string, string | number>
+  params: { [key: string]: string | number }
   path: string
   body?: any
 }
@@ -44,5 +44,5 @@ export async function ruimtelijkePlannen({ headers, params, path, body }: ApiArg
 
   const response = await fetchWithProvenance(url, options)
   if (response.ok) return response.json()
-  throw new Error(`API failed with ${response.status}`)
+  throw new Error(`API failed with ${response.status}: ${response.statusText}`)
 }
