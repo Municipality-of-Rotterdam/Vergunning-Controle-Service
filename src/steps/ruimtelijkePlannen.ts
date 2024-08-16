@@ -7,21 +7,8 @@ import { Context, Step } from '@root/types.js'
 import { sparqlRequest } from '@root/helpers/sparqlRequest.js'
 import { ifc, geo, sf, prov, rdf } from '@root/helpers/namespaces.js'
 import { geojsonToWKT, wktToGeoJSON } from '@terraformer/wkt'
-import { API } from '@root/helpers/api.js'
+import { ruimtelijkePlannen } from '@root/helpers/api.js'
 import { Quad } from '@rdfjs/types'
-
-/**
- * Ruimtelijke Plannen Opvragen API
- * @description this API contains all data w.r.t. bestemmingsplannen. This API will eventually be replaced by the DSO, when all data has migrated.
- * @link https://developer.overheid.nl/apis/dso-ruimtelijke-plannen-opvragen, https://aandeslagmetdeomgevingswet.nl/ontwikkelaarsportaal/api-register/api/rp-opvragen/
- * For documentation see (can be outdated): https://redocly.github.io/redoc/?url=https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4/
- */
-const RuimtelijkePlannen = new API('https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4', {
-  'x-api-key': process.env.RP_API_TOKEN ?? '',
-  'content-Crs': 'epsg:28992',
-  'content-type': 'application/json',
-  maxRedirects: '20',
-})
 
 export default {
   name: 'Ruimtelijke plannen',
@@ -48,7 +35,7 @@ export default {
     // Add all plans relevant to those buildings as linked data
     for (const building of buildings) {
       const footprint = wktToGeoJSON(building.footprint.replace(/^<.*> /, '').toUpperCase())
-      const response = await RuimtelijkePlannen.json({
+      const response = await ruimtelijkePlannen({
         path: '/plannen/_zoek',
         body: { _geo: { contains: footprint } },
         params: { planType: 'bestemmingsplan', expand: 'geometrie' },

@@ -1,4 +1,5 @@
 import { fetchWithProvenance } from '@root/provenance/fetchWithProvenance.js'
+export * as api from './api.js'
 
 type ApiArgs = {
   headers?: HeadersInit
@@ -6,46 +7,42 @@ type ApiArgs = {
   path: string
   body?: any
 }
-export class API {
-  base: string
-  headersInit?: HeadersInit
-  constructor(base: string, headers?: HeadersInit) {
-    this.base = base
-    this.headersInit = headers
-  }
-  private async send({ headers, params, path, body }: ApiArgs): Promise<Response> {
-    // Construct headers
-    const headersObject = new Headers(Object.assign(headers ?? {}, this.headersInit))
 
-    // Construct URL
-    let url = `${this.base}${path}`
-    if (params)
-      url +=
-        '?' +
-        Object.entries(params)
-          .map(([k, v]) => `${k}=${v}`)
-          .join('&')
+/**
+ * Ruimtelijke Plannen Opvragen API
+ * @description this API contains all data w.r.t. bestemmingsplannen. This API will eventually be replaced by the DSO, when all data has migrated.
+ * @link https://developer.overheid.nl/apis/dso-ruimtelijke-plannen-opvragen, https://aandeslagmetdeomgevingswet.nl/ontwikkelaarsportaal/api-register/api/rp-opvragen/
+ * For documentation see (can be outdated): https://redocly.github.io/redoc/?url=https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4/
+ */
+export async function ruimtelijkePlannen({ headers, params, path, body }: ApiArgs): Promise<any> {
+  // Construct headers
+  const headersObject = new Headers(
+    Object.assign(
+      {
+        'x-api-key': process.env.RP_API_TOKEN ?? '',
+        'content-Crs': 'epsg:28992',
+        'content-type': 'application/json',
+        maxRedirects: '20',
+      },
+      headers,
+    ),
+  )
 
-    const options: RequestInit =
-      body === undefined
-        ? { method: 'GET', headers: headersObject }
-        : { method: 'POST', headers: headersObject, body: JSON.stringify(body) }
+  // Construct URL
+  let url = `https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4${path}`
+  if (params)
+    url +=
+      '?' +
+      Object.entries(params)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('&')
 
-    try {
-      console.info(`Fetching ${url}`)
-      return await fetchWithProvenance(url, options)
-    } catch (error) {
-      throw new Error(`API request failed: ${error instanceof Error ? error.message : error}`)
-    }
-  }
-  async json(args: ApiArgs): Promise<any> {
-    const response = await this.send(args)
-    if (response.ok) return response.json()
-    throw new Error(`API failed with ${response.status}`)
-  }
-  async xml(args: ApiArgs): Promise<any> {
-    const response = await this.send(args)
-    if (response.ok) return response.text()
-    throw new Error(`API failed with ${response.status}`)
-  }
+  const options: RequestInit =
+    body === undefined
+      ? { method: 'GET', headers: headersObject }
+      : { method: 'POST', headers: headersObject, body: JSON.stringify(body) }
+
+  const response = await fetchWithProvenance(url, options)
+  if (response.ok) return response.json()
+  throw new Error(`API failed with ${response.status}`)
 }
