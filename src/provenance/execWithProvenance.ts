@@ -1,9 +1,9 @@
-import { exec } from 'node:child_process'
+import { exec } from 'node:child_process';
 
-import dataFactory from '@rdfjs/data-model'
+import dataFactory from '@rdfjs/data-model';
 
-import { prov, rdf, rdfs, xsd } from '../helpers/namespaces.js'
-import { provenancePointer } from './provenance.js'
+import { prov, rdf, rdfs, xsd } from '../core/namespaces.js';
+import { provenancePointer } from './provenance.js';
 
 export const execWithProvenance = async (command: string): Promise<{ stdout: string; stderr: string }> => {
   return new Promise((resolve, reject) => {

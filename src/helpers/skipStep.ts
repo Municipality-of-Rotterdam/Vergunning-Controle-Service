@@ -1,6 +1,6 @@
-import dataFactory from '@rdfjs/data-model'
-import { prov, rdf, rdfs, xsd } from '@root/helpers/namespaces.js'
-import { provenancePointer } from '@root/provenance/provenance.js'
+import dataFactory from '@rdfjs/data-model';
+import { prov, rdf, rdfs, xsd } from '@root/core/namespaces.js';
+import { provenancePointer } from '@root/provenance/provenance.js';
 
 export const skipStep = (label: string) => {
   const time = performance.now()

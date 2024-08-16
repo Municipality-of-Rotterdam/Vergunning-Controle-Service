@@ -1,7 +1,7 @@
-import { Context } from '@root/types.js'
+import { Context } from '@root/types.js';
 
-import { prefixString } from '../helpers/namespaces.js'
-import { sparqlRequest } from '../helpers/sparqlRequest.js'
+import { prefixString } from '../core/namespaces.js';
+import { sparqlRequest } from '../requesters/sparqlRequest.js';
 
 export const getVoetprint = async (context: Context): Promise<{ wkt: string; geometry: string }> => {
   const query = `
