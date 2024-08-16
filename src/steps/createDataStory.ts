@@ -27,7 +27,6 @@ export default {
 
     const address = await getAddress(context)
     const voetprint = await getVoetprint(context)
-
     const [lng, lat] = voetprint.wkt.split('Polygon ((')[1].split(',')[0].split(' ')
 
     const tokens = {
@@ -37,9 +36,8 @@ export default {
       lng,
       'gebouw-dataset-url': context.baseIRI.substring(0, context.baseIRI.length - 1),
       'voetafdruk-url': voetprint.geometry,
-      '3d-model-met-bestemmingsvlakken-url': 'lorem',
-      'ifc-naam': context.sourceIfcFileName,
-      'ids-naam': context.sourceIdsFileName,
+      'ifc-naam': context.sourceIfcFileName.replaceAll('.ifc', ''),
+      'ids-naam': 'IDSValidationReport_' + context.sourceIdsFileName.replaceAll('.ids', '').replaceAll(' ', ''),
     }
 
     for (const item of templateContent) {
