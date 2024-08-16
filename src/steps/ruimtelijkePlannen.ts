@@ -44,7 +44,7 @@ export default {
       const plannen = response['_embedded']['plannen']
       const doc: jsonld.JsonLdDocument = {
         '@context': {
-          '@vocab': `${graphName}#`,
+          '@vocab': `${ruimtelijkePlannen.url}#`,
         },
         '@id': building.node,
         ruimtelijkPlan: plannen,

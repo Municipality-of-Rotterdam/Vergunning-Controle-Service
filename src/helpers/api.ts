@@ -8,6 +8,7 @@ type ApiArgs = {
   body?: any
 }
 
+const ruimtelijkePlannenURL = 'https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4'
 /**
  * Ruimtelijke Plannen Opvragen API
  * @description this API contains all data w.r.t. bestemmingsplannen. This API will eventually be replaced by the DSO, when all data has migrated.
@@ -24,12 +25,12 @@ export async function ruimtelijkePlannen({ headers, params, path, body }: ApiArg
         'content-type': 'application/json',
         maxRedirects: '20',
       },
-      headers,
+      headers ?? {},
     ),
   )
 
   // Construct URL
-  let url = `https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4${path}`
+  let url = `${ruimtelijkePlannenURL}${path}`
   if (params)
     url +=
       '?' +
@@ -43,6 +44,8 @@ export async function ruimtelijkePlannen({ headers, params, path, body }: ApiArg
       : { method: 'POST', headers: headersObject, body: JSON.stringify(body) }
 
   const response = await fetchWithProvenance(url, options)
-  if (response.ok) return response.json()
-  throw new Error(`API failed with ${response.status}: ${response.statusText}`)
+  if (!response.ok) throw new Error(`API failed with ${response.status}: ${response.statusText}`)
+  const json = await response.json()
+  return json
 }
+ruimtelijkePlannen.url = ruimtelijkePlannenURL
