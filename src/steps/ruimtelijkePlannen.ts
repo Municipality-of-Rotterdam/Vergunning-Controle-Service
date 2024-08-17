@@ -50,8 +50,12 @@ export default {
         ruimtelijkPlan: plannen,
       }
 
-      const quads = (await jsonld.toRDF(doc)) as Quad[]
-      store.addQuads(quads)
+      // const quads = (await jsonld.toRDF(doc)) as Quad[]
+      // store.addQuads(quads)
+      // TODO: Is there a more efficient way to get JSON-LD into the store?
+      const nquads = (await jsonld.toRDF(doc, { format: 'application/n-quads' })) as unknown as string
+      const parser = new n3.Parser({ format: 'application/n-quads' })
+      store.addQuads(parser.parse(nquads))
     }
     await context.buildingDataset.importFromStore(store, {
       defaultGraphName: graphName,
