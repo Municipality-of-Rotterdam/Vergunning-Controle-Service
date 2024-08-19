@@ -1,16 +1,24 @@
-import fs from 'fs/promises'
-import { join } from 'path'
+import fs from 'fs/promises';
+import { join } from 'path';
 
-import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js'
-import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
-import { wfsRequest } from '@root/requesters/wfsRequest.js'
-import { getFootprint } from '@root/sparql/getFootprint.js'
-import { Context, Step } from '@root/types.js'
+import { graphExists } from '@root/helpers/existence.js';
+import { SKIP_STEP } from '@root/helpers/skipStep.js';
+import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js';
+import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js';
+import { wfsRequest } from '@root/requesters/wfsRequest.js';
+import { getFootprint } from '@root/sparql/getFootprint.js';
+import { Context, Step } from '@root/types.js';
 
 export default {
   name: 'Wind',
   description: '',
   run: async (context: Context) => {
+    const graphName = `${context.baseIRI}graph/externe-data/wind`
+
+    if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
+      return SKIP_STEP
+    }
+
     const footprint = await getFootprint(context)
     const coordinates = wktPolygonToCoordinates(footprint.wkt)
 
@@ -43,8 +51,11 @@ export default {
       context,
     )
 
-    const graphName = `${context.baseIRI}graphs/externe-data/wind`
-    const turtle = await responseToLinkedData(response, graphName)
+    const turtle = await responseToLinkedData(
+      response,
+      graphName,
+      'https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones',
+    )
     const filepath = join(context.outputsDir, 'wind.ttl')
 
     await fs.writeFile(filepath, turtle, 'utf8')

@@ -1,16 +1,24 @@
-import fs from 'fs/promises'
-import { join } from 'path'
+import fs from 'fs/promises';
+import { join } from 'path';
 
-import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js'
-import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
-import { wfsRequest } from '@root/requesters/wfsRequest.js'
-import { getFootprint } from '@root/sparql/getFootprint.js'
-import { Context, Step } from '@root/types.js'
+import { graphExists } from '@root/helpers/existence.js';
+import { SKIP_STEP } from '@root/helpers/skipStep.js';
+import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js';
+import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js';
+import { wfsRequest } from '@root/requesters/wfsRequest.js';
+import { getFootprint } from '@root/sparql/getFootprint.js';
+import { Context, Step } from '@root/types.js';
 
 export default {
   name: 'Welstand',
   description: '',
   run: async (context: Context) => {
+    const graphName = `${context.baseIRI}graph/externe-data/welstand`
+
+    if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
+      return SKIP_STEP
+    }
+
     const footprint = await getFootprint(context)
     const coordinates = wktPolygonToCoordinates(footprint.wkt)
 
@@ -38,8 +46,11 @@ export default {
       context,
     )
 
-    const graphName = `${context.baseIRI}graphs/externe-data/welstand`
-    const turtle = await responseToLinkedData(response, graphName)
+    const turtle = await responseToLinkedData(
+      response,
+      graphName,
+      'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS',
+    )
     const filepath = join(context.outputsDir, 'welstand.ttl')
 
     await fs.writeFile(filepath, turtle, 'utf8')
