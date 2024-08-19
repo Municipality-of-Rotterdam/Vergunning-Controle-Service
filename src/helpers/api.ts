@@ -1,4 +1,6 @@
 import { fetchWithProvenance } from '@root/provenance/fetchWithProvenance.js'
+import { geo, sf } from './namespaces.js'
+import { geojsonToWKT } from '@terraformer/wkt'
 export * as api from './api.js'
 
 type ApiArgs = {
@@ -6,6 +8,22 @@ type ApiArgs = {
   params: { [key: string]: string | number }
   path: string
   body?: any
+}
+
+const reviver = (_: string, value: any) => {
+  const geometry = value ? value['geometrie'] : undefined
+  if (geometry) {
+    value[geo('hasDefaultGeometry').value] = {
+      '@type': sf(geometry.type).value,
+      'geo:asWKT': {
+        '@value': `<http://www.opengis.net/def/crs/EPSG/0/28992> ${geojsonToWKT(geometry)}`,
+        '@type': geo('wktLiteral').value,
+      },
+    }
+    return value
+  } else {
+    return value
+  }
 }
 
 const ruimtelijkePlannenURL = 'https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4'
@@ -45,7 +63,7 @@ export async function ruimtelijkePlannen({ headers, params, path, body }: ApiArg
 
   const response = await fetchWithProvenance(url, options)
   if (!response.ok) throw new Error(`API failed with ${response.status}: ${response.statusText}`)
-  const json = await response.json()
-  return json
+  const text = await response.text()
+  return JSON.parse(text, reviver)
 }
 ruimtelijkePlannen.url = ruimtelijkePlannenURL
