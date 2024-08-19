@@ -12,6 +12,7 @@ import footprint from './steps/footprint.js'
 import gltf from './steps/gltf.js'
 import linkedBuildingData from './steps/linkedBuildingData.js'
 import welstand from './steps/Welstand.js'
+import wind from './steps/Wind.js'
 import { Step } from './types.js'
 
 /**
@@ -22,7 +23,7 @@ import { Step } from './types.js'
 const context = await establishContext()
 initProvenance(context)
 
-const steps: Step[] = [executeIds, linkedBuildingData, gltf, footprint, welstand, createDataStory]
+const steps: Step[] = [executeIds, linkedBuildingData, gltf, footprint, welstand, wind, createDataStory]
 for (const step of steps) {
   try {
     console.info(step.name)
