@@ -1,3 +1,7 @@
+import fs from 'fs/promises'
+import { join } from 'path'
+
+import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
 import { wfsRequest } from '@root/requesters/wfsRequest.js'
 import { getVoetprint } from '@root/sparql/getVoetprint.js'
 import { Context, Step } from '@root/types.js'
@@ -35,8 +39,17 @@ export default {
     const response = await wfsRequest(
       `https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer`,
       requestXml,
+      context,
     )
 
-    console.log(response)
+    const graphName = `${context.baseIRI}graphs/externe-data/welstand`
+    const turtle = await responseToLinkedData(response, graphName)
+    const filepath = join(context.outputsDir, 'welstand.ttl')
+
+    await fs.writeFile(filepath, turtle, 'utf8')
+    await context.buildingDataset.importFromFiles([filepath], {
+      defaultGraphName: graphName,
+      overwriteAll: true,
+    })
   },
 } satisfies Step

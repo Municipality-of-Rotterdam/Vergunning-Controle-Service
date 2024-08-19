@@ -39,4 +39,4 @@ for (const step of steps) {
 const provenanceTurtle = await write([...(await finishProvenance())], {
   prefixes,
 })
-// console.log(provenanceTurtle)
+console.log(provenanceTurtle)
