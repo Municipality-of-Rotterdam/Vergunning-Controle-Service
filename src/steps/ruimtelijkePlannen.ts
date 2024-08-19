@@ -23,12 +23,14 @@ export default {
     // Find all buildings and their footprints in the dataset
     const buildings: any[] = await sparqlRequest(
       context.datasetName,
-      `SELECT ?node ?footprint WHERE {
+      `SELECT DISTINCT ?node ?footprint WHERE {
         ?node a <${ifc('IfcBuilding').value}>.
         ?node <${geo('hasDefaultGeometry').value}> ?geom.
         ?geom <${geo('asWKT').value}> ?footprint.
       }`,
     )
+
+    console.log(buildings.length, 'gebouwen gevonden')
 
     const store = new n3.Store()
 
@@ -38,7 +40,7 @@ export default {
       const response = await ruimtelijkePlannen({
         path: '/plannen/_zoek',
         body: { _geo: { contains: footprint } },
-        params: { planType: 'bestemmingsplan', expand: 'geometrie' },
+        params: { planType: 'bestemmingsplan' }, //, expand: 'geometrie' }, TODO: This makes fetch crash
       })
 
       const plannen = response['_embedded']['plannen']
@@ -47,7 +49,7 @@ export default {
           '@vocab': `${ruimtelijkePlannen.url}#`,
         },
         '@id': building.node,
-        ruimtelijkPlan: plannen,
+        plannen,
       }
 
       // const quads = (await jsonld.toRDF(doc)) as Quad[]
@@ -56,7 +58,26 @@ export default {
       const nquads = (await jsonld.toRDF(doc, { format: 'application/n-quads' })) as unknown as string
       const parser = new n3.Parser({ format: 'application/n-quads' })
       store.addQuads(parser.parse(nquads))
+
+      for (const plan of plannen) {
+        const responseMaatvoering = await ruimtelijkePlannen({
+          path: `/plannen/${plan.id}/maatvoeringen/_zoek`,
+          body: { _geo: { intersects: footprint } },
+          params: { expand: 'geometrie' },
+        })
+        const maatvoeringen = responseMaatvoering['_embedded']['maatvoeringen']
+        const docMv: jsonld.JsonLdDocument = {
+          '@context': {
+            '@vocab': `${ruimtelijkePlannen.url}#`,
+          },
+          '@id': `${ruimtelijkePlannen.url}#${plan.id}`,
+          maatvoeringen,
+        }
+        const nquadsMv = (await jsonld.toRDF(docMv, { format: 'application/n-quads' })) as unknown as string
+        store.addQuads(parser.parse(nquadsMv))
+      }
     }
+
     await context.buildingDataset.importFromStore(store, {
       defaultGraphName: graphName,
       overwriteAll: true,
