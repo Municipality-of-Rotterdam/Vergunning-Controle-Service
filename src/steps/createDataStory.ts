@@ -10,7 +10,7 @@ import mustache from 'mustache'
 import { getAccount } from '@root/helpers/getAccount.js'
 import { getGitRevision } from '@root/helpers/getGitRevision.js'
 import { getAddress } from '@root/sparql/getAddress.js'
-import { getVoetprint } from '@root/sparql/getVoetprint.js'
+import { getFootprint } from '@root/sparql/getFootprint.js'
 import { Context, Step } from '@root/types.js'
 import App from '@triply/triplydb'
 
@@ -27,8 +27,8 @@ export default {
     const templateContent = info.content
 
     const address = await getAddress(context)
-    const voetprint = await getVoetprint(context)
-    const [lng, lat] = voetprint.wkt.split('Polygon ((')[1].split(',')[0].split(' ')
+    const footprint = await getFootprint(context)
+    const [lng, lat] = footprint.wkt.split('Polygon ((')[1].split(',')[0].split(' ')
 
     const tokens = {
       revisie: await getGitRevision(),
@@ -36,7 +36,7 @@ export default {
       lat,
       lng,
       'gebouw-dataset-url': context.baseIRI.substring(0, context.baseIRI.length - 1),
-      'voetafdruk-url': voetprint.geometry,
+      'voetafdruk-url': footprint.geometry,
       'ifc-naam': context.sourceIfcFileName.replaceAll('.ifc', ''),
       'ids-naam': 'IDSValidationReport_' + context.sourceIdsFileName.replaceAll('.ids', '').replaceAll(' ', ''),
     }

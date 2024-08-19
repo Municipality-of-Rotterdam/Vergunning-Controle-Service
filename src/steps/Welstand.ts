@@ -4,15 +4,15 @@ import { join } from 'path'
 import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js'
 import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
 import { wfsRequest } from '@root/requesters/wfsRequest.js'
-import { getVoetprint } from '@root/sparql/getVoetprint.js'
+import { getFootprint } from '@root/sparql/getFootprint.js'
 import { Context, Step } from '@root/types.js'
 
 export default {
   name: 'Welstand',
   description: '',
   run: async (context: Context) => {
-    const voetprint = await getVoetprint(context)
-    const coordinates = wktPolygonToCoordinates(voetprint.wkt)
+    const footprint = await getFootprint(context)
+    const coordinates = wktPolygonToCoordinates(footprint.wkt)
 
     const requestXml = `<?xml version="1.0" encoding="UTF-8"?>
       <GetFeature xmlns:gml="http://www.opengis.net/gml/3.2" xmlns="http://www.opengis.net/wfs/2.0" xmlns:fes="http://www.opengis.net/fes/2.0" service="WFS" version="2.0.0">

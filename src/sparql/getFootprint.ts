@@ -1,9 +1,9 @@
-import { Context } from '@root/types.js';
+import { Context } from '@root/types.js'
 
-import { prefixString } from '../core/namespaces.js';
-import { sparqlRequest } from '../requesters/sparqlRequest.js';
+import { prefixString } from '../core/namespaces.js'
+import { sparqlRequest } from '../requesters/sparqlRequest.js'
 
-export const getVoetprint = async (context: Context): Promise<{ wkt: string; geometry: string }> => {
+export const getFootprint = async (context: Context): Promise<{ wkt: string; geometry: string }> => {
   const query = `
     ${prefixString}
     SELECT ?wkt ?geometry
