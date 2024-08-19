@@ -35,8 +35,12 @@ export async function ruimtelijkePlannenRequest({ params, path, body }: ApiArgs)
   const options: RequestInit =
     body === undefined ? { method: 'GET', headers } : { method: 'POST', headers, body: JSON.stringify(body) }
 
-  const response = await fetchWithProvenance(url, options)
-  if (!response.ok) throw new Error(`API failed with ${response.status}: ${response.statusText}`)
-  const text = await response.text()
-  return JSON.parse(text)
+  try {
+    const response = await fetchWithProvenance(url, options)
+    if (!response.ok) throw new Error(`API failed with ${response.status}: ${response.statusText}`)
+    const text = await response.text()
+    return JSON.parse(text)
+  } catch (error) {
+    console.log(error)
+  }
 }

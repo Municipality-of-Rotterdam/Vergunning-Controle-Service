@@ -13,7 +13,7 @@ export default {
   name: 'Wind',
   description: '',
   run: async (context: Context) => {
-    const graphName = `${context.baseIRI}graphs/externe-data/wind`
+    const graphName = `${context.baseIRI}graph/externe-data/wind`
 
     if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
       return SKIP_STEP
@@ -51,7 +51,11 @@ export default {
       context,
     )
 
-    const turtle = await responseToLinkedData(response, graphName)
+    const turtle = await responseToLinkedData(
+      response,
+      graphName,
+      'https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones',
+    )
     const filepath = join(context.outputsDir, 'wind.ttl')
 
     await fs.writeFile(filepath, turtle, 'utf8')

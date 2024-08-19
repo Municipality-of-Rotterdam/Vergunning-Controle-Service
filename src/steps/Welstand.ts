@@ -13,7 +13,7 @@ export default {
   name: 'Welstand',
   description: '',
   run: async (context: Context) => {
-    const graphName = `${context.baseIRI}graphs/externe-data/welstand`
+    const graphName = `${context.baseIRI}graph/externe-data/welstand`
 
     if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
       return SKIP_STEP
@@ -46,7 +46,11 @@ export default {
       context,
     )
 
-    const turtle = await responseToLinkedData(response, graphName)
+    const turtle = await responseToLinkedData(
+      response,
+      graphName,
+      'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS',
+    )
     const filepath = join(context.outputsDir, 'welstand.ttl')
 
     await fs.writeFile(filepath, turtle, 'utf8')

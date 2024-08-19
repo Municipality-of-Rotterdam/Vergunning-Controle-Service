@@ -1,11 +1,11 @@
-import { Polygon, Position } from 'geojson'
-import jsonld from 'jsonld'
+import { Polygon, Position } from 'geojson';
+import jsonld from 'jsonld';
 
-import { write } from '@jeswr/pretty-turtle'
-import dataFactory from '@rdfjs/data-model'
-import { Quad } from '@rdfjs/types'
-import { geo, sf } from '@root/core/namespaces.js'
-import { geojsonToWKT } from '@terraformer/wkt'
+import { write } from '@jeswr/pretty-turtle';
+import dataFactory from '@rdfjs/data-model';
+import { Quad } from '@rdfjs/types';
+import { geo, sf } from '@root/core/namespaces.js';
+import { geojsonToWKT } from '@terraformer/wkt';
 
 const gmlToGeoJson = (value: string) => {
   const numbers: number[] = value.split(' ').map((x: string) => parseFloat(x))
@@ -44,23 +44,19 @@ function addTranslatedGeoData(this: any, key: string, value: any) {
   return value
 }
 
-export const responseToLinkedData = async (data: any, iri: string) => {
+export const responseToLinkedData = async (data: any, iri: string, vocab?: string) => {
   const json = JSON.stringify(data)
   const jsonWithAdditionalData = JSON.parse(json, addTranslatedGeoData)
 
   const document: jsonld.JsonLdDocument = {
     '@context': {
-      '@vocab': `${iri}#`,
+      '@vocab': vocab ?? `${iri}#`,
     },
     '@id': iri,
     ...jsonWithAdditionalData,
   }
 
   const rdfQuads = (await jsonld.toRDF(document)) as Quad[]
-
-  const quads = rdfQuads.map((quad: any) => {
-    return dataFactory.quad(quad.subject, quad.predicate, quad.object)
-  }) as Quad[]
-
+  const quads = rdfQuads.map((quad: any) => dataFactory.quad(quad.subject, quad.predicate, quad.object)) as Quad[]
   return await write(quads)
 }

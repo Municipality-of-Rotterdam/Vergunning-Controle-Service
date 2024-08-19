@@ -12,30 +12,35 @@ export default {
   name: 'Ruimtelijke plannen',
   description: 'Bevraging & opslaan van data uit de Ruimtelijke Plannen API',
   run: async (context: Context) => {
-    const graphName = `${context.baseIRI}graphs/externe-data/ruimtelijke-plannen`
+    const graphName = `${context.baseIRI}graph/externe-data/ruimtelijke-plannen`
 
-    if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
-      // return SKIP_STEP
-    }
+    // if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
+    //   return SKIP_STEP
+    // }
 
     // Find all buildings and their footprints in the dataset
     const buildings: any[] = await getBuildings(context)
-    console.log(buildings.length, 'gebouwen gevonden')
 
-    const files: string[] = []
     // Add all plans relevant to those buildings as linked data
     for (const building of buildings) {
       const footprint = wktToGeoJSON(building.footprint.replace(/^<.*> /, '').toUpperCase())
       const response = await ruimtelijkePlannenRequest({
         path: '/plannen/_zoek',
         body: { _geo: { contains: footprint } },
-        params: { planType: 'bestemmingsplan', expand: 'geometrie' }, // TODO: This makes fetch crash
+        params: { planType: 'bestemmingsplan' /* expand: 'geometrie' */ }, // TODO: This makes fetch crash
       })
 
-      const turtle = await responseToLinkedData(response, graphName + '/' + building.node.split('/').pop())
-      const filename = `${context.outputsDir}/ruimtelijke-plannen.ttl`
+      const turtle = await responseToLinkedData(
+        response,
+        graphName + '/' + building.node.split('/').pop(),
+        'https://ruimte.omgevingswet.overheid.nl#',
+      )
+      const filename = `${context.outputsDir}/ruimtelijke-plannen-${building.node.split('/').pop()}.ttl`
       fs.writeFile(filename, turtle, 'utf8')
-      files.push(filename)
+      await context.buildingDataset.importFromFiles([filename], {
+        defaultGraphName: graphName + '/' + building.node.split('/').pop(),
+        overwriteAll: true,
+      })
 
       for (const plan of response['_embedded']['plannen']) {
         const responseMaatvoering = await ruimtelijkePlannenRequest({
@@ -44,16 +49,18 @@ export default {
           params: { expand: 'geometrie' },
         })
 
-        const turtle = await responseToLinkedData(responseMaatvoering, graphName + '/' + plan.id)
+        const turtle = await responseToLinkedData(
+          responseMaatvoering,
+          graphName + '/' + plan.id,
+          'https://ruimte.omgevingswet.overheid.nl#',
+        )
         const filename = `${context.outputsDir}/ruimtelijke-plannen-plan-${plan.id}.ttl`
         fs.writeFile(filename, turtle, 'utf8')
-        files.push(filename)
+        await context.buildingDataset.importFromFiles([filename], {
+          defaultGraphName: graphName + '/' + plan.id,
+          overwriteAll: true,
+        })
       }
     }
-
-    await context.buildingDataset.importFromFiles(files, {
-      defaultGraphName: graphName,
-      overwriteAll: true,
-    })
   },
 } satisfies Step

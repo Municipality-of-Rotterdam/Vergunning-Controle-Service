@@ -1,10 +1,11 @@
-import { existsSync } from 'fs'
-import * as path from 'path'
+import { existsSync } from 'fs';
+import * as path from 'path';
 
-import { fetchAssetByName } from '@root/helpers/fetchAssetByName.js'
-import { SKIP_STEP } from '@root/helpers/skipStep.js'
-import { execWithProvenance } from '@root/provenance/execWithProvenance.js'
-import { Context, Step } from '@root/types.js'
+import { assetExists } from '@root/helpers/existence.js';
+import { fetchAssetByName } from '@root/helpers/fetchAssetByName.js';
+import { SKIP_STEP } from '@root/helpers/skipStep.js';
+import { execWithProvenance } from '@root/provenance/execWithProvenance.js';
+import { Context, Step } from '@root/types.js';
 
 export default {
   name: 'IDS validatie',
@@ -14,7 +15,7 @@ export default {
     const idsReportHtml = path.join(context.outputsDir!, `IDSValidationReport_${idsName}.html`)
     const idsReportBcf = path.join(context.outputsDir!, `IDSValidationReport_${idsName}.bcf`)
 
-    if (context.cache && existsSync(idsReportHtml)) {
+    if (context.cache && (await assetExists(context.buildingDataset, `IDSValidationReport_${idsName}.html`))) {
       return SKIP_STEP
     }
 
