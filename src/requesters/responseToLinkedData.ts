@@ -22,10 +22,16 @@ const gmlToGeoJson = (value: string) => {
 }
 
 function addTranslatedGeoData(this: any, key: string, value: any) {
+  let geometry
+
   if (key === 'gml:Polygon') {
     const shape = value['gml:exterior']['gml:LinearRing']['gml:posList']
-    const geometry = gmlToGeoJson(shape)
+    geometry = gmlToGeoJson(shape)
+  }
 
+  if (key === 'geometrie') geometry = value
+
+  if (geometry) {
     value[geo('hasDefaultGeometry').value] = {
       '@type': sf(geometry.type).value,
       'geo:asWKT': {

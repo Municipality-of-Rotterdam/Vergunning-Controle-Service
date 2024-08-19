@@ -12,6 +12,8 @@ import footprint from './steps/footprint.js'
 import gltf from './steps/gltf.js'
 import linkedBuildingData from './steps/linkedBuildingData.js'
 import ruimtelijkePlannen from './steps/ruimtelijkePlannen.js'
+import welstand from './steps/Welstand.js'
+import wind from './steps/Wind.js'
 import { Step } from './types.js'
 
 /**
@@ -32,6 +34,8 @@ const steps: Step[] = [
 
   // API calls
   ruimtelijkePlannen,
+  wind,
+  welstand,
 
   createDataStory,
 ]
