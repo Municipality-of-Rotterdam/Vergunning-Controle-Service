@@ -14,8 +14,8 @@ export default {
   run: async (context: Context) => {
     const graphName = `${context.baseIRI}graphs/externe-data/ruimtelijke-plannen`
 
-    if (context.cache && (await graphExists(context.buildingDataset, graph))) {
-      return SKIP_STEP
+    if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
+      // return SKIP_STEP
     }
 
     // Find all buildings and their footprints in the dataset
@@ -29,7 +29,7 @@ export default {
       const response = await ruimtelijkePlannenRequest({
         path: '/plannen/_zoek',
         body: { _geo: { contains: footprint } },
-        params: { planType: 'bestemmingsplan' /*, expand: 'geometrie' */ }, // TODO: This makes fetch crash
+        params: { planType: 'bestemmingsplan', expand: 'geometrie' }, // TODO: This makes fetch crash
       })
 
       const turtle = await responseToLinkedData(response, graphName + '/' + building.node.split('/').pop())
