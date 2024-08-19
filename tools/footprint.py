@@ -130,13 +130,13 @@ def exterior(*geometries: geom.ShapeElementType) -> shapely.Geometry:
     return outer_shape
 
 
-def footprint_space(mc: MapConversion, settings: geom.settings, entity) -> str:
+def footprint_space(mc: MapConversion, settings: geom.settings, entity) -> shapely.Polygon | shapely.MultiPolygon:
     shape = ifcopenshell.geom.create_shape(settings, entity)
     assert(isinstance(shape, geom.ShapeElementType))
     return mc.georeference(exterior(get_footprint(shape.geometry)))
 
 
-def footprint_building(mc: MapConversion, settings: geom.settings, entities: Iterable) -> str:
+def footprint_building(mc: MapConversion, settings: geom.settings, entities: Iterable) -> shapely.Polygon | shapely.MultiPolygon:
     geometries = []
     for ifc_object in entities:
         try:
@@ -192,7 +192,7 @@ def main(file: str, base_iri: str, ifc_classes: list[str]):
     <{building_iri}> geo:hasDefaultGeometry <{building_iri}/footprint> .
     <{building_iri}/footprint>
         a sf:{footprint.geom_type} ;
-        geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {footprint}"^^geo:wktLiteral ;
+        geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {str(footprint).upper()}"^^geo:wktLiteral ;
         geo:coordinateDimension "2"^^xsd:integer ;
         geo:hasMetricPerimeterLength "{round(footprint.length)}"^^xsd:double ;
         geo:hasMetricArea "{round(footprint.area, 3)}"^^xsd:double ;
@@ -243,7 +243,7 @@ def main(file: str, base_iri: str, ifc_classes: list[str]):
         node = iri(base_iri, space)
         print(f'<{node}> geo:hasDefaultGeometry <{node}/footprint> .')
         print(f'<{node}/footprint> a sf:{footprint.geom_type} ;')
-        print(f'\tgeo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {footprint_space(mc, settings, space)}"^^geo:wktLiteral ;')
+        print(f'\tgeo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> {str(footprint_space(mc, settings, space)).upper()}"^^geo:wktLiteral ;')
         print('\tgeo:coordinateDimension "2"^^xsd:integer.')
 
     #print('\nfootprint WKT (CRS epsg:28992):',footprint)

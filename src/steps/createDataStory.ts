@@ -4,15 +4,15 @@
  * - We need to generate the data story for according to the template in the rule repository.
  */
 
-import crypto from 'crypto'
-import mustache from 'mustache'
+import crypto from 'crypto';
+import mustache from 'mustache';
 
-import { getAccount } from '@root/helpers/getAccount.js'
-import { getGitRevision } from '@root/helpers/getGitRevision.js'
-import { getAddress } from '@root/sparql/getAddress.js'
-import { getFootprint } from '@root/sparql/getFootprint.js'
-import { Context, Step } from '@root/types.js'
-import App from '@triply/triplydb'
+import { getAccount } from '@root/helpers/getAccount.js';
+import { getGitRevision } from '@root/helpers/getGitRevision.js';
+import { getAddress } from '@root/sparql/getAddress.js';
+import { getFootprint } from '@root/sparql/getFootprint.js';
+import { Context, Step } from '@root/types.js';
+import App from '@triply/triplydb';
 
 export default {
   name: 'Maak data verhaal',
@@ -57,6 +57,10 @@ export default {
           queryString: item.query!.requestConfig!.payload.query,
           dataset: context.buildingDataset,
           serviceType: 'speedy',
+          output: item.query?.renderConfig?.output,
+          accessLevel: item.query?.accessLevel,
+          variables: item.query?.variables,
+          description: item.query?.description,
         })
 
         /** @ts-ignore */
