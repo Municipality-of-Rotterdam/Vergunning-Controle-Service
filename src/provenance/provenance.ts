@@ -1,11 +1,11 @@
-import grapoi from 'grapoi'
+import grapoi from 'grapoi';
 
-import dataFactory from '@rdfjs/data-model'
-import datasetFactory from '@rdfjs/dataset'
-import { DatasetCore, NamedNode } from '@rdfjs/types'
-import { Context } from '@root/types.js'
+import dataFactory from '@rdfjs/data-model';
+import datasetFactory from '@rdfjs/dataset';
+import { DatasetCore, NamedNode } from '@rdfjs/types';
+import { Context } from '@root/types.js';
 
-import { prov, rdf, rdfs, xsd } from '../helpers/namespaces.js'
+import { prov, rdf, rdfs, xsd } from '../core/namespaces.js';
 
 let base: NamedNode
 let provenanceGraph: DatasetCore

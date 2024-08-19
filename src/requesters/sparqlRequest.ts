@@ -1,6 +1,7 @@
-import App from '@triply/triplydb'
+import { fetchWithProvenance } from '@root/provenance/fetchWithProvenance.js';
+import App from '@triply/triplydb';
 
-import { getAccount } from './getAccount.js'
+import { getAccount } from '../helpers/getAccount.js';
 
 export const sparqlRequest = async (datasetName: string, query: string) => {
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
@@ -9,7 +10,7 @@ export const sparqlRequest = async (datasetName: string, query: string) => {
   const { apiUrl } = await triply.getInfo()
   const sparqlUrl = `${apiUrl}/datasets/${account.slug}/${datasetName}/sparql`
 
-  return fetch(sparqlUrl, {
+  return fetchWithProvenance(sparqlUrl, {
     body: JSON.stringify({ query }),
     method: 'POST',
     headers: {

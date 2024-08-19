@@ -1,10 +1,9 @@
 import 'dotenv/config'
 
 import { write } from '@jeswr/pretty-turtle'
-import { prov, rdf } from '@root/helpers/namespaces.js'
+import { prefixes, prov, rdf } from '@root/core/namespaces.js'
 
-import { establishContext } from './helpers/establishContext.js'
-import { prefixes } from './helpers/namespaces.js'
+import { establishContext } from './core/establishContext.js'
 import { SKIP_STEP, skipStep } from './helpers/skipStep.js'
 import { finishProvenance, initProvenance, provenancePointer, setPhase } from './provenance/provenance.js'
 import createDataStory from './steps/createDataStory.js'
@@ -50,8 +49,7 @@ for (const step of steps) {
   }
 }
 
-console.log(
-  await write([...(await finishProvenance())], {
-    prefixes,
-  }),
-)
+const provenanceTurtle = await write([...(await finishProvenance())], {
+  prefixes,
+})
+console.log(provenanceTurtle)

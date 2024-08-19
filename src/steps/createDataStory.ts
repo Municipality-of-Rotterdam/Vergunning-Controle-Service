@@ -5,12 +5,12 @@
  */
 
 import crypto from 'crypto'
-import { parseHTML } from 'linkedom'
+import mustache from 'mustache'
 
 import { getAccount } from '@root/helpers/getAccount.js'
 import { getGitRevision } from '@root/helpers/getGitRevision.js'
 import { getAddress } from '@root/sparql/getAddress.js'
-import { getVoetprint } from '@root/sparql/getVoetprint.js'
+import { getFootprint } from '@root/sparql/getFootprint.js'
 import { Context, Step } from '@root/types.js'
 import App from '@triply/triplydb'
 
@@ -22,38 +22,23 @@ export default {
     const account = await triply.getAccount(getAccount())
     const ruleRepository = App.get({ token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
     const organization = await ruleRepository.getOrganization('Rotterdam-Rule-Repository')
-    const vcsDataset = await account.getDataset('vcs')
     const template = await organization.getStory('template')
-    const templateContent = (await template.getInfo()).content
-    const consoleUrl = (await triply.getInfo()).consoleUrl
-
-    const sourceAssetUrl = (file: string) =>
-      `${consoleUrl}/${account.slug}/${vcsDataset.slug}/assets/download?fileName=${file}`
-    const outputAssetUrl = (file: string) =>
-      `${consoleUrl}/${account.slug}/${context.buildingDataset.slug}/assets/download?fileName=${file}`
-
-    // Fetches all data-TOKENs
-    // const dataAttributes = header.paragraph!.split(/ |\>|\n/g).filter((attribute) => attribute.startsWith('data-'))
+    const info = await template.getInfo()
+    const templateContent = info.content
 
     const address = await getAddress(context)
-    const voetprint = await getVoetprint(context)
+    const footprint = await getFootprint(context)
+    const [lng, lat] = footprint.wkt.split('Polygon ((')[1].split(',')[0].split(' ')
 
-    console.log(voetprint)
-
-    // TODO make dutch, remove data- and convert to mustache
     const tokens = {
-      'data-revision': await getGitRevision(),
-      'data-street-city': address,
-      'data-regels-op-de-kaart': 'lorem',
-      'data-dataset': 'lorem',
-      'data-voetafdruk': 'lorem',
-      'data-3d-model-bestemmingsvlakken': 'lorem',
-      'data-assets': 'lorem',
-      'data-3d-model': 'lorem',
-      'data-ifc-bestand': sourceAssetUrl(context.sourceIfcFileName),
-      'data-ids-bestand': sourceAssetUrl(context.sourceIdsFileName),
-      'data-ids-rapport-html': 'lorem',
-      'data-ids-rapport-bcf': 'lorem',
+      revisie: await getGitRevision(),
+      adres: address,
+      lat,
+      lng,
+      'gebouw-dataset-url': context.baseIRI.substring(0, context.baseIRI.length - 1),
+      'voetafdruk-url': footprint.geometry,
+      'ifc-naam': context.sourceIfcFileName.replaceAll('.ifc', ''),
+      'ids-naam': 'IDSValidationReport_' + context.sourceIdsFileName.replaceAll('.ids', '').replaceAll(' ', ''),
     }
 
     for (const item of templateContent) {
@@ -78,21 +63,7 @@ export default {
         item.query = (await addedQuery.getInfo()).id
       }
 
-      if (item.type === 'paragraph') {
-        // const { document } = parseHTML(item.paragraph!)
-        // for (const [key, value] of Object.entries(tokens)) {
-        //   const elementsWithDataAttribute = [...document.querySelectorAll(`[${key}]`)]
-        //   for (const element of elementsWithDataAttribute) {
-        //     if (element.nodeName === 'A') {
-        //       element.innerHTML = value.split(/\=|\//g).pop()!
-        //       element.setAttribute('href', value)
-        //     } else {
-        //       element.innerHTML = value
-        //     }
-        //   }
-        // }
-        item.paragraph = document.toString()
-      }
+      if (item.type === 'paragraph') item.paragraph = mustache.render(item.paragraph!, tokens)
     }
 
     let existingStory
@@ -101,7 +72,11 @@ export default {
       await existingStory.delete()
     } catch {}
 
-    const story = { content: templateContent as any[] }
+    const story = {
+      bannerUrl: info.bannerUrl,
+      accessLevel: info.accessLevel,
+      content: templateContent as any[],
+    }
     const savedStory = await account.addStory(context.datasetName, story)
   },
 } satisfies Step

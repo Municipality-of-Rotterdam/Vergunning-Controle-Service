@@ -1,9 +1,13 @@
-import dataFactory from '@rdfjs/data-model'
+import dataFactory from '@rdfjs/data-model';
 
-import { http, prov, rdf, rdfs, xsd } from '../helpers/namespaces.js'
-import { provenancePointer } from './provenance.js'
+import { http, prov, rdf, rdfs, xsd } from '../core/namespaces.js';
+import { provenancePointer } from './provenance.js';
 
-export const fetchWithProvenance = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+export const fetchWithProvenance = async (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  additionalProvenance?: (pointer: any) => void,
+): Promise<Response> => {
   const startTime = performance.now()
   const response = await fetch(input, init)
 
@@ -33,6 +37,7 @@ export const fetchWithProvenance = async (input: RequestInfo | URL, init?: Reque
                 activity.addOut(prov('endTime'), dataFactory.literal(endTime.toString(), xsd('double')))
                 if (errorMessage) activity.addOut(prov('error'), dataFactory.literal(errorMessage))
                 if (result) activity.addOut(http('resp'), dataFactory.literal(result))
+                if (additionalProvenance) additionalProvenance(activity)
               })
             }
           }

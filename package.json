@@ -18,7 +18,7 @@
     "glob": "^10.4.1",
     "gltf-pipeline": "^4.1.0",
     "grapoi": "^1.1.2",
-    "linkedom": "^0.18.4",
+    "mustache": "^4.2.0",
     "n3": "^1.17.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -50,6 +50,7 @@
   "name": "gemeente-rotterdam",
   "devDependencies": {
     "@rdfjs/types": "^1.1.0",
+    "@types/mustache": "^4.2.5",
     "@types/n3": "^1.16.4",
     "@types/rdfjs__data-model": "^2.0.8",
     "@types/rdfjs__dataset": "^2.0.7",
