@@ -23,7 +23,8 @@ export default {
     const ruleRepository = App.get({ token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
     const organization = await ruleRepository.getOrganization('Rotterdam-Rule-Repository')
     const template = await organization.getStory('template')
-    const templateContent = (await template.getInfo()).content
+    const info = await template.getInfo()
+    const templateContent = info.content
 
     const address = await getAddress(context)
     const voetprint = await getVoetprint(context)
@@ -71,7 +72,11 @@ export default {
       await existingStory.delete()
     } catch {}
 
-    const story = { content: templateContent as any[] }
+    const story = {
+      bannerUrl: info.bannerUrl,
+      accessLevel: info.accessLevel,
+      content: templateContent as any[],
+    }
     const savedStory = await account.addStory(context.datasetName, story)
   },
 } satisfies Step
