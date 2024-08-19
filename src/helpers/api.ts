@@ -10,23 +10,29 @@ type ApiArgs = {
   body?: any
 }
 
+const ruimtelijkePlannenURL = 'https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4'
+
 const reviver = (_: string, value: any) => {
-  const geometry = value ? value['geometrie'] : undefined
-  if (geometry) {
-    value[geo('hasDefaultGeometry').value] = {
-      '@type': sf(geometry.type).value,
-      [geo('asWKT').value]: {
-        '@value': `<http://www.opengis.net/def/crs/EPSG/0/28992> ${geojsonToWKT(geometry)}`,
-        '@type': geo('wktLiteral').value,
-      },
+  // if (typeof value == 'object')
+  if (value !== null && typeof value == 'object') {
+    if (value['id']) {
+      value['@id'] = `${ruimtelijkePlannenURL}#${value['id']}`
     }
-    return value
-  } else {
-    return value
+
+    const geometry = value['geometrie']
+    if (geometry) {
+      value[geo('hasDefaultGeometry').value] = {
+        '@type': sf(geometry.type).value,
+        [geo('asWKT').value]: {
+          '@value': `<http://www.opengis.net/def/crs/EPSG/0/28992> ${geojsonToWKT(geometry)}`,
+          '@type': geo('wktLiteral').value,
+        },
+      }
+    }
   }
+  return value
 }
 
-const ruimtelijkePlannenURL = 'https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4'
 /**
  * Ruimtelijke Plannen Opvragen API
  * @description this API contains all data w.r.t. bestemmingsplannen. This API will eventually be replaced by the DSO, when all data has migrated.
