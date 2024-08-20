@@ -6,12 +6,12 @@ import { Quad } from '@rdfjs/types'
 import { prefixes } from '@root/core/namespaces.js'
 
 export const graphName = (context: Context, namepath: string[]) => {
-  return [context.baseIRI, 'graph', ...namepath].join('/')
+  return [context.baseIRI.replace(/\/+$/g, ''), 'graph', ...namepath].join('/')
 }
 
 const graphFile = (context: Context, namepath: string[]) => {
   const name = namepath[namepath.length - 1] ?? 'graph'
-  return path.join(context.outputsDir, ...namepath.slice(0, -1), `${name}.ttl`)
+  return path.join(context.outputsDir.replace(/\/+$/g, ''), ...namepath.slice(0, -1), `${name}.ttl`)
 }
 
 // Write a graph to both the filesystem and to the database
