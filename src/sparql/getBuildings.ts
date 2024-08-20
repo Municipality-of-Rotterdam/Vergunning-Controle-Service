@@ -1,15 +1,20 @@
-import { geo, ifc } from '@root/core/namespaces.js'
-import { sparqlRequest } from '@root/requesters/sparqlRequest.js'
 import { Context } from '@root/types.js'
 
-export const getBuildings = async (context: Context) => {
-  const buildings: any[] = await sparqlRequest(
-    context.datasetName,
-    `SELECT DISTINCT ?node ?footprint WHERE {
-      ?node a <${ifc('IfcBuilding').value}>.
-      ?node <${geo('hasDefaultGeometry').value}> ?geom.
-      ?geom <${geo('asWKT').value}> ?footprint.
-    }`,
-  )
-  return buildings
+import { prefixString } from '../core/namespaces.js'
+import { sparqlRequest } from '../requesters/sparqlRequest.js'
+
+export const getBuildings = async (context: Context): Promise<{ root: string; wkt: string; geometry: string }[]> => {
+  const query = `
+    ${prefixString}
+    SELECT DISTINCT ?root ?wkt ?geometry
+    WHERE { 
+      ?root a ifc:IfcBuilding .
+      ?root geo:hasDefaultGeometry ?geometry .
+      ?geometry geo:asWKT ?wkt
+    }
+  `
+
+  const response = await sparqlRequest(context.datasetName, query)
+  if (response.length < 1) throw new Error('Could not get the footprint')
+  return response
 }

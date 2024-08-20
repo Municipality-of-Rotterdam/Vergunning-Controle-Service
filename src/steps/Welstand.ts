@@ -1,13 +1,13 @@
-import fs from 'fs/promises';
-import { join } from 'path';
+import fs from 'fs/promises'
+import { join } from 'path'
 
-import { graphExists } from '@root/helpers/existence.js';
-import { SKIP_STEP } from '@root/helpers/skipStep.js';
-import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js';
-import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js';
-import { wfsRequest } from '@root/requesters/wfsRequest.js';
-import { getFootprint } from '@root/sparql/getFootprint.js';
-import { Context, Step } from '@root/types.js';
+import { graphExists } from '@root/helpers/existence.js'
+import { SKIP_STEP } from '@root/helpers/skipStep.js'
+import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js'
+import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
+import { wfsRequest } from '@root/requesters/wfsRequest.js'
+import { getBuildings } from '@root/sparql/getBuildings.js'
+import { Context, Step } from '@root/types.js'
 
 export default {
   name: 'Welstand',
@@ -19,10 +19,10 @@ export default {
       return SKIP_STEP
     }
 
-    const footprint = await getFootprint(context)
-    const coordinates = wktPolygonToCoordinates(footprint.wkt)
+    for (const building of await getBuildings(context)) {
+      const coordinates = wktPolygonToCoordinates(building.wkt)
 
-    const requestXml = `<?xml version="1.0" encoding="UTF-8"?>
+      const requestXml = `<?xml version="1.0" encoding="UTF-8"?>
       <GetFeature xmlns:gml="http://www.opengis.net/gml/3.2" xmlns="http://www.opengis.net/wfs/2.0" xmlns:fes="http://www.opengis.net/fes/2.0" service="WFS" version="2.0.0">
         <Query xmlns:Welstandskaart_tijdelijk_VCS="https://vnrpwapp426.rotterdam.local:6443/arcgis/admin/services/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer" typeNames="Welstandskaart_tijdelijk_VCS:Gebiedstypen">
           <fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0">
@@ -40,23 +40,24 @@ export default {
         </Query>
       </GetFeature>`
 
-    const response = await wfsRequest(
-      `https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer`,
-      requestXml,
-      context,
-    )
+      const response = await wfsRequest(
+        `https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer`,
+        requestXml,
+        context,
+      )
 
-    const turtle = await responseToLinkedData(
-      response,
-      graphName,
-      'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS',
-    )
-    const filepath = join(context.outputsDir, 'welstand.ttl')
+      const turtle = await responseToLinkedData(
+        response,
+        graphName,
+        'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS',
+      )
+      const filepath = join(context.outputsDir, 'welstand.ttl')
 
-    await fs.writeFile(filepath, turtle, 'utf8')
-    await context.buildingDataset.importFromFiles([filepath], {
-      defaultGraphName: graphName,
-      overwriteAll: true,
-    })
+      await fs.writeFile(filepath, turtle, 'utf8')
+      await context.buildingDataset.importFromFiles([filepath], {
+        defaultGraphName: graphName,
+        overwriteAll: true,
+      })
+    }
   },
 } satisfies Step

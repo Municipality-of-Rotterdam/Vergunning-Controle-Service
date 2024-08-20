@@ -1,12 +1,12 @@
-import fs from 'fs/promises';
+import fs from 'fs/promises'
 
-import { graphExists } from '@root/helpers/existence.js';
-import { SKIP_STEP } from '@root/helpers/skipStep.js';
-import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js';
-import { ruimtelijkePlannenRequest } from '@root/requesters/ruimtelijkePlannenRequest.js';
-import { getBuildings } from '@root/sparql/getBuildings.js';
-import { Context, Step } from '@root/types.js';
-import { wktToGeoJSON } from '@terraformer/wkt';
+import { graphExists } from '@root/helpers/existence.js'
+import { SKIP_STEP } from '@root/helpers/skipStep.js'
+import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
+import { ruimtelijkePlannenRequest } from '@root/requesters/ruimtelijkePlannenRequest.js'
+import { getBuildings } from '@root/sparql/getBuildings.js'
+import { Context, Step } from '@root/types.js'
+import { wktToGeoJSON } from '@terraformer/wkt'
 
 export default {
   name: 'Ruimtelijke plannen',
@@ -18,12 +18,10 @@ export default {
     //   return SKIP_STEP
     // }
 
-    // Find all buildings and their footprints in the dataset
-    const buildings: any[] = await getBuildings(context)
-
-    // Add all plans relevant to those buildings as linked data
-    for (const building of buildings) {
-      const footprint = wktToGeoJSON(building.footprint.replace(/^<.*> /, '').toUpperCase())
+    // Find all buildings and their footprints in the dataset and add all plans
+    // relevant to those buildings as linked data
+    for (const building of await getBuildings(context)) {
+      const footprint = wktToGeoJSON(building.wkt.replace(/^<.*> /, '').toUpperCase())
       const response = await ruimtelijkePlannenRequest({
         path: '/plannen/_zoek',
         body: { _geo: { contains: footprint } },
@@ -32,13 +30,13 @@ export default {
 
       const turtle = await responseToLinkedData(
         response,
-        graphName + '/' + building.node.split('/').pop(),
+        graphName + '/' + building.root.split('/').pop(),
         'https://ruimte.omgevingswet.overheid.nl#',
       )
-      const filename = `${context.outputsDir}/ruimtelijke-plannen-${building.node.split('/').pop()}.ttl`
-      fs.writeFile(filename, turtle, 'utf8')
+      const filename = `${context.outputsDir}/ruimtelijke-plannen-${building.root.split('/').pop()}.ttl`
+      await fs.writeFile(filename, turtle, 'utf8')
       await context.buildingDataset.importFromFiles([filename], {
-        defaultGraphName: graphName + '/' + building.node.split('/').pop(),
+        defaultGraphName: graphName + '/' + building.root.split('/').pop(),
         overwriteAll: true,
       })
 
@@ -55,7 +53,7 @@ export default {
           'https://ruimte.omgevingswet.overheid.nl#',
         )
         const filename = `${context.outputsDir}/ruimtelijke-plannen-plan-${plan.id}.ttl`
-        fs.writeFile(filename, turtle, 'utf8')
+        await fs.writeFile(filename, turtle, 'utf8')
         await context.buildingDataset.importFromFiles([filename], {
           defaultGraphName: graphName + '/' + plan.id,
           overwriteAll: true,
