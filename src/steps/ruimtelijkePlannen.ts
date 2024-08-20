@@ -2,6 +2,7 @@ import fs from 'fs/promises'
 
 import { graphExists } from '@root/helpers/existence.js'
 import { SKIP_STEP } from '@root/helpers/skipStep.js'
+import { writeGraph, graphName } from '@root/helpers/writeGraph.js'
 import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
 import { ruimtelijkePlannenRequest } from '@root/requesters/ruimtelijkePlannenRequest.js'
 import { getBuildings } from '@root/sparql/getBuildings.js'
@@ -12,7 +13,7 @@ export default {
   name: 'Ruimtelijke plannen',
   description: 'Bevraging & opslaan van data uit de Ruimtelijke Plannen API',
   run: async (context: Context) => {
-    const graphName = `${context.baseIRI}graph/externe-data/ruimtelijke-plannen`
+    const namepath = ['externe-data', 'ruimtelijke-plannen']
 
     // if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
     //   return SKIP_STEP
@@ -28,17 +29,12 @@ export default {
         params: { planType: 'bestemmingsplan' /* expand: 'geometrie' */ }, // TODO: This makes fetch crash
       })
 
-      const turtle = await responseToLinkedData(
+      const quads = await responseToLinkedData(
         response,
-        graphName + '/' + building.root.split('/').pop(),
+        graphName(context, namepath.concat([building.root.split('/').pop() as string])),
         'https://ruimte.omgevingswet.overheid.nl#',
       )
-      const filename = `${context.outputsDir}/ruimtelijke-plannen-${building.root.split('/').pop()}.ttl`
-      await fs.writeFile(filename, turtle, 'utf8')
-      await context.buildingDataset.importFromFiles([filename], {
-        defaultGraphName: graphName + '/' + building.root.split('/').pop(),
-        overwriteAll: true,
-      })
+      await writeGraph(context, quads, namepath.concat([`${building.root.split('/').pop()}`]))
 
       for (const plan of response['_embedded']['plannen']) {
         const responseMaatvoering = await ruimtelijkePlannenRequest({
@@ -47,17 +43,12 @@ export default {
           params: { expand: 'geometrie' },
         })
 
-        const turtle = await responseToLinkedData(
+        const quads = await responseToLinkedData(
           responseMaatvoering,
-          graphName + '/' + plan.id,
+          graphName(context, namepath.concat([plan.id])),
           'https://ruimte.omgevingswet.overheid.nl#',
         )
-        const filename = `${context.outputsDir}/ruimtelijke-plannen-plan-${plan.id}.ttl`
-        await fs.writeFile(filename, turtle, 'utf8')
-        await context.buildingDataset.importFromFiles([filename], {
-          defaultGraphName: graphName + '/' + plan.id,
-          overwriteAll: true,
-        })
+        await writeGraph(context, quads, namepath.concat(['maatvoering', plan.id]))
       }
     }
   },

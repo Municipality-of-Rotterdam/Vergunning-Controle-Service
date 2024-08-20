@@ -1,6 +1,6 @@
-import fs from 'fs/promises'
-import { join } from 'path'
+import { Quad } from '@rdfjs/types'
 
+import { writeGraph, graphName } from '@root/helpers/writeGraph.js'
 import { graphExists } from '@root/helpers/existence.js'
 import { SKIP_STEP } from '@root/helpers/skipStep.js'
 import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js'
@@ -13,12 +13,13 @@ export default {
   name: 'Welstand',
   description: '',
   run: async (context: Context) => {
-    const graphName = `${context.baseIRI}graph/externe-data/welstand`
+    const namepath = ['externe-data', 'welstand']
 
-    if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
+    if (context.cache && (await graphExists(context.buildingDataset, graphName(context, namepath)))) {
       return SKIP_STEP
     }
 
+    const quads: Quad[] = []
     for (const building of await getBuildings(context)) {
       const coordinates = wktPolygonToCoordinates(building.wkt)
 
@@ -45,19 +46,13 @@ export default {
         requestXml,
         context,
       )
-
-      const turtle = await responseToLinkedData(
-        response,
-        graphName,
-        'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS',
+      quads.push(
+        ...(await responseToLinkedData(
+          response,
+          'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS',
+        )),
       )
-      const filepath = join(context.outputsDir, 'welstand.ttl')
-
-      await fs.writeFile(filepath, turtle, 'utf8')
-      await context.buildingDataset.importFromFiles([filepath], {
-        defaultGraphName: graphName,
-        overwriteAll: true,
-      })
     }
+    await writeGraph(context, quads, namepath)
   },
 } satisfies Step

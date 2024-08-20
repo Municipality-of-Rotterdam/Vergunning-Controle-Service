@@ -1,24 +1,22 @@
-import 'dotenv/config';
+import 'dotenv/config'
 
-import fs from 'fs/promises';
+import fs from 'fs/promises'
 
-import { write } from '@jeswr/pretty-turtle';
-import { prefixes, prov, rdf } from '@root/core/namespaces.js';
+import { write } from '@jeswr/pretty-turtle'
+import { prefixes, prov, rdf } from '@root/core/namespaces.js'
 
-import { establishContext } from './core/establishContext.js';
-import { SKIP_STEP, skipStep } from './helpers/skipStep.js';
-import {
-    finishProvenance, initProvenance, provenancePointer, setPhase
-} from './provenance/provenance.js';
-import createDataStory from './steps/createDataStory.js';
-import executeIds from './steps/executeIds.js';
-import footprint from './steps/footprint.js';
-import gltf from './steps/gltf.js';
-import linkedBuildingData from './steps/linkedBuildingData.js';
-import ruimtelijkePlannen from './steps/ruimtelijkePlannen.js';
-import welstand from './steps/Welstand.js';
-import wind from './steps/Wind.js';
-import { Step } from './types.js';
+import { establishContext } from './core/establishContext.js'
+import { SKIP_STEP, skipStep } from './helpers/skipStep.js'
+import { finishProvenance, initProvenance, provenancePointer, setPhase } from './provenance/provenance.js'
+import createDataStory from './steps/createDataStory.js'
+import executeIds from './steps/executeIds.js'
+import footprint from './steps/footprint.js'
+import gltf from './steps/gltf.js'
+import linkedBuildingData from './steps/linkedBuildingData.js'
+import ruimtelijkePlannen from './steps/ruimtelijkePlannen.js'
+import welstand from './steps/Welstand.js'
+import wind from './steps/Wind.js'
+import { Step } from './types.js'
 
 /**
  * Phase: Preprocessing data
@@ -60,7 +58,7 @@ for (const step of steps) {
 const provenanceQuads = await finishProvenance()
 const provenanceTurtle = await write(provenanceQuads, { prefixes })
 const provenanceFile = context.outputsDir + '/provenance.ttl'
-fs.writeFile(provenanceFile, provenanceTurtle, 'utf8')
+await fs.writeFile(provenanceFile, provenanceTurtle, 'utf8')
 await context.buildingDataset.importFromFiles([provenanceFile], {
   defaultGraphName: `${context.baseIRI}graph/provenance`,
   overwriteAll: true,
