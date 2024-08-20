@@ -1,7 +1,6 @@
 import { Polygon, Position } from 'geojson'
 import jsonld from 'jsonld'
 
-import { write } from '@jeswr/pretty-turtle'
 import dataFactory from '@rdfjs/data-model'
 import { Quad } from '@rdfjs/types'
 import { geo, sf } from '@root/core/namespaces.js'
@@ -44,19 +43,21 @@ function addTranslatedGeoData(this: any, key: string, value: any) {
   return value
 }
 
-export const responseToLinkedData = async (data: any, iri: string, vocab?: string): Promise<Quad[]> => {
+export const responseToLinkedData = async (data: any, vocab: string): Promise<Quad[]> => {
   const json = JSON.stringify(data)
   const jsonWithAdditionalData = JSON.parse(json, addTranslatedGeoData)
 
   const document: jsonld.JsonLdDocument = {
     '@context': {
-      '@vocab': vocab ?? `${iri}#`,
+      '@vocab': `${vocab.replace(/#$/, '')}#`,
     },
-    '@id': iri,
     ...jsonWithAdditionalData,
   }
+  return jsonldToQuads(document)
+}
 
-  const rdfQuads = (await jsonld.toRDF(document)) as Quad[]
+export const jsonldToQuads = async (data: jsonld.JsonLdDocument): Promise<Quad[]> => {
+  const rdfQuads = (await jsonld.toRDF(data)) as Quad[]
   const quads = rdfQuads.map((quad: any) => dataFactory.quad(quad.subject, quad.predicate, quad.object)) as Quad[]
   return quads
 }
