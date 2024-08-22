@@ -33,7 +33,7 @@ function addTranslatedGeoData(this: any, key: string, value: any) {
   if (geometry) {
     value[geo('hasDefaultGeometry').value] = {
       '@type': sf(geometry.type).value,
-      'geo:asWKT': {
+      [geo('asWKT').value]: {
         '@value': `<http://www.opengis.net/def/crs/EPSG/0/28992> ${geojsonToWKT(geometry)}`,
         '@type': geo('wktLiteral').value,
       },
