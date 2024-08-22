@@ -1,6 +1,6 @@
 import { Quad } from '@rdfjs/types'
 
-import { writeGraph, graphName } from '@root/helpers/writeGraph.js'
+import { writeGraph, formatUri } from '@root/helpers/writeGraph.js'
 import { graphExists } from '@root/helpers/existence.js'
 import { SKIP_STEP } from '@root/helpers/skipStep.js'
 import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js'
@@ -13,18 +13,13 @@ export default {
   name: 'Wind',
   description: '',
   run: async (context: Context) => {
-    let skip = false
+    const graphPath = ['graph', 'externe-data', 'wind']
+    const graphUri = formatUri(context.baseIRI, graphPath)
 
+    // if (context.cache && (await graphExists(context.buildingDataset, graphUri))) return SKIP_STEP
+
+    const quads: Quad[] = []
     for (const building of await getBuildings(context)) {
-      const graphPath = ['externe-data', building.name, 'wind']
-      const graphId = graphName(context, graphPath)
-
-      if (context.cache && (await graphExists(context.buildingDataset, graphId))) {
-        skip = true
-        continue
-      }
-
-      const quads: Quad[] = []
       const coordinates = wktPolygonToCoordinates(building.wkt)
 
       const requestXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -50,21 +45,19 @@ export default {
         </Query>
       </GetFeature>`
 
-      const response = await wfsRequest(
-        `https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones/WFSServer`,
-        requestXml,
-        context,
-      )
+      const windApiUrl = `https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones/WFSServer`
+      const response = await wfsRequest(windApiUrl, requestXml, context)
+
+      const apiCallPredicateUri = windApiUrl
+      const apiCallInstanceUri = `${graphUri}/${building.name}#wind`
 
       quads.push(
         ...(await responseToLinkedData(
-          { '@id': graphId, response },
-          'https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones',
+          { '@id': apiCallInstanceUri, '@reverse': { [apiCallPredicateUri]: { '@id': building.root } }, ...response },
+          windApiUrl,
         )),
       )
-      await writeGraph(context, quads, graphPath)
     }
-
-    if (skip) return SKIP_STEP
+    await writeGraph(context, quads, graphPath)
   },
 } satisfies Step

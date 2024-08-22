@@ -15,6 +15,7 @@ export const qudt = namespace('http://qudt.org/schema/qudt/')
 export const litre = namespace('http://purl.org/spar/literal#')
 export const http = namespace('http://www.w3.org/2011/http#')
 export const list = namespace('https://w3id.org/list#')
+export const vcs = namespace('https://gitlab.com')
 
 export const prefixes = Object.fromEntries(
   Object.entries({

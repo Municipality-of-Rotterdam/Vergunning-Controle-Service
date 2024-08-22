@@ -5,24 +5,23 @@ import { Context } from '@root/types.js'
 import { Quad } from '@rdfjs/types'
 import { prefixes } from '@root/core/namespaces.js'
 
-export const graphName = (context: Context, namepath: string[]) => {
-  return [context.baseIRI.replace(/\/+$/g, ''), 'graph', ...namepath].join('/')
+export const formatUri = (prefix: string, path: string[]) => {
+  return [prefix.replace(/\/+$|#$/g, ''), ...path].join('/')
 }
 
-const graphFile = (context: Context, namepath: string[]) => {
+export const formatFilename = (dir: string, namepath: string[]) => {
   const name = namepath[namepath.length - 1] ?? 'graph'
-  return path.join(context.outputsDir.replace(/\/+$/g, ''), ...namepath.slice(0, -1), `${name}.ttl`)
+  return path.join(dir.replace(/\/+$/g, ''), ...namepath.slice(0, -1), `${name}.ttl`)
 }
 
 // Write a graph to both the filesystem and to the database
 export async function writeGraph(context: Context, quads: Quad[], namepath: string[]) {
   const turtle = await ttl.write(quads, { prefixes })
-
-  const filepath = graphFile(context, namepath)
+  const filepath = formatFilename(context.outputsDir, namepath)
   if (namepath.length > 1) await fs.mkdir(path.join(context.outputsDir, ...namepath.slice(0, -1)), { recursive: true })
   await fs.writeFile(filepath, turtle, 'utf8')
   await context.buildingDataset.importFromFiles([filepath], {
-    defaultGraphName: graphName(context, namepath),
+    defaultGraphName: formatUri(context.baseIRI, namepath),
     overwriteAll: true,
   })
 }

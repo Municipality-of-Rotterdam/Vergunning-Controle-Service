@@ -3,7 +3,7 @@ import { Quad } from '@rdfjs/types'
 
 import { graphExists } from '@root/helpers/existence.js'
 import { SKIP_STEP } from '@root/helpers/skipStep.js'
-import { writeGraph, graphName } from '@root/helpers/writeGraph.js'
+import { writeGraph, formatUri } from '@root/helpers/writeGraph.js'
 import { jsonldToQuads, responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
 import {
   ruimtelijkePlannenRequest,
@@ -18,22 +18,24 @@ export default {
   name: 'Ruimtelijke plannen',
   description: 'Bevraging & opslaan van data uit de Ruimtelijke Plannen API',
   run: async (context: Context) => {
-    let skip = false
+    const graphPath = ['graph', 'externe-data', 'ruimtelijke-plannen']
+    const graphUri = formatUri(context.baseIRI, graphPath)
+
+    // if (context.cache && (await graphExists(context.buildingDataset, graphUri))) return SKIP_STEP
+
+    const quads: Quad[] = []
     for (const building of await getBuildings(context)) {
-      const graphPath = ['externe-data', building.name, 'ruimtelijke-plannen']
-      const graphId = graphName(context, graphPath)
-
-      if (context.cache && (await graphExists(context.buildingDataset, graphId))) {
-        skip = true
-        continue
-      }
-
-      const quads: Quad[] = []
       const requestToQuads = async (args: ApiArgs) => {
         const response = await ruimtelijkePlannenRequest(args)
+        const apiCallPredicateUri = ruimtelijkePlannenURL
+        const apiCallInstanceUri = `${graphUri}/${building.name}#${args.path.replace(/^\//, '').replaceAll(/\//g, '-')}`
         quads.push(
           ...(await responseToLinkedData(
-            { '@id': `${graphId}#${args.path.replace(/^\//, '')}`, ...response },
+            {
+              '@id': apiCallInstanceUri,
+              '@reverse': { [apiCallPredicateUri]: { '@id': building.root } },
+              ...response,
+            },
             ruimtelijkePlannenURL,
           )),
         )
@@ -46,7 +48,6 @@ export default {
         body: { _geo: { contains: footprint } },
         params: { planType: 'bestemmingsplan' /* expand: 'geometrie' */ }, // TODO: This makes fetch crash
       })
-      // quads.push(...(await jsonldToQuads({[building.root]: }))
 
       // Select the most recent parapluplan plus the most recent bestemmingsplan
       // that has a 'dossierstatus' of 'geldend', in accordance with
@@ -87,9 +88,7 @@ export default {
           params: { expand: 'geometrie' },
         })
       }
-      await writeGraph(context, quads, graphPath)
     }
-
-    if (skip) return SKIP_STEP
+    await writeGraph(context, quads, graphPath)
   },
 } satisfies Step

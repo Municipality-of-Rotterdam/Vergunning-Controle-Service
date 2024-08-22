@@ -1,6 +1,6 @@
 import { Quad } from '@rdfjs/types'
 
-import { writeGraph, graphName } from '@root/helpers/writeGraph.js'
+import { writeGraph, formatUri } from '@root/helpers/writeGraph.js'
 import { graphExists } from '@root/helpers/existence.js'
 import { SKIP_STEP } from '@root/helpers/skipStep.js'
 import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js'
@@ -13,17 +13,13 @@ export default {
   name: 'Welstand',
   description: '',
   run: async (context: Context) => {
-    let skip = false
+    const graphPath = ['graph', 'externe-data', 'welstand']
+    const graphUri = formatUri(context.baseIRI, graphPath)
+
+    // if (context.cache && (await graphExists(context.buildingDataset, graphUri))) return SKIP_STEP
+
+    const quads: Quad[] = []
     for (const building of await getBuildings(context)) {
-      const graphPath = ['externe-data', building.name, 'welstand']
-      const graphId = graphName(context, graphPath)
-
-      if (context.cache && (await graphExists(context.buildingDataset, graphId))) {
-        skip = true
-        continue
-      }
-
-      const quads: Quad[] = []
       const coordinates = wktPolygonToCoordinates(building.wkt)
 
       const requestXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -44,19 +40,19 @@ export default {
         </Query>
       </GetFeature>`
 
-      const response = await wfsRequest(
-        `https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer`,
-        requestXml,
-        context,
-      )
+      const welstandsApiUrl = `https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer`
+      const response = await wfsRequest(welstandsApiUrl, requestXml, context)
+
+      const apiCallPredicateUri = welstandsApiUrl
+      const apiCallInstanceUri = `${graphUri}/${building.name}#welstand`
+
       quads.push(
         ...(await responseToLinkedData(
-          { '@id': graphId, ...response },
-          'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS',
+          { '@id': apiCallInstanceUri, '@reverse': { [apiCallPredicateUri]: { '@id': building.root } }, ...response },
+          welstandsApiUrl,
         )),
       )
-      await writeGraph(context, quads, graphPath)
     }
-    if (skip) return SKIP_STEP
+    await writeGraph(context, quads, graphPath)
   },
 } satisfies Step
