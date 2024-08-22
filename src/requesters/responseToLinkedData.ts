@@ -2,7 +2,7 @@ import { Polygon, Position } from 'geojson'
 import jsonld from 'jsonld'
 
 import dataFactory from '@rdfjs/data-model'
-import { Quad } from '@rdfjs/types'
+import { BlankNode, Quad, Quad_Object, Quad_Predicate, Quad_Subject, Term } from '@rdfjs/types'
 import { geo, sf } from '@root/core/namespaces.js'
 import { geojsonToWKT } from '@terraformer/wkt'
 
@@ -58,6 +58,24 @@ export const responseToLinkedData = async (data: any, vocab: string): Promise<Qu
 
 export const jsonldToQuads = async (data: jsonld.JsonLdDocument): Promise<Quad[]> => {
   const rdfQuads = (await jsonld.toRDF(data)) as Quad[]
-  const quads = rdfQuads.map((quad: any) => dataFactory.quad(quad.subject, quad.predicate, quad.object)) as Quad[]
+
+  // Avoid serialization issue when combining quads from multiple sources: remap blank nodes to fresh blank nodes
+  const termMap: { [key: string]: BlankNode } = {}
+  const termMapper = (term: Term) => {
+    if (term.termType == 'BlankNode') {
+      if (!term.value) return dataFactory.blankNode()
+      if (termMap[term.value] === undefined) termMap[term.value] = dataFactory.blankNode()
+      return termMap[term.value]
+    } else return term
+  }
+
+  dataFactory.blankNode()
+  const quads = rdfQuads.map((quad: any) =>
+    dataFactory.quad(
+      termMapper(quad.subject) as Quad_Subject,
+      termMapper(quad.predicate) as Quad_Predicate,
+      termMapper(quad.object) as Quad_Object,
+    ),
+  ) as Quad[]
   return quads
 }

@@ -18,20 +18,19 @@ export default {
   name: 'Ruimtelijke plannen',
   description: 'Bevraging & opslaan van data uit de Ruimtelijke Plannen API',
   run: async (context: Context) => {
-    const namepath = ['externe-data', 'ruimtelijke-plannen']
+    const graphPath = ['externe-data', 'ruimtelijke-plannen']
+    const graphId = graphName(context, graphPath)
 
     // if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
     //   return SKIP_STEP
     // }
 
-    // const quads: Quad[] = []
-    const requestToQuads = async (title: string[], args: ApiArgs) => {
+    const quads: Quad[] = []
+    const requestToQuads = async (args: ApiArgs) => {
       const response = await ruimtelijkePlannenRequest(args)
-      // TODO I think writing just one graph is better, but running into serialization issues
-      // quads.push(...(await responseToLinkedData({ '@id': `${graphId}#${title}`, ...response }, ruimtelijkePlannenURL)))
-      const graphId = graphName(context, namepath.concat(title))
-      const quads = await responseToLinkedData({ '@id': graphId, ...response }, ruimtelijkePlannenURL)
-      await writeGraph(context, quads, namepath.concat(title))
+      quads.push(
+        ...(await responseToLinkedData({ '@id': `${graphId}#${args.path}`, ...response }, ruimtelijkePlannenURL)),
+      )
       return response
     }
 
@@ -40,7 +39,7 @@ export default {
     for (const building of await getBuildings(context)) {
       const naam = building.root.split('/').pop() ?? 'building'
       const footprint = wktToGeoJSON(building.wkt.replace(/^<.*> /, '').toUpperCase())
-      const response = await requestToQuads([naam, 'plannen'], {
+      const response = await requestToQuads({
         path: '/plannen/_zoek',
         body: { _geo: { contains: footprint } },
         params: { planType: 'bestemmingsplan' /* expand: 'geometrie' */ }, // TODO: This makes fetch crash
@@ -70,22 +69,23 @@ export default {
       )
 
       for (const plan of selectedPlans) {
-        await requestToQuads([naam, `maatvoeringen-${plan.id}`], {
+        await requestToQuads({
           path: `/plannen/${plan.id}/maatvoeringen/_zoek`,
           body: { _geo: { intersects: footprint } },
           params: { expand: 'geometrie' },
         })
-        await requestToQuads([naam, `bouwaanduidingen-${plan.id}`], {
+        await requestToQuads({
           path: `/plannen/${plan.id}/bouwaanduidingen/_zoek`,
           body: { _geo: { intersects: footprint } },
           params: { expand: 'geometrie' },
         })
-        await requestToQuads([naam, `bestemmingsvlakken-${plan.id}`], {
+        await requestToQuads({
           path: `/plannen/${plan.id}/bestemmingsvlakken/_zoek`,
           body: { _geo: { intersects: footprint } },
           params: { expand: 'geometrie' },
         })
       }
     }
+    await writeGraph(context, quads, graphPath)
   },
 } satisfies Step
