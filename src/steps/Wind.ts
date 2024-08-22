@@ -48,14 +48,8 @@ export default {
       const windApiUrl = `https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones/WFSServer`
       const response = await wfsRequest(windApiUrl, requestXml, context)
 
-      const apiCallPredicateUri = windApiUrl
-      const apiCallInstanceUri = `${graphUri}/${building.name}#wind`
-
       quads.push(
-        ...(await responseToLinkedData(
-          { '@id': apiCallInstanceUri, '@reverse': { [apiCallPredicateUri]: { '@id': building.root } }, ...response },
-          windApiUrl,
-        )),
+        ...(await responseToLinkedData(response, windApiUrl, building.root, `${graphUri}/${building.name}#wind`)),
       )
     }
     await writeGraph(context, quads, graphPath)

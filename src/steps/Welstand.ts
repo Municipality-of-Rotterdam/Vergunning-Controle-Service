@@ -43,13 +43,12 @@ export default {
       const welstandsApiUrl = `https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer`
       const response = await wfsRequest(welstandsApiUrl, requestXml, context)
 
-      const apiCallPredicateUri = welstandsApiUrl
-      const apiCallInstanceUri = `${graphUri}/${building.name}#welstand`
-
       quads.push(
         ...(await responseToLinkedData(
-          { '@id': apiCallInstanceUri, '@reverse': { [apiCallPredicateUri]: { '@id': building.root } }, ...response },
+          response,
           welstandsApiUrl,
+          building.root,
+          `${graphUri}/${building.name}#welstand`,
         )),
       )
     }

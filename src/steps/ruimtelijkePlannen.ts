@@ -27,16 +27,12 @@ export default {
     for (const building of await getBuildings(context)) {
       const requestToQuads = async (args: ApiArgs) => {
         const response = await ruimtelijkePlannenRequest(args)
-        const apiCallPredicateUri = ruimtelijkePlannenURL
-        const apiCallInstanceUri = `${graphUri}/${building.name}#${args.path.replace(/^\//, '').replaceAll(/\//g, '-')}`
         quads.push(
           ...(await responseToLinkedData(
-            {
-              '@id': apiCallInstanceUri,
-              '@reverse': { [apiCallPredicateUri]: { '@id': building.root } },
-              ...response,
-            },
+            response,
             ruimtelijkePlannenURL,
+            building.root,
+            `${graphUri}/${building.name}#${args.path.replace(/^\//, '').replaceAll(/\//g, '-')}`,
           )),
         )
         return response

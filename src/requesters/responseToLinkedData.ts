@@ -43,14 +43,22 @@ function addTranslatedGeoData(this: any, key: string, value: any) {
   return value
 }
 
-export const responseToLinkedData = async (data: any, vocab: string): Promise<Quad[]> => {
+export const responseToLinkedData = async (
+  data: any,
+  apiUrl: string,
+  buildingUri: string,
+  instanceUri: string,
+): Promise<Quad[]> => {
   const json = JSON.stringify(data)
   const jsonWithAdditionalData = JSON.parse(json, addTranslatedGeoData)
+  const vocab = `${apiUrl.replace(/#$/, '')}#`
 
   const document: jsonld.JsonLdDocument = {
     '@context': {
-      '@vocab': `${vocab.replace(/#$/, '')}#`,
+      '@vocab': vocab,
     },
+    '@id': instanceUri,
+    '@reverse': { [vocab]: { '@id': buildingUri } },
     ...jsonWithAdditionalData,
   }
   return jsonldToQuads(document)
