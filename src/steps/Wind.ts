@@ -1,28 +1,28 @@
-import fs from 'fs/promises';
-import { join } from 'path';
+import { Quad } from '@rdfjs/types'
 
-import { graphExists } from '@root/helpers/existence.js';
-import { SKIP_STEP } from '@root/helpers/skipStep.js';
-import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js';
-import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js';
-import { wfsRequest } from '@root/requesters/wfsRequest.js';
-import { getFootprint } from '@root/sparql/getFootprint.js';
-import { Context, Step } from '@root/types.js';
+import { writeGraph, formatUri } from '@root/helpers/writeGraph.js'
+import { graphExists } from '@root/helpers/existence.js'
+import { SKIP_STEP } from '@root/helpers/skipStep.js'
+import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js'
+import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
+import { wfsRequest } from '@root/requesters/wfsRequest.js'
+import { getBuildings } from '@root/sparql/getBuildings.js'
+import { Context, Step } from '@root/types.js'
 
 export default {
   name: 'Wind',
   description: '',
   run: async (context: Context) => {
-    const graphName = `${context.baseIRI}graph/externe-data/wind`
+    const graphPath = ['graph', 'externe-data', 'wind']
+    const graphUri = formatUri(context.baseIRI, graphPath)
 
-    if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
-      return SKIP_STEP
-    }
+    // if (context.cache && (await graphExists(context.buildingDataset, graphUri))) return SKIP_STEP
 
-    const footprint = await getFootprint(context)
-    const coordinates = wktPolygonToCoordinates(footprint.wkt)
+    const quads: Quad[] = []
+    for (const building of await getBuildings(context)) {
+      const coordinates = wktPolygonToCoordinates(building.wkt)
 
-    const requestXml = `<?xml version="1.0" encoding="UTF-8"?>
+      const requestXml = `<?xml version="1.0" encoding="UTF-8"?>
       <GetFeature 
           xmlns:gml="http://www.opengis.net/gml/3.2"
           xmlns="http://www.opengis.net/wfs/2.0"
@@ -45,23 +45,13 @@ export default {
         </Query>
       </GetFeature>`
 
-    const response = await wfsRequest(
-      `https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones/WFSServer`,
-      requestXml,
-      context,
-    )
+      const windApiUrl = `https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones/WFSServer`
+      const response = await wfsRequest(windApiUrl, requestXml, context)
 
-    const turtle = await responseToLinkedData(
-      response,
-      graphName,
-      'https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones',
-    )
-    const filepath = join(context.outputsDir, 'wind.ttl')
-
-    await fs.writeFile(filepath, turtle, 'utf8')
-    await context.buildingDataset.importFromFiles([filepath], {
-      defaultGraphName: graphName,
-      overwriteAll: true,
-    })
+      quads.push(
+        ...(await responseToLinkedData(response, windApiUrl, building.root, `${graphUri}/${building.name}#wind`)),
+      )
+    }
+    await writeGraph(context, quads, graphPath)
   },
 } satisfies Step

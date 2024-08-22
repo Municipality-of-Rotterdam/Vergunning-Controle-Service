@@ -1,7 +1,7 @@
-import dataFactory from '@rdfjs/data-model';
+import dataFactory from '@rdfjs/data-model'
 
-import { http, prov, rdf, rdfs, xsd } from '../core/namespaces.js';
-import { provenancePointer } from './provenance.js';
+import { http, prov, rdf, rdfs, xsd } from '../core/namespaces.js'
+import { provenancePointer } from './provenance.js'
 
 export const fetchWithProvenance = async (
   input: RequestInfo | URL,
@@ -9,6 +9,7 @@ export const fetchWithProvenance = async (
   additionalProvenance?: (pointer: any) => void,
 ): Promise<Response> => {
   const startTime = performance.now()
+  console.log(`Fetching ${input}`)
   const response = await fetch(input, init)
 
   return new Proxy(

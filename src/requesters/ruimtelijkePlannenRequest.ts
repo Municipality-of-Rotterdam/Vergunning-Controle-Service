@@ -1,12 +1,12 @@
-import { fetchWithProvenance } from '@root/provenance/fetchWithProvenance.js';
+import { fetchWithProvenance } from '@root/provenance/fetchWithProvenance.js'
 
-type ApiArgs = {
+export type ApiArgs = {
   params: { [key: string]: string | number }
   path: string
   body?: any
 }
 
-const ruimtelijkePlannenURL = 'https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4'
+export const ruimtelijkePlannenURL = 'https://ruimte.omgevingswet.overheid.nl/ruimtelijke-plannen/api/opvragen/v4'
 
 /**
  * Ruimtelijke Plannen Opvragen API

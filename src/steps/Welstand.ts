@@ -1,28 +1,28 @@
-import fs from 'fs/promises';
-import { join } from 'path';
+import { Quad } from '@rdfjs/types'
 
-import { graphExists } from '@root/helpers/existence.js';
-import { SKIP_STEP } from '@root/helpers/skipStep.js';
-import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js';
-import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js';
-import { wfsRequest } from '@root/requesters/wfsRequest.js';
-import { getFootprint } from '@root/sparql/getFootprint.js';
-import { Context, Step } from '@root/types.js';
+import { writeGraph, formatUri } from '@root/helpers/writeGraph.js'
+import { graphExists } from '@root/helpers/existence.js'
+import { SKIP_STEP } from '@root/helpers/skipStep.js'
+import { wktPolygonToCoordinates } from '@root/helpers/wktPolygonToCoordinates.js'
+import { responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
+import { wfsRequest } from '@root/requesters/wfsRequest.js'
+import { getBuildings } from '@root/sparql/getBuildings.js'
+import { Context, Step } from '@root/types.js'
 
 export default {
   name: 'Welstand',
   description: '',
   run: async (context: Context) => {
-    const graphName = `${context.baseIRI}graph/externe-data/welstand`
+    const graphPath = ['graph', 'externe-data', 'welstand']
+    const graphUri = formatUri(context.baseIRI, graphPath)
 
-    if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
-      return SKIP_STEP
-    }
+    // if (context.cache && (await graphExists(context.buildingDataset, graphUri))) return SKIP_STEP
 
-    const footprint = await getFootprint(context)
-    const coordinates = wktPolygonToCoordinates(footprint.wkt)
+    const quads: Quad[] = []
+    for (const building of await getBuildings(context)) {
+      const coordinates = wktPolygonToCoordinates(building.wkt)
 
-    const requestXml = `<?xml version="1.0" encoding="UTF-8"?>
+      const requestXml = `<?xml version="1.0" encoding="UTF-8"?>
       <GetFeature xmlns:gml="http://www.opengis.net/gml/3.2" xmlns="http://www.opengis.net/wfs/2.0" xmlns:fes="http://www.opengis.net/fes/2.0" service="WFS" version="2.0.0">
         <Query xmlns:Welstandskaart_tijdelijk_VCS="https://vnrpwapp426.rotterdam.local:6443/arcgis/admin/services/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer" typeNames="Welstandskaart_tijdelijk_VCS:Gebiedstypen">
           <fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0">
@@ -40,23 +40,18 @@ export default {
         </Query>
       </GetFeature>`
 
-    const response = await wfsRequest(
-      `https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer`,
-      requestXml,
-      context,
-    )
+      const welstandsApiUrl = `https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS/MapServer/WFSServer`
+      const response = await wfsRequest(welstandsApiUrl, requestXml, context)
 
-    const turtle = await responseToLinkedData(
-      response,
-      graphName,
-      'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS',
-    )
-    const filepath = join(context.outputsDir, 'welstand.ttl')
-
-    await fs.writeFile(filepath, turtle, 'utf8')
-    await context.buildingDataset.importFromFiles([filepath], {
-      defaultGraphName: graphName,
-      overwriteAll: true,
-    })
+      quads.push(
+        ...(await responseToLinkedData(
+          response,
+          welstandsApiUrl,
+          building.root,
+          `${graphUri}/${building.name}#welstand`,
+        )),
+      )
+    }
+    await writeGraph(context, quads, graphPath)
   },
 } satisfies Step
