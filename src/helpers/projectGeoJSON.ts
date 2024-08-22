@@ -19,9 +19,9 @@ export function projectGeoJSON(source: GeoJSON, conv = epsg28992): GeoJSON {
   if (isGeometryCollection(g)) {
     g.geometries = g.geometries.map((y) => projectGeoJSON(y, conv) as Geometry)
   } else if (isPolygon(g)) {
-    g.coordinates = g.coordinates.map((y) => y.map(conv.inverse))
+    g.coordinates = g.coordinates.map((y) => y.map(conv.forward))
   } else if (isMultiPolygon(g)) {
-    g.coordinates = g.coordinates.map((y) => y.map((z) => z.map(conv.inverse)))
+    g.coordinates = g.coordinates.map((y) => y.map((z) => z.map(conv.forward)))
   } else {
     throw new Error(`Projection of GeoJSON type ${g.type} has not been implemented`)
   }

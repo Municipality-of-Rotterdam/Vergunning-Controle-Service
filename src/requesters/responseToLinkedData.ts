@@ -24,19 +24,22 @@ const gmlToGeoJson = (value: string) => {
 
 function addTranslatedGeoData(this: any, key: string, value: any) {
   let geometry
+  let epsg
 
   if (key === 'gml:Polygon') {
     const shape = value['gml:exterior']['gml:LinearRing']['gml:posList']
-    geometry = projectGeoJSON(gmlToGeoJson(shape))
+    geometry = gmlToGeoJson(shape)
   }
 
-  if (key === 'geometrie') geometry = value
+  if (key === 'geometrie') {
+    geometry = projectGeoJSON(value)
+  }
 
-  if (geometry) {
+  if (geometry && epsg) {
     value[geo('hasDefaultGeometry').value] = {
       '@type': sf(geometry.type).value,
       [geo('asWKT').value]: {
-        '@value': `<http://www.opengis.net/def/crs/EPSG/0/4326> ${geojsonToWKT(geometry)}`,
+        '@value': `<http://www.opengis.net/def/crs/EPSG/0/28992> ${geojsonToWKT(geometry)}`,
         '@type': geo('wktLiteral').value,
       },
     }
