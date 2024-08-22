@@ -18,26 +18,28 @@ export default {
   name: 'Ruimtelijke plannen',
   description: 'Bevraging & opslaan van data uit de Ruimtelijke Plannen API',
   run: async (context: Context) => {
-    const graphPath = ['externe-data', 'ruimtelijke-plannen']
-    const graphId = graphName(context, graphPath)
-
-    // if (context.cache && (await graphExists(context.buildingDataset, graphName))) {
-    //   return SKIP_STEP
-    // }
-
-    const quads: Quad[] = []
-    const requestToQuads = async (args: ApiArgs) => {
-      const response = await ruimtelijkePlannenRequest(args)
-      quads.push(
-        ...(await responseToLinkedData({ '@id': `${graphId}#${args.path}`, ...response }, ruimtelijkePlannenURL)),
-      )
-      return response
-    }
-
-    // Find all buildings and their footprints in the dataset and add all plans
-    // relevant to those buildings as linked data
+    let skip = false
     for (const building of await getBuildings(context)) {
-      const naam = building.root.split('/').pop() ?? 'building'
+      const graphPath = ['externe-data', building.name, 'ruimtelijke-plannen']
+      const graphId = graphName(context, graphPath)
+
+      if (context.cache && (await graphExists(context.buildingDataset, graphId))) {
+        skip = true
+        continue
+      }
+
+      const quads: Quad[] = []
+      const requestToQuads = async (args: ApiArgs) => {
+        const response = await ruimtelijkePlannenRequest(args)
+        quads.push(
+          ...(await responseToLinkedData(
+            { '@id': `${graphId}#${args.path.replace(/^\//, '')}`, ...response },
+            ruimtelijkePlannenURL,
+          )),
+        )
+        return response
+      }
+
       const footprint = wktToGeoJSON(building.wkt.replace(/^<.*> /, '').toUpperCase())
       const response = await requestToQuads({
         path: '/plannen/_zoek',
@@ -85,7 +87,9 @@ export default {
           params: { expand: 'geometrie' },
         })
       }
+      await writeGraph(context, quads, graphPath)
     }
-    await writeGraph(context, quads, graphPath)
+
+    if (skip) return SKIP_STEP
   },
 } satisfies Step

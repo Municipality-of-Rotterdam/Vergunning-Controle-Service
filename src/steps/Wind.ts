@@ -13,14 +13,18 @@ export default {
   name: 'Wind',
   description: '',
   run: async (context: Context) => {
-    const namepath = ['externe-data', 'wind']
+    let skip = false
 
-    if (context.cache && (await graphExists(context.buildingDataset, graphName(context, namepath)))) {
-      return SKIP_STEP
-    }
-
-    const quads: Quad[] = []
     for (const building of await getBuildings(context)) {
+      const graphPath = ['externe-data', building.name, 'wind']
+      const graphId = graphName(context, graphPath)
+
+      if (context.cache && (await graphExists(context.buildingDataset, graphId))) {
+        skip = true
+        continue
+      }
+
+      const quads: Quad[] = []
       const coordinates = wktPolygonToCoordinates(building.wkt)
 
       const requestXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -54,11 +58,13 @@ export default {
 
       quads.push(
         ...(await responseToLinkedData(
-          response,
+          { '@id': graphId, response },
           'https://dservices.arcgis.com/zP1tGdLpGvt2qNJ6/arcgis/services/provincies_windzones',
         )),
       )
+      await writeGraph(context, quads, graphPath)
     }
-    await writeGraph(context, quads, namepath)
+
+    if (skip) return SKIP_STEP
   },
 } satisfies Step

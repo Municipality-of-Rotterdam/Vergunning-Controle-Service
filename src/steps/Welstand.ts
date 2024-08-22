@@ -13,14 +13,17 @@ export default {
   name: 'Welstand',
   description: '',
   run: async (context: Context) => {
-    const namepath = ['externe-data', 'welstand']
-
-    if (context.cache && (await graphExists(context.buildingDataset, graphName(context, namepath)))) {
-      return SKIP_STEP
-    }
-
-    const quads: Quad[] = []
+    let skip = false
     for (const building of await getBuildings(context)) {
+      const graphPath = ['externe-data', building.name, 'welstand']
+      const graphId = graphName(context, graphPath)
+
+      if (context.cache && (await graphExists(context.buildingDataset, graphId))) {
+        skip = true
+        continue
+      }
+
+      const quads: Quad[] = []
       const coordinates = wktPolygonToCoordinates(building.wkt)
 
       const requestXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -48,11 +51,12 @@ export default {
       )
       quads.push(
         ...(await responseToLinkedData(
-          response,
+          { '@id': graphId, ...response },
           'https://diensten.rotterdam.nl/arcgis/services/SO_RW/Welstandskaart_tijdelijk_VCS',
         )),
       )
+      await writeGraph(context, quads, graphPath)
     }
-    await writeGraph(context, quads, namepath)
+    if (skip) return SKIP_STEP
   },
 } satisfies Step
