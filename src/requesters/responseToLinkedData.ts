@@ -1,6 +1,8 @@
 import { Polygon, Position } from 'geojson'
 import jsonld from 'jsonld'
 
+import { projectGeoJSON } from '@root/helpers/projectGeoJSON.js'
+
 import dataFactory from '@rdfjs/data-model'
 import { BlankNode, Quad, Quad_Object, Quad_Predicate, Quad_Subject, Term } from '@rdfjs/types'
 import { geo, sf } from '@root/core/namespaces.js'
@@ -25,7 +27,7 @@ function addTranslatedGeoData(this: any, key: string, value: any) {
 
   if (key === 'gml:Polygon') {
     const shape = value['gml:exterior']['gml:LinearRing']['gml:posList']
-    geometry = gmlToGeoJson(shape)
+    geometry = projectGeoJSON(gmlToGeoJson(shape))
   }
 
   if (key === 'geometrie') geometry = value
@@ -34,7 +36,7 @@ function addTranslatedGeoData(this: any, key: string, value: any) {
     value[geo('hasDefaultGeometry').value] = {
       '@type': sf(geometry.type).value,
       [geo('asWKT').value]: {
-        '@value': `<http://www.opengis.net/def/crs/EPSG/0/28992> ${geojsonToWKT(geometry)}`,
+        '@value': `<http://www.opengis.net/def/crs/EPSG/0/4326> ${geojsonToWKT(geometry)}`,
         '@type': geo('wktLiteral').value,
       },
     }
