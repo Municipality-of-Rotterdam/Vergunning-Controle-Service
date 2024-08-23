@@ -4,6 +4,7 @@ import { Quad } from '@rdfjs/types'
 import { graphExists } from '@root/helpers/existence.js'
 import { SKIP_STEP } from '@root/helpers/skipStep.js'
 import { writeGraph, formatUri } from '@root/helpers/writeGraph.js'
+import { projectGeoJSON, epsg28992 } from '@root/helpers/projectGeoJSON.js'
 import { jsonldToQuads, responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
 import {
   ruimtelijkePlannenRequest,
@@ -73,9 +74,15 @@ export default {
           body: { _geo: { intersects: footprint } },
           params: { expand: 'geometrie' },
         })
+
+        // TODO: This is a temporary test footprint, so that we can find a 'flat roof' indicator
+        const footprintT1 = wktToGeoJSON(
+          `POLYGON ((84165 431938, 84172 431938, 84172 431943, 84165 431943, 84165 431938))`,
+        )
+
         await requestToQuads({
           path: `/plannen/${plan.id}/bouwaanduidingen/_zoek`,
-          body: { _geo: { intersects: footprint } },
+          body: { _geo: { intersects: footprintT1 } },
           params: { expand: 'geometrie' },
         })
         await requestToQuads({
