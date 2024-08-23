@@ -24,20 +24,25 @@ const gmlToGeoJson = (value: string) => {
 
 function addTranslatedGeoData(this: any, key: string, value: any) {
   let geometry
-  let epsg
 
   if (key === 'gml:Polygon') {
     const shape = value['gml:exterior']['gml:LinearRing']['gml:posList']
+    // This will be GeoJSON in EPSG28992 (not according to spec). This is a
+    // TEMPORARY workaround, see below.
     geometry = gmlToGeoJson(shape)
   }
 
   if (key === 'geometrie') {
+    // We perform a projection so that this is also GeoJSON in EPSG28992
     geometry = projectGeoJSON(value)
   }
 
-  if (geometry && epsg) {
+  if (geometry) {
     value[geo('hasDefaultGeometry').value] = {
       '@type': sf(geometry.type).value,
+
+      // TODO: This is a TEMPORARY WORKAROUND. In the future, TriplyDB should
+      // become able to understand GML and GeoJSON natively.
       [geo('asWKT').value]: {
         '@value': `<http://www.opengis.net/def/crs/EPSG/0/28992> ${geojsonToWKT(geometry)}`,
         '@type': geo('wktLiteral').value,
