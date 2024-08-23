@@ -7,6 +7,7 @@ import dataFactory from '@rdfjs/data-model'
 import { BlankNode, Quad, Quad_Object, Quad_Predicate, Quad_Subject, Term } from '@rdfjs/types'
 import { geo, sf } from '@root/core/namespaces.js'
 import { geojsonToWKT } from '@terraformer/wkt'
+import { gml } from '@core/namespaces.js'
 
 const gmlToGeoJson = (value: string) => {
   const numbers: number[] = value.split(' ').map((x: string) => parseFloat(x))
@@ -25,8 +26,8 @@ const gmlToGeoJson = (value: string) => {
 function addTranslatedGeoData(this: any, key: string, value: any) {
   let geometry
 
-  if (key === 'gml:Polygon') {
-    const shape = value['gml:exterior']['gml:LinearRing']['gml:posList']
+  if (key === gml('Polygon').value) {
+    const shape = value[gml('exterior').value][gml('LinearRing').value][gml('posList').value]
     // This will be GeoJSON in EPSG28992 (not according to spec). This is a
     // TEMPORARY workaround, see below.
     geometry = gmlToGeoJson(shape)
