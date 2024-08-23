@@ -41,7 +41,7 @@ export const establishContext = async (): Promise<Context> => {
   // There is a max for dataset name lengths of 40 characters.
   const datasetName = args.dev
     ? buildingName.substring(0, 40)
-    : `${buildingName.substring(0, 26)}-${year}${month}${day}-${hours}${minutes}${seconds}`
+    : `${buildingName.substring(0, 23)}-${year}${month}${day}-${hours}${minutes}${seconds}`
 
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getUser()
