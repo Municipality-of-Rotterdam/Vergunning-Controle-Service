@@ -28,7 +28,7 @@ export const establishContext = async (): Promise<Context> => {
   }
 
   if (!args.ifc) throw new Error('VCS was started without an .ifc, please provide --ifc=IFC_ASSET_NAME')
-  const buildingName: string = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
+  const buildingName: string = args.ifc.replaceAll(/\.ifc$/gi, '').replace(/[^a-zA-Z0-9]+/g, '-')
 
   const now = new Date()
   const year = now.getFullYear()
