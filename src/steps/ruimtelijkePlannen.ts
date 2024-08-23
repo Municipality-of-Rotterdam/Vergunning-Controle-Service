@@ -3,6 +3,7 @@ import { Quad } from '@rdfjs/types'
 
 import { graphExists } from '@root/helpers/existence.js'
 import { SKIP_STEP } from '@root/helpers/skipStep.js'
+import { rdfs } from '@root/core/namespaces.js'
 import { writeGraph, formatUri } from '@root/helpers/writeGraph.js'
 import { projectGeoJSON, epsg28992 } from '@root/helpers/projectGeoJSON.js'
 import { jsonldToQuads, responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
@@ -26,25 +27,36 @@ export default {
 
     const quads: Quad[] = []
     for (const building of await getBuildings(context)) {
-      const requestToQuads = async (args: ApiArgs) => {
+      const footprint = wktToGeoJSON(building.wkt.replace(/^<.*> /, '').toUpperCase())
+
+      const requestToQuads = async (args: ApiArgs, extra?: (x: any) => any) => {
         const response = await ruimtelijkePlannenRequest(args)
+        const instanceUri = `${graphUri}/${building.name}#${args.path.replace(/^\//, '').replaceAll(/\//g, '-')}`
         quads.push(
           ...(await responseToLinkedData(
-            response,
+            extra ? extra(response) : response,
             ruimtelijkePlannenURL,
             building.root,
-            `${graphUri}/${building.name}#${args.path.replace(/^\//, '').replaceAll(/\//g, '-')}`,
+            instanceUri,
           )),
         )
         return response
       }
 
-      const footprint = wktToGeoJSON(building.wkt.replace(/^<.*> /, '').toUpperCase())
-      const response = await requestToQuads({
-        path: '/plannen/_zoek',
-        body: { _geo: { contains: footprint } },
-        params: { planType: 'bestemmingsplan' /* expand: 'geometrie' */ }, // TODO: This makes fetch crash
-      })
+      const response = await requestToQuads(
+        {
+          path: '/plannen/_zoek',
+          body: { _geo: { contains: footprint } },
+          params: { planType: 'bestemmingsplan' /* expand: 'geometrie' */ }, // TODO: This makes fetch crash
+        },
+        (response: any) => {
+          const plannen = response['_embedded']['plannen']
+          for (let i = 0; i < plannen.length; i++) {
+            plannen[i]['@id'] = `${ruimtelijkePlannenURL}#${plannen[i]['id']}`
+          }
+          return response
+        },
+      )
 
       // Select the most recent parapluplan plus the most recent bestemmingsplan
       // that has a 'dossierstatus' of 'geldend', in accordance with
@@ -68,28 +80,40 @@ export default {
         selectedPlans.map((p: any) => p.id),
       )
 
+      // TODO: This is a temporary test footprint, so that we can find a 'flat roof' indicator
+      const footprintT1 = wktToGeoJSON(
+        `POLYGON ((84165 431938, 84172 431938, 84172 431943, 84165 431943, 84165 431938))`,
+      )
+
       for (const plan of selectedPlans) {
-        await requestToQuads({
-          path: `/plannen/${plan.id}/maatvoeringen/_zoek`,
-          body: { _geo: { intersects: footprint } },
-          params: { expand: 'geometrie' },
-        })
+        const addSeeAlso = (x: any) => {
+          return { ...x, [rdfs('seeAlso').value]: { '@id': `${ruimtelijkePlannenURL}#${plan.id}` } }
+        }
 
-        // TODO: This is a temporary test footprint, so that we can find a 'flat roof' indicator
-        const footprintT1 = wktToGeoJSON(
-          `POLYGON ((84165 431938, 84172 431938, 84172 431943, 84165 431943, 84165 431938))`,
+        await requestToQuads(
+          {
+            path: `/plannen/${plan.id}/maatvoeringen/_zoek`,
+            body: { _geo: { intersects: footprint } },
+            params: { expand: 'geometrie' },
+          },
+          addSeeAlso,
         )
-
-        await requestToQuads({
-          path: `/plannen/${plan.id}/bouwaanduidingen/_zoek`,
-          body: { _geo: { intersects: footprintT1 } },
-          params: { expand: 'geometrie' },
-        })
-        await requestToQuads({
-          path: `/plannen/${plan.id}/bestemmingsvlakken/_zoek`,
-          body: { _geo: { intersects: footprint } },
-          params: { expand: 'geometrie' },
-        })
+        await requestToQuads(
+          {
+            path: `/plannen/${plan.id}/bouwaanduidingen/_zoek`,
+            body: { _geo: { intersects: footprintT1 } },
+            params: { expand: 'geometrie' },
+          },
+          addSeeAlso,
+        )
+        await requestToQuads(
+          {
+            path: `/plannen/${plan.id}/bestemmingsvlakken/_zoek`,
+            body: { _geo: { intersects: footprint } },
+            params: { expand: 'geometrie' },
+          },
+          addSeeAlso,
+        )
       }
     }
     await writeGraph(context, quads, graphPath)

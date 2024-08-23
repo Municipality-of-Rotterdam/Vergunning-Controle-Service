@@ -1,14 +1,14 @@
-import argsParser from 'args-parser';
-import { existsSync } from 'fs';
-import fs, { mkdir } from 'fs/promises';
-import * as path from 'path';
-import { rimraf } from 'rimraf';
+import argsParser from 'args-parser'
+import { existsSync } from 'fs'
+import fs, { mkdir } from 'fs/promises'
+import * as path from 'path'
+import { rimraf } from 'rimraf'
 
-import App from '@triply/triplydb';
+import App from '@triply/triplydb'
 
-import { ensureBuildingDataset } from '../helpers/ensureBuildingDataset.js';
-import { fetchAssetByName } from '../helpers/fetchAssetByName.js';
-import { Context } from '../types.js';
+import { ensureBuildingDataset } from '../helpers/ensureBuildingDataset.js'
+import { fetchAssetByName } from '../helpers/fetchAssetByName.js'
+import { Context } from '../types.js'
 
 export const establishContext = async (): Promise<Context> => {
   const args = argsParser(process.argv)
@@ -28,12 +28,12 @@ export const establishContext = async (): Promise<Context> => {
   }
 
   if (!args.ifc) throw new Error('VCS was started without an .ifc, please provide --ifc=IFC_ASSET_NAME')
-  const buildingName: string = args.ifc.replaceAll('.ifc', '').replace(/[^a-zA-Z]+/g, '')
+  const buildingName: string = args.ifc.replaceAll(/\.ifc$/gi, '').replace(/[^a-zA-Z0-9]+/g, '-')
 
   const now = new Date()
   const year = now.getFullYear()
   const month = (now.getMonth() + 1).toString().padStart(2, '0')
-  const day = (now.getDate() + 1).toString().padStart(2, '0')
+  const day = now.getDate().toString().padStart(2, '0')
   const hours = now.getHours().toString().padStart(2, '0')
   const minutes = now.getMinutes().toString().padStart(2, '0')
   const seconds = now.getSeconds().toString().padStart(2, '0')
@@ -41,7 +41,7 @@ export const establishContext = async (): Promise<Context> => {
   // There is a max for dataset name lengths of 40 characters.
   const datasetName = args.dev
     ? buildingName.substring(0, 40)
-    : `${buildingName.substring(0, 18)}--${year}-${month}-${day}--${hours}-${minutes}-${seconds}`
+    : `${buildingName.substring(0, 26)}-${year}${month}${day}-${hours}${minutes}${seconds}`
 
   const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
   const user = await triply.getUser()

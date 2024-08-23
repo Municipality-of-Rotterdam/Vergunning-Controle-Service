@@ -52,6 +52,7 @@ for (const step of steps) {
   } catch (error) {
     provenancePointer.addOut(rdf('type'), prov('ErroredActivity'))
     if (error instanceof Error) provenancePointer.addOut(prov('error'), error.message)
+    console.error(error)
   }
 }
 
