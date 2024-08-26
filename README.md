@@ -2,14 +2,14 @@
 
 ## Prerequisites
 
-This script is used to conduct the Vergunning Controle Service for the Municipality of Rotterdam. In this repository we use command line executables, python scripts, and java jar scripts to transform the IFC data into linked data.
+This script is used to conduct the Vergunning Controle Service for the Municipality of Rotterdam. In this repository we use command line tools, Python scripts, and Java executables to transform the IFC data into linked data.
 
 To be able to run code from this repository it is required to have:
 
-- NodeJs installed: https://nodejs.org/en
+- NodeJS: https://nodejs.org/en
 - Python version 3.12 installed (at least a type supported version), with working `python3` as CLI command: https://www.python.org/
-- Java installed: https://www.java.com/en/download/
-- docker: https://docs.docker.com/get-docker/
+- Java: https://www.java.com/en/download/
+- Docker: https://docs.docker.com/get-docker/
 
 ### Create a TriplyDB API Token
 
@@ -28,7 +28,7 @@ You also need `RP_API_TOKEN`. You can find it in the GitLab CI environment setti
 
 ### Input: IFC file
 
-The IFC file that will be checked needs to be uploaded as an asset to the `vcs` dataset of the respective DTAP environment. See for example here: https://demo.triplydb.com/rotterdam/vcs/assets. This way, we can integrate the application with the DSO, and trigger a web hook to run the application every time a new IFC file from the DSO is uploaded.
+The IFC file and IDS file that will be checked needs to be uploaded as an asset to the `vcs` dataset of the respective DTAP environment. See for example here: https://demo.triplydb.com/rotterdam/vcs/assets. This way, we can integrate the application with the DSO, and trigger a web hook to run the application every time a new IFC file from the DSO is uploaded.
 
 ### Running the application
 
@@ -37,7 +37,7 @@ You can run the application with the following commands:
 ```sh
 npm i
 npm run build
-node lib/main.js --ifc="Kievitsweg_R23_MVP_IFC4.ifc" --clean
+node lib/main.js --ifc="Kievitsweg_R23_MVP_IFC4.ifc" --ids="IDS Rotterdam BIM.ids"
 ```
 
 It might be necessary to work within a virtual environment. To do so, use these commands:
@@ -54,18 +54,9 @@ On Windows using Powershell:
 python3 -m venv myenv && .\myenv\Scripts\activate
 ```
 
-### Output: vcs-rapport.html
+### Output
 
-The output of the VCS application is the report, called `vcs-rapport.html`. This is added as an asset to the respective building dataset. See for example here: https://demo.triplydb.com/rotterdam/KievitswegRMVPIFC/assets.
-
-## Development of checks
-
-[In Dutch]
-
-Het doel van deze software is het uitvoeren van controles op de IFC van gebouwen.
-
-- Controle groep, een groep van controles. Een controle groep bestaat uit: `voorbereiding`, `controles`.
-- Controle, een controle voor een specifieke regel. Een controle bestaat uit: `voorbereiding`, `sparql`.
+The output of the VCS application is the data story, which can be found in the relevant account after completion.
 
 ## 4. DTAP Environments
 
