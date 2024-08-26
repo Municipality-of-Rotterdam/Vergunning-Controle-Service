@@ -8,6 +8,7 @@ import { prefixes, prov, rdf } from '@root/core/namespaces.js'
 import { establishContext } from './core/establishContext.js'
 import { SKIP_STEP, skipStep } from './helpers/skipStep.js'
 import { finishProvenance, initProvenance, provenancePointer, setPhase } from './provenance/provenance.js'
+import createVocab from './steps/createVocab.js'
 import createDataStory from './steps/createDataStory.js'
 import executeIds from './steps/executeIds.js'
 import footprint from './steps/footprint.js'
@@ -39,6 +40,8 @@ const steps: Step[] = [
   wind,
   welstand,
 
+  // Data story
+  createVocab,
   createDataStory,
 ]
 

@@ -1,4 +1,4 @@
-import Dataset from '@triply/triplydb/Dataset.js';
+import Dataset from '@triply/triplydb/Dataset.js'
 
 export type Step = {
   name: string
@@ -7,6 +7,7 @@ export type Step = {
 }
 
 export type Context = {
+  vocabName: string
   ifcFile: string
   idsFile: string
   inputsDir: string
