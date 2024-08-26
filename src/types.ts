@@ -3,6 +3,7 @@ import Dataset from '@triply/triplydb/Dataset.js'
 export type Step = {
   name: string
   description: string
+  strict: boolean
   run(context: Context): Promise<any>
 }
 

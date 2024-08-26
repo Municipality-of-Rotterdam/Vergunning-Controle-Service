@@ -6,6 +6,7 @@ import { SKIP_STEP } from '@root/helpers/skipStep.js'
 export default {
   name: 'Kopieër de vocabulaire',
   description: 'Kopieër de vocab-graph van de Rule Repository naar de dataset van het gebouw',
+  strict: true,
   async run(context: Context) {
     const ruleRepository = App.get({ token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
     const organization = await ruleRepository.getOrganization('Rotterdam-Rule-Repository')

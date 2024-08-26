@@ -8,6 +8,7 @@ import { graphExists } from '@root/helpers/existence.js'
 export default {
   name: 'Linked Building Data',
   description: 'Converteert de .ifc naar Linked Data',
+  strict: true,
   async run(context: Context) {
     const graph = `${context.baseIRI}graph/gebouw`
 

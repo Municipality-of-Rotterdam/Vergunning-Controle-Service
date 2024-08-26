@@ -17,6 +17,7 @@ import App from '@triply/triplydb'
 export default {
   name: 'Maak data verhaal',
   description: 'Maak het data verhaal aan de hand van de queries in de rule repository',
+  strict: false,
   async run(context: Context) {
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const account = await triply.getAccount(getAccount())

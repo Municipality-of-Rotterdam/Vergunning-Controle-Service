@@ -15,6 +15,7 @@ const { glbToGltf } = gltfPipeline
 export default {
   name: '3D model bouwen',
   description: '',
+  strict: true,
   run: async (context: Context) => {
     const allAssetsExists = await checkAssetExistence(context.buildingDataset, ['model-3d.glb', 'model-3d.gltf'])
     if (context.cache && allAssetsExists) return SKIP_STEP

@@ -12,6 +12,7 @@ import { Context, Step } from '@root/types.js'
 export default {
   name: 'Welstand',
   description: '',
+  strict: false,
   run: async (context: Context) => {
     const graphPath = ['graph', 'externe-data', 'welstand']
     const graphUri = formatUri(context.baseIRI, graphPath)

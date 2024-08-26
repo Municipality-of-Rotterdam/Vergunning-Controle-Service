@@ -7,7 +7,8 @@ import { Context, Step } from '@root/types.js'
 
 export default {
   name: 'Voetafdrukken berekenen',
-  description: '',
+  description: 'Bereken de voetafdruk van het gebouw en van ruimtes binnen het gebouw',
+  strict: true,
   run: async (context: Context) => {
     const footprintGraph = `${context.baseIRI}graph/voetafdruk`
 

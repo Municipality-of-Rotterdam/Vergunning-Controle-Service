@@ -55,7 +55,12 @@ for (const step of steps) {
   } catch (error) {
     provenancePointer.addOut(rdf('type'), prov('ErroredActivity'))
     if (error instanceof Error) provenancePointer.addOut(prov('error'), error.message)
-    console.error(error)
+    if (step.strict) {
+      throw error
+    } else {
+      console.error(`We ran into the following error while running the program: ${error}`)
+      console.error(`Continuing anyway...`)
+    }
   }
 }
 

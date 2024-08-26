@@ -19,6 +19,7 @@ import { wktToGeoJSON } from '@terraformer/wkt'
 export default {
   name: 'Ruimtelijke plannen',
   description: 'Bevraging & opslaan van data uit de Ruimtelijke Plannen API',
+  strict: false,
   run: async (context: Context) => {
     const graphPath = ['graph', 'externe-data', 'ruimtelijke-plannen']
     const graphUri = formatUri(context.baseIRI, graphPath)
