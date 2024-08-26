@@ -50,6 +50,7 @@ export const establishContext = async (): Promise<Context> => {
   const baseIRI = `${consoleUrl}/${userName}/${datasetName}/`
 
   const context: Context = {
+    vocabName: 'https://triplydb.com/Triply/vocab',
     outputsDir: path.join('outputs', datasetName),
     inputsDir: path.join('inputs', buildingName),
     sourceIfcFileName: ifcFileName,
