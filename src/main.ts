@@ -8,6 +8,7 @@ import { prefixes, prov, rdf } from '@root/core/namespaces.js'
 import { establishContext } from './core/establishContext.js'
 import { SKIP_STEP, skipStep } from './helpers/skipStep.js'
 import { finishProvenance, initProvenance, provenancePointer, setPhase } from './provenance/provenance.js'
+import sanityCheck from './steps/sanityCheck.js'
 import createVocab from './steps/createVocab.js'
 import createDataStory from './steps/createDataStory.js'
 import executeIds from './steps/executeIds.js'
@@ -18,6 +19,7 @@ import ruimtelijkePlannen from './steps/ruimtelijkePlannen.js'
 import welstand from './steps/Welstand.js'
 import wind from './steps/Wind.js'
 import { Step } from './types.js'
+import { getAccount } from './helpers/getAccount.js'
 
 /**
  * Phase: Preprocessing data
@@ -28,6 +30,7 @@ const context = await establishContext()
 initProvenance(context)
 
 const steps: Step[] = [
+  sanityCheck,
   executeIds,
 
   // Building data
