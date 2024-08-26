@@ -36,10 +36,10 @@ export default {
       adres: address,
       lat,
       lng,
-      'gebouw-dataset-url': context.baseIRI.substring(0, context.baseIRI.length - 1),
+      'gebouw-dataset-url': context.baseIRI.replace(/\/$|#$/, ''),
       'voetafdruk-url': building.geometry,
-      'ifc-naam': context.sourceIfcFileName.replaceAll('.ifc', ''),
-      'ids-naam': 'IDSValidationReport_' + context.sourceIdsFileName.replaceAll('.ids', '').replaceAll(' ', ''),
+      'ifc-naam': context.sourceIfcFileName.replaceAll(/\.ids/gi, ''),
+      'ids-naam': 'IDSValidationReport_' + context.sourceIdsFileName.replaceAll(/\.ids/gi, '').replaceAll(' ', ''),
     }
 
     for (const item of templateContent) {
