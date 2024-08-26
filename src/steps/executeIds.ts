@@ -10,7 +10,7 @@ import { Context, Step } from '@root/types.js'
 export default {
   name: 'IDS validatie',
   description: 'Valideer de gegeven .ifc tegen de .ids bestanden',
-  strict: true,
+  strict: false,
   async run(context: Context) {
     const idsName = path.basename(context.idsFile!, '.ids').replace(/[^a-zA-Z]+/g, '')
     const idsReportHtml = path.join(context.outputsDir!, `IDSValidationReport_${idsName}.html`)
