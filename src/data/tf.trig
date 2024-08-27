@@ -431,7 +431,7 @@ param:html_dl3_term3
   a sh:Parameter;
   sh:or lst:htmllike;
   sh:order 5;
-  sh:path param:term2.
+  sh:path param:term3.
 param:html_dl3_definition3
   a sh:Parameter;
   sh:or lst:htmllike;
@@ -1310,7 +1310,7 @@ param:vcs_kleur_gebruiksfunctie
   a sh:Parameter;
   sh:or lst:textlike;
   sh:order 1;
-  sh:path param:kleur.
+  sh:path param:gebruiksfunctie.
 
 tf:vcs_map_endpoint
   a sh:SPARQLFunction;
