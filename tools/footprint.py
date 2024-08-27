@@ -168,6 +168,9 @@ def main(file: str, base_iri: str, ifc_classes: list[str]):
     # the line below is not needed, because IfcOpenShell work in metres
     #settings.set(settings.CONVERT_BACK_UNITS,True) # set units back from metres to the model lenght units
 
+    if model.schema_version != (4, 0, 0, 0):
+        raise Exception(f'Model schema is {".".join(model.schema_version)}; must be 4')
+
     mc = MapConversion(model)
 
     # Header
