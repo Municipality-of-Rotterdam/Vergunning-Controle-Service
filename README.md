@@ -1,4 +1,17 @@
-# Vergunningscontroleservice (VCS) application for the Municipality of Rotterdam
+# Vergunning Controle Service (VCS) 
+
+[In Dutch]
+
+Vergunning Controle Service is een tool om ingediende BIM-modellen geautomatiseerd te toetsen op de geldende regels (bijvoorbeeld bestemmingsplannen, constructie, veiligheid, geluid, etc).  
+Met een druk op de knop ziet een ontwikkelende en toetsende partij of een toekomstige werkelijkheid van de omgeving voldoet aan de afspraken.  
+
+Om te mogen bouwen is een omgevingsvergunning van de gemeente nodig. Hiervoor levert de ontwikkelaar vaak veel documenten en tekeningen aan, die een gemeentemedewerker bekijkt en beoordeelt. Het controleren van alle documenten is een tijdrovend proces. Het uitzoekwerk verloopt veelal handmatig en is een arbeidsintensief proces. Met de Omgevingswet (OW) is er minder tijd voor controle. De VCS helpt om de termijnen te halen. 
+
+Het doel van deze software is het uitvoeren van controles op de IFC van gebouwen.
+- Controle groep, een groep van controles. Een controle groep bestaat uit: `voorbereiding`, `controles`.
+- Controle, een controle voor een specifieke regel. Een controle bestaat uit: `voorbereiding`, `sparql`.
+
+De VCS is initieel ontwikkeld in opdracht van Gemeente Rotterdam, door Triply. Om andere gemeenten te helpen wordt hier de kennis gedeeld.
 
 ## Prerequisites
 
