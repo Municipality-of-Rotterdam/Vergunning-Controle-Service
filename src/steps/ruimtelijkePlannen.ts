@@ -7,6 +7,7 @@ import { rdfs } from '@root/core/namespaces.js'
 import { writeGraph, formatUri } from '@root/helpers/writeGraph.js'
 import { projectGeoJSON, epsg28992 } from '@root/helpers/projectGeoJSON.js'
 import { jsonldToQuads, responseToLinkedData } from '@root/requesters/responseToLinkedData.js'
+import { Etl, environments } from '@triplyetl/etl/generic'
 import {
   ruimtelijkePlannenRequest,
   ruimtelijkePlannenURL,
@@ -81,11 +82,6 @@ export default {
         selectedPlans.map((p: any) => p.id),
       )
 
-      // TODO: This is a temporary test footprint, so that we can find a 'flat roof' indicator
-      const footprintT1 = wktToGeoJSON(
-        `POLYGON ((84165 431938, 84172 431938, 84172 431943, 84165 431943, 84165 431938))`,
-      )
-
       for (const plan of selectedPlans) {
         const addSeeAlso = (x: any) => {
           return { ...x, [rdfs('seeAlso').value]: { '@id': `${ruimtelijkePlannenURL}#${plan.id}` } }
@@ -99,6 +95,15 @@ export default {
           },
           addSeeAlso,
         )
+
+        // TODO: This is a temporary test footprint, so that we can find a 'flat
+        // roof' indicator to check that our queries actually work. It only gets
+        // picked up outside of production.
+        const footprintT1 =
+          Etl.environment == environments.Production
+            ? footprint
+            : wktToGeoJSON(`POLYGON ((84165 431938, 84172 431938, 84172 431943, 84165 431943, 84165 431938))`)
+
         await requestToQuads(
           {
             path: `/plannen/${plan.id}/bouwaanduidingen/_zoek`,
