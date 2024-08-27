@@ -9,8 +9,8 @@ export default {
   strict: true,
   async run(context: Context) {
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
-    const consoleUrl = (await triply.getInfo()).consoleUrl
-    const ruleRepository = App.get({ url: consoleUrl, token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
+    const apiUrl = (await triply.getInfo()).apiUrl
+    const ruleRepository = App.get({ url: apiUrl, token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
     const organization = await ruleRepository.getOrganization('Rotterdam-Rule-Repository')
     const vocabDataset = await organization.getDataset('Vocabulaire')
 
