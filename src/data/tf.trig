@@ -1,0 +1,1510 @@
+prefix dct: <http://purl.org/dc/terms/>
+prefix geo: <http://www.opengis.net/ont/geosparql#>
+prefix owl: <http://www.w3.org/2002/07/owl#>
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix sh: <http://www.w3.org/ns/shacl#>
+prefix skos: <http://www.w3.org/2004/02/skos/core#>
+prefix vann: <http://purl.org/vocab/vann/>
+prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+
+prefix decl: <https://triplydb.com/Triply/vocab/declaration/>
+prefix ex: <https://triplydb.com/Triply/vocab/example/>
+prefix lst: <https://triplydb.com/Triply/vocab/list/>
+prefix shp: <https://triplydb.com/Triply/vocab/shape/>
+prefix t: <https://triplydb.com/Triply/vocab/definition/>
+prefix tf: <https://triplydb.com/Triply/vocab/function/>
+prefix param: <https://triplydb.com/Triply/vocab/parameter/>
+
+<https://triplydb.com/Triply/vocab> {
+
+# Metadata
+
+<https://triplydb.com/Triply/vocab>
+  a owl:Ontology;
+  dct:created '2024-08-17'^^xsd:date;
+  dct:creator <https://triplydb.com/Triply>;
+  dct:descriptions "A set of SPARQL functions that are created and maintained by Triply."@en;
+  dct:publisher <https://triplydb.com/Triply>;
+  dct:source <https://triplydb.com/Triply/vocab>;
+  dct:title "Triply Functions"@en;
+  owl:versionInfo '2024.8.22';
+  sh:declare
+    decl:geo,
+    decl:ifc,
+    decl:rdf,
+    decl:sh,
+    decl:skos,
+    decl:t,
+    decl:tf,
+    decl:xsd;
+  t:wkt_pattern_point_2d '^(<.+>)?\\s*Point\\s*\\((.+)\\s+(.+)\\)$';
+  t:wkt_pattern_point_3d '^(<.+>)?\\s*Point\\s*z\\s*\\((.+)\\s+(.+)\\s+(.+)\\)$'.
+decl:geo
+  a sh:PrefixDeclaration;
+  sh:namespace 'http://www.opengis.net/ont/geosparql#'^^xsd:anyURI;
+  sh:prefix 'geo'.
+decl:ifc
+  a sh:PrefixDeclaration;
+  sh:namespace 'https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#'^^xsd:anyURI;
+  sh:prefix 'ifc'.
+decl:rdf
+  a sh:PrefixDeclaration;
+  sh:namespace 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'^^xsd:anyURI;
+  sh:prefix 'rdf'.
+decl:sh
+  a sh:PrefixDeclaration;
+  sh:namespace 'http://www.w3.org/ns/shacl#'^^xsd:anyURI;
+  sh:prefix 'sh'.
+decl:skos
+  a sh:PrefixDeclaration;
+  sh:namespace 'http://www.w3.org/2004/02/skos/core#'^^xsd:anyURI;
+  sh:prefix 'skos'.
+decl:t
+  a sh:PrefixDeclaration;
+  sh:namespace 'https://triplydb.com/Triply/vocab/definition/'^^xsd:anyURI;
+  sh:prefix 't'.
+decl:tf
+  a sh:PrefixDeclaration;
+  sh:namespace 'https://triplydb.com/Triply/vocab/function/'^^xsd:anyURI;
+  sh:prefix 'tf'.
+decl:xsd
+  a sh:PrefixDeclaration;
+  sh:namespace 'http://www.w3.org/2001/XMLSchema#'^^xsd:anyURI;
+  sh:prefix 'xsd'.
+
+
+
+# Example data
+
+ex:myRecipe
+  ex:hasSteps
+    ( "Mix the dough."@en
+      "Heat the oven."@en
+      "Put the dough inside the oven."@en ).
+
+
+
+# Datatypes
+
+xsd:anyURI
+  a rdfs:Datatype;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  rdfs:seeAlso 'https://www.w3.org/TR/xmlschema-2/#anyURI'^^xsd:anyURI;
+  skos:definition "anyURI represents a Uniform Resource Identifier Reference (URI). An anyURI value can be absolute or relative, and may have an optional fragment identifier (i.e., it may be a URI Reference). This type should be used to specify the intention that the value fulfills the role of a URI as defined by RFC 2396, as amended by RFC 2732."@en;
+  skos:altLabel "Uniform Resource Identifier"@en;
+  skos:prefLabel "URI"@en.
+
+xsd:boolean
+  a rdfs:Datatype;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  rdfs:seeAlso 'https://www.w3.org/TR/xmlschema-2/#boolean'^^xsd:anyURI;
+  skos:definition "boolean has the value space required to support the mathematical concept of binary-valued logic: {true, false}."@en;
+  skos:prefLabel "boolean"@en.
+
+xsd:double
+  a rdfs:Datatype;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  rdfs:seeAlso 'https://www.w3.org/TR/xmlschema-2/#double'^^xsd:anyURI;
+  skos:definition "The double datatype is patterned after the IEEE double-precision 64-bit floating point type [IEEE 754-1985]. The basic value space of double consists of the values m × 2^e, where m is an integer whose absolute value is less than 2^53, and e is an integer between -1075 and 970, inclusive. In addition to the basic value space described above, the value space of double also contains the following three special values: positive and negative infinity and not-a-number (NaN). The order-relation on double is: x < y iff y - x is positive for x and y in the value space. Positive infinity is greater than all other non-NaN values. NaN equals itself but is incomparable with (neither greater than nor less than) any other value in the value space."@en;
+  skos:prefLabel "double"@en.
+
+xsd:integer
+  a rdfs:Datatype;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  rdfs:seeAlso 'https://www.w3.org/TR/xmlschema-2/#integer'^^xsd:anyURI;
+  skos:definition "Integer is derived from decimal by fixing the value of fractionDigits to be 0and disallowing the trailing decimal point. This results in the standard mathematical concept of the integer numbers. The value space of integer is the infinite set {...,-2,-1,0,1,2,...}. The base type of integer is decimal."@en;
+  skos:prefLabel "integer"@en.
+
+xsd:nonNegativeInteger
+  a rdfs:Datatype;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  rdfs:seeAlso 'https://www.w3.org/TR/xmlschema-2/#nonNegativeInteger'^^xsd:anyURI;
+  skos:definition "Non-negative integer is derived from integer by setting the value of minInclusive to be 0. This results in the standard mathematical concept of the non-negative integers. The value space of non-negative integer is the infinite set {0,1,2,...}. The base type of non-negative integer is integer."@en;
+  skos:prefLabel "non-negative integer"@en.
+
+xsd:positiveInteger
+  a rdfs:Datatype;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  rdfs:seeAlso 'https://www.w3.org/TR/xmlschema-2/#positiveInteger'^^xsd:anyURI;
+  skos:definition "Positive integer is derived from non-negative integer by setting the value of minInclusive to be 1. This results in the standard mathematical concept of the positive integer numbers. The value space of positive integer is the infinite set {1,2,...}. The base type of positive integer is non-negative integer."@en;
+  skos:prefLabel "positive integer"@en.
+
+xsd:string
+  a rdfs:Datatype;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  rdfs:seeAlso 'https://www.w3.org/TR/xmlschema-2/#string'^^xsd:anyURI;
+  skos:definition "The string datatype represents character strings in XML. The value space of string is the set of finite-length sequences of characters (as defined in XML 1.0 Second Edition) that match the Char production from XML 1.0 Second Edition. A character is an atomic unit of communication; it is not further specified except to note that every character has a corresponding Universal Character Set code point, which is an integer."@en;
+  skos:prefLabel "string"@en.
+
+
+
+# Shapes
+
+shp:SPARQLFunction
+  a sh:NodeShape;
+  sh:closed true;
+  sh:ignoredProperties ( rdf:type );
+  sh:property
+    shp:SPARQLFunction_rdfs_isDefinedBy,
+    shp:SPARQLFunction_sh_description,
+    shp:SPARQLFunction_sh_parameter,
+    shp:SPARQLFunction_sh_prefixes,
+    shp:SPARQLFunction_sh:returnType,
+    shp:SPARQLFunction_sh_select;
+  sh:targetClass sh:SPARQLFunction.
+shp:SPARQLFunction_rdfs_isDefinedBy
+  a sh:PropertyShape;
+  sh:class owl:Ontology;
+  sh:maxCount 1;
+  sh:minCount 1;
+  sh:path rdfs:isDefinedBy.
+shp:SPARQLFunction_sh_description
+  a sh:PropertyShape;
+  sh:languageIn ( 'en' );
+  sh:maxCount 1;
+  sh:path sh:description.
+shp:SPARQLFunction_sh_parameter
+  a sh:PropertyShape;
+  sh:class sh:Parameter;
+  sh:path sh:parameter.
+shp:SPARQLFunction_sh_prefixes
+  a sh:PropertyShape;
+  sh:class owl:Ontology;
+  sh:maxCount 1;
+  sh:minCount 1;
+  sh:path sh:prefixes.
+shp:SPARQLFunction_sh:returnType
+  a sh:PropertyShape;
+  sh:or (
+    [ sh:class rdfs:Datatype ]
+    [ sh:class rdfs:Class ] );
+  sh:maxCount 1;
+  sh:minCount 1;
+  sh:path sh:returnType.
+shp:SPARQLFunction_sh_select
+  a sh:PropertyShape;
+  sh:datatype xsd:string;
+  sh:maxCount 1;
+  sh:minCount 1;
+  sh:path sh:select.
+
+shp:Parameter
+  a sh:NodeShape;
+  sh:closed true;
+  sh:ignoredProperties ( rdf:type );
+  sh:property
+    shp:Parameter_sh_class,
+    shp:Parameter_sh_datatype,
+    shp:Parameter_sh_description,
+    shp:Parameter_sh_nodeKind,
+    shp:Parameter_sh_optional,
+    shp:Parameter_sh_order,
+    shp:Parameter_sh_path;
+  sh:targetClass sh:Parameter.
+shp:Parameter_sh_class
+  a sh:PropertyShape;
+  sh:class rdfs:Class;
+  sh:maxCount 1;
+  sh:path sh:class.
+shp:Parameter_sh_datatype
+  a sh:PropertyShape;
+  sh:class rdfs:Datatype;
+  sh:maxCount 1;
+  sh:path sh:datatype.
+shp:Parameter_sh_description
+  a sh:PropertyShape;
+  sh:languageIn ( 'en' );
+  sh:maxCount 1;
+  sh:path sh:description.
+shp:Parameter_sh_nodeKind
+  a sh:PropertyShape;
+  sh:in
+    ( sh:IRI
+     sh:Literal );
+  sh:maxCount 1;
+  sh:path sh:nodeKind.
+shp:Parameter_sh_optional
+  a sh:PropertyShape;
+  sh:datatype xsd:boolean;
+  sh:maxCount 1;
+  sh:path sh:optional.
+shp:Parameter_sh_order
+  a sh:PropertyShape;
+  sh:datatype xsd:integer;
+  sh:maxCount 1;
+  sh:minCount 1;
+  sh:path sh:order.
+shp:Parameter_sh_path
+  a sh:PropertyShape;
+  sh:nodeKind sh:IRI;
+  sh:maxCount 1;
+  sh:minCount 1;
+  sh:path sh:path.
+
+lst:htmllike
+  a rdf:List;
+  rdf:first
+    [ sh:datatype rdf:HTML ];
+  rdf:rest
+    ( [ sh:datatype xsd:string ] ).
+
+lst:integerlike
+  a rdf:List;
+  rdf:first
+   [ sh:datatype xsd:byte ];
+  rdf:rest
+    ( [ sh:datatype xsd:integer ]
+      [ sh:datatype xsd:long ]
+      [ sh:datatype xsd:negativeInteger ]
+      [ sh:datatype xsd:nonNegativeInteger ]
+      [ sh:datatype xsd:nonPositiveInteger ]
+      [ sh:datatype xsd:positiveInteger ]
+      [ sh:datatype xsd:short ] ).
+
+lst:irilike
+  a rdf:List;
+  rdf:first
+    [ sh:class rdfs:Resource ];
+  rdf:rest lst:urilike.
+
+lst:numberlike
+  a rdf:List;
+  rdf:first
+    [ sh:datatype xsd:decimal ];
+  rdf:rest
+    [ rdf:first [ sh:datatype xsd:double ];
+      rdf:rest
+        [ rdf:first [ sh:datatype xsd:string ];
+          rdf:rest lst:integerlike ] ].
+
+lst:textlike
+  a rdf:List;
+  rdf:first
+    [ sh:datatype rdf:langString ];
+  rdf:rest
+    ( [ sh:datatype xsd:string ] ).
+
+lst:urilike
+  a rdf:List;
+  rdf:first
+    [ sh:datatype xsd:anyURI ];
+  rdf:rest
+    ( [ sh:datatype xsd:string ] ).
+
+
+
+# Functions
+
+tf:api_asset_url
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter
+    param:api_asset_url_host,
+    param:api_asset_url_account,
+    param:api_asset_url_dataset,
+    param:api_asset_url_file;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:anyURI;
+  sh:select '''
+    select(
+      strdt(
+        concat(
+          'https://',
+          $host,
+          '/_api/datasets/',
+          $account,
+          '/',
+          $dataset,
+          '/assets/download?fileName=',
+          $file), xsd:anyURI) as $return){}'''.
+param:api_asset_url_host
+  a sh:Parameter;
+  sh:datatype xsd:string;
+  sh:order 1;
+  sh:path param:host.
+param:api_asset_url_account
+  a sh:Parameter;
+  sh:datatype xsd:string;
+  sh:order 2;
+  sh:path param:account.
+param:api_asset_url_dataset
+  a sh:Parameter;
+  sh:datatype xsd:string;
+  sh:order 3;
+  sh:path param:dataset.
+param:api_asset_url_file
+  a sh:Parameter;
+  sh:datatype xsd:string;
+  sh:order 4;
+  sh:path param:file.
+
+tf:html
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:html_content;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType rdf:HTML;
+  sh:select '''select(strdt(str($content), rdf:HTML) as $return){}'''.
+param:html_content
+  a sh:Parameter;
+  sh:datatype xsd:string;
+  sh:order 1;
+  sh:path param:content.
+
+tf:html_a
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter
+    param:html_a_content,
+    param:html_a_uri;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType rdf:HTML;
+  sh:select '''
+    select(
+      concat(
+        '<a href="',
+        str($uri),
+        '">',
+        str($content),
+        '</a>') as $return){}'''.
+param:html_a_content
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:content.
+param:html_a_uri
+  a sh:Parameter;
+  sh:or lst:urilike;
+  sh:order 2;
+  sh:path param:uri.
+
+tf:html_dl3
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter
+    param:html_dl3_term1,
+    param:html_dl3_definition1,
+    param:html_dl3_term2,
+    param:html_dl3_definition2,
+    param:html_dl3_term3,
+    param:html_dl3_definition3;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select(
+      concat(
+        '<dl><dt>',
+        str($term1),
+        '</dt><dd>',
+        str($definition1),
+        '</dd><dt>',
+        str($term2),
+        '</dt><dd>',
+        str($definition2),
+        '</dd><dt>',
+        str($term3),
+        '</dt><dd>',
+        str($definition3),
+        '</dd></dl>') as $return){}'''.
+param:html_dl3_term1
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:term1.
+param:html_dl3_definition1
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 2;
+  sh:path param:definition1.
+param:html_dl3_term2
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 3;
+  sh:path param:term2.
+param:html_dl3_definition2
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 4;
+  sh:path param:definition2.
+param:html_dl3_term3
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 5;
+  sh:path param:term2.
+param:html_dl3_definition3
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 6;
+  sh:path param:definition3.
+
+tf:html_h4
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:html_h4_content;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(concat('<h4>',str($content),'</h4>') as $return){}'''.
+param:html_h4_content
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:content.
+
+tf:html_img
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:html_img_uri;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(concat('<img src="',str($uri),'">') as $return){}'''.
+param:html_img_uri
+  a sh:Parameter;
+  sh:or lst:urilike;
+  sh:order 1;
+  sh:path param:uri.
+
+tf:html_li
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:html_li_content;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(concat('<li>',str($content),'</li>') as $return){}'''.
+param:html_li_content
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:content.
+
+tf:html_ol
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:html_ol_items;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(concat('<ol>',str($items),'</ol>') as $return){}'''.
+param:html_ol_items
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:items.
+
+tf:html_p
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:html_p_content;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(concat('<p>',str($content),'</p>') as $return){}'''.
+param:html_p_content
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:content.
+
+tf:html_sup
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:html_sup_content;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(concat('<sup>',$content,'</sup>') as $return){}'''.
+param:html_sup_content
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:content.
+
+tf:html_table
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter
+    param:html_table_headerRow,
+    param:html_table_dataRows;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select(
+      concat(
+        '<table><thead>',
+        str($headerRow),
+        '</thead><tbody>',
+        str($dataRows),
+        '</tbody></table>') as $return){}'''.
+param:html_table_headerRow
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:headerRow.
+param:html_table_dataRows
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 2;
+  sh:path param:dataRows.
+
+tf:html_td2
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter
+    param:html_td2_cell1,
+    param:html_td2_cell2;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select(
+      concat(
+        '<tr><td>',
+        str($cell1),
+        '</td><td>',
+        str($cell2),
+        '</td></tr>') as $return){}'''.
+param:html_td2_cell1
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:cell1.
+param:html_td2_cell2
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 2;
+  sh:path param:cell2.
+
+tf:html_td3
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter
+    param:html_td3_cell1,
+    param:html_td3_cell2,
+    param:html_td3_cell3;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select(
+      concat(
+        '<tr><td>',
+        str($cell1),
+        '</td><td>',
+        str($cell2),
+        '</td><td>',
+        str($cell3),
+        '</td></tr>') as $return){}'''.
+param:html_td3_cell1
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:cell1.
+param:html_td3_cell2
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 2;
+  sh:path param:cell2.
+param:html_td3_cell3
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 3;
+  sh:path param:cell3.
+
+tf:html_td6
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter
+    param:html_td6_cell1,
+    param:html_td6_cell2,
+    param:html_td6_cell3,
+    param:html_td6_cell4,
+    param:html_td6_cell5,
+    param:html_td6_cell6;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select(
+      concat(
+        '<tr><td>',
+        str($cell1),
+        '</td><td>',
+        str($cell2),
+        '</td><td>',
+        str($cell3),
+        '</td><td>',
+        str($cell4),
+        '</td><td>',
+        str($cell5),
+        '</td><td>',
+        str($cell6),
+        '</td></tr>') as $return){}'''.
+param:html_td6_cell1
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:cell1.
+param:html_td6_cell2
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 2;
+  sh:path param:cell2.
+param:html_td6_cell3
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 3;
+  sh:path param:cell3.
+param:html_td6_cell4
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 4;
+  sh:path param:cell4.
+param:html_td6_cell5
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 5;
+  sh:path param:cell5.
+param:html_td6_cell6
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 6;
+  sh:path param:cell6.
+
+tf:html_th2
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter
+    param:html_th2_cell1,
+    param:html_th2_cell2;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select(
+      concat(
+        '<tr><th>',
+        str($cell1),
+        '</th><th>',
+        str($cell2),
+        '</th></tr>') as $return){}'''.
+param:html_th2_cell1
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:cell1.
+param:html_th2_cell2
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 2;
+  sh:path param:cell2.
+
+tf:html_th3
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter
+    param:html_th3_cell1,
+    param:html_th3_cell2,
+    param:html_th3_cell3;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select(
+      concat(
+        '<tr><th>',
+        str($cell1),
+        '</th><th>',
+        str($cell2),
+        '</th><th>',
+        str($cell3),
+        '</th></tr>') as $return){}'''.
+param:html_th3_cell1
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:cell1.
+param:html_th3_cell2
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 2;
+  sh:path param:cell2.
+param:html_th3_cell3
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 3;
+  sh:path param:cell3.
+
+tf:html_th6
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter
+    param:html_th6_cell1,
+    param:html_th6_cell2,
+    param:html_th6_cell3,
+    param:html_th6_cell4,
+    param:html_th6_cell5,
+    param:html_th6_cell6;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select(
+      concat(
+        '<tr><th>',
+        str($cell1),
+        '</th><th>',
+        str($cell2),
+        '</th><th>',
+        str($cell3),
+        '</th><th>',
+        str($cell4),
+        '</th><th>',
+        str($cell5),
+        '</th><th>',
+        str($cell6),
+        '</th></tr>') as $return){}'''.
+param:html_th6_cell1
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:cell1.
+param:html_th6_cell2
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 2;
+  sh:path param:cell2.
+param:html_th6_cell3
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 3;
+  sh:path param:cell3.
+param:html_th6_cell4
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 4;
+  sh:path param:cell4.
+param:html_th6_cell5
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 5;
+  sh:path param:cell5.
+param:html_th6_cell6
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 6;
+  sh:path param:cell6.
+
+tf:html_ul
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:html_ul_items;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(concat('<ul>',str($items),'</ul>') as $return){}'''.
+param:html_ul_items
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 1;
+  sh:path param:items.
+
+tf:iri_host
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:iri_host_iri;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(replace(str($iri),'^.+://([^/]+)/.*$','$1') as $return){}'''.
+param:iri_host_iri
+  a sh:Parameter;
+  sh:or lst:irilike;
+  sh:order 1;
+  sh:path param:iri.
+
+tf:iri_path_segment_1
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:iri_path_segment_1_iri;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(replace(str($iri),'^.+://[^/]+/([^/]+)/.*$','$1') as $return){}'''.
+param:iri_path_segment_1_iri
+  a sh:Parameter;
+  sh:or lst:irilike;
+  sh:order 1;
+  sh:path param:iri.
+
+tf:iri_path_segment_2
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:iri_path_segment_2_iri;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(replace(str($iri),'^.+://[^/]+/[^/]*/([^/]+)/.*$','$1') as $return){}'''.
+param:iri_path_segment_2_iri
+  a sh:Parameter;
+  sh:or lst:irilike;
+  sh:order 1;
+  sh:path param:iri.
+
+tf:iri_rm_query
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:iri_rm_query_iri;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(replace(str($iri),'^(.*)[?].*$','$1') as $return){}'''.
+param:iri_rm_query_iri
+  a sh:Parameter;
+  sh:or lst:irilike;
+  sh:order 1;
+  sh:path param:iri.
+
+tf:iri_scheme
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:iri_scheme_iri;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(replace(str($iri),'^(.+):.*$','$1') as $return){}'''.
+param:iri_scheme_iri
+  a sh:Parameter;
+  sh:or lst:irilike;
+  sh:order 1;
+  sh:path param:iri.
+
+tf:iri_slug
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:description "Returns the slug of the given IRI. This is either the string that occurs after the fragment component indicator ('#') or the string that occurs after the last path segment separator ('/'). This function assumes that the input IRI does not have a query component ('?')."@en;
+  sh:parameter param:iri_slug_iri;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(replace(tf:iri_rm_query($iri),'.*[/#]','') as $return){}'''.
+param:iri_slug_iri
+  a sh:Parameter;
+  sh:or lst:irilike;
+  sh:description "The IRI for which the slug will be determined. The IRI is not allowed to contain a query component ('?')."@en;
+  sh:order 1;
+  sh:path param:iri.
+
+# tf:label
+#   a sh:SPARQLFunction;
+#   rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+#   sh:description "Return a label for the given IRI."@en;
+#   sh:parameter
+#     param:label_iri,
+#     param:label_languageTag;
+#   sh:prefixes <https://triplydb.com/Triply/vocab>;
+#   sh:returnType xsd:string;
+#   sh:select '''
+#     select(str(?label) as $return) {
+#       {
+#         # Language-tagged label.
+#         $iri ?property ?label.
+#         ?property rdfs:subPropertyOf* rdfs:label.
+#         filter(datatype(?label)=rdf:langString && langMatches(lang(?label), $languageTag))
+#       } union {
+#         # String label.
+#         $iri ?property ?label.
+#         ?property rdfs:subPropertyOf* rdfs:label.
+#         filter(datatype(?label)=xsd:string)
+#       } union {
+#         # No label.
+#         $iri ?p ?o.
+#         filter not exists {
+#           $iri ?property ?label.
+#           ?property rdfs:subPropertyOf* rdfs:label.
+#         }
+#         bind(tf:slug($iri) as ?label)
+#       }
+#     }'''.
+# param:label_iri
+#   a sh:Parameter;
+#   sh:class rdfs:Resource;
+#   sh:order 1;
+#   sh:path param:iri.
+# param:label_languageTag
+#   a sh:Parameter;
+#   sh:datatype xsd:string;
+#   sh:order 2;
+#   sh:path param:languageTag.
+
+tf:list_index
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:description 'Returns the index of the first occurrence of the given element in the given list.'@en;
+  sh:parameter
+    param:list_index_item,
+    param:list_index_list;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:positiveInteger;
+  sh:select '''
+    select(count(?sublist) as $return) {
+      $list rdf:rest* ?sublist.
+      ?sublist rdf:rest*/rdf:first $item.
+    }'''.
+param:list_index_item
+  a sh:Parameter;
+  sh:class rdfs:Resource;
+  sh:order 2;
+  sh:path param:item.
+param:list_index_list
+  a sh:Parameter;
+  sh:class rdf:List;
+  sh:order 1;
+  sh:path param:list.
+
+tf:list_nth0
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:description "Returns the n-th element in the given list. The first element occurs at index 0."@en;
+  sh:parameter
+    param:list_nth0_list,
+    param:list_nth0_index;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType rdfs:Resource;
+  sh:select '''
+    select $return {
+      $list rdf:rest* ?sublist.
+      ?sublist rdf:rest*/rdf:first $return.
+    }
+    group by $return
+    having(count(?sublist) = $index + 1)'''.
+param:list_nth0_list
+  a sh:Parameter;
+  sh:class rdf:List;
+  sh:order 1;
+  sh:path param:list.
+param:list_nth0_index
+  a sh:Parameter;
+  sh:datatype xsd:nonNegativeInteger;
+  sh:order 2;
+  sh:path param:index.
+
+tf:list_nth1
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:description "Returns the n-th element in the given list. The first element occurs at index 1."@en;
+  sh:parameter
+    param:list_nth1_list,
+    param:list_nth1_index;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType rdfs:Resource;
+  sh:select '''
+    select $return {
+      $list rdf:rest* ?sublist.
+      ?sublist rdf:rest*/rdf:first $return.
+    }
+    group by $return
+    having (count(?sublist) = $index)'''.
+param:list_nth1_list
+  a sh:Parameter;
+  sh:class rdf:List;
+  sh:order 1;
+  sh:path param:list.
+param:list_nth1_index
+  a sh:Parameter;
+  sh:datatype xsd:positiveInteger;
+  sh:order 2;
+  sh:path param:index.
+
+tf:mmd_cardinality
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:mmd_cardinality_property;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select $return {
+      $property ^sh:path ?propertyShape.
+      optional { ?propertyShape sh:maxCount ?max. }
+      bind(if(bound(?max), str(?max), '*') as ?upper)
+      optional { ?propertyShape sh:minCount ?min. }
+      bind(if(bound(?min), str(?min), '0') as ?lower)
+      bind(concat('"', if(?upper=?lower, ?upper, concat(?lower,'..',?upper)), '"') as $return)
+    }'''.
+param:mmd_cardinality_property
+  a sh:Parameter;
+  sh:class owl:DatatypeProperty;
+  sh:order 1;
+  sh:path param:property.
+
+tf:mmd_datatype_property
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:mmd_datatype_property_property;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select $return {
+      $property ^sh:path ?propertyShape.
+      ?propertyShape
+        sh:datatype ?datatype;
+        ^sh:property/sh:targetClass ?class.
+      bind(tf:mmd_cardinality($property) as ?cardinality)
+      bind(tf:iri_slug(?class) as ?classLabel)
+      bind(tf:iri_slug(?datatype) as ?datatypeLabel)
+      bind(tf:iri_slug($property) as ?propertyLabel)
+      bind(concat(?classLabel,': +',?propertyLabel,' ',?datatypeLabel,' ',?cardinality) as $return)
+    }'''.
+param:mmd_datatype_property_property
+  a sh:Parameter;
+  sh:class owl:DatatypeProperty;
+  sh:order 1;
+  sh:path param:property.
+
+tf:mmd_link
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:description "Returns the Mermaid syntax for being able to click on a class and visit a corresponding page on the web."@en;
+  sh:parameter
+    param:mmd_link_label,
+    param:mmd_link_uri;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(concat('link ',str($label),' "',str($uri),'" "tooltip"') as $return){}'''.
+param:mmd_link_label
+  a sh:Parameter;
+  sh:or lst:textlike;
+  sh:order 1;
+  sh:path param:label.
+param:mmd_link_uri
+  a sh:Parameter;
+  sh:or lst:irilike;
+  sh:order 2;
+  sh:path param:uri.
+
+tf:mmd_subsumption
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:description "Returns a subsumption relation in Mermaid syntax, for the given class and parent nodes."@en;
+  sh:parameter
+    param:mmd_subsumption_child,
+    param:mmd_subsumption_parent;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select(
+      concat(
+        tf:iri_slug($parent),
+        ' <|-- ',
+        tf:iri_slug($child)) as $return){}'''.
+param:mmd_subsumption_child
+  a sh:Parameter;
+  sh:or lst:irilike;
+  sh:order 1;
+  sh:path param:child.
+param:mmd_subsumption_parent
+  a sh:Parameter;
+  sh:or lst:irilike;
+  sh:order 2;
+  sh:path param:parent.
+
+tf:pp_integer
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:description "Returns a pretty-printed string for the given integer value."@en;
+  sh:parameter param:pp_integer_number;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select(
+      replace(
+        str($number),
+        '[0-9](?=(?:[0-9]{3})+(?![0-9]))',
+        '$0,') as $return){}'''.
+param:pp_integer_number
+  a sh:Parameter;
+  sh:or lst:integerlike;
+  sh:order 1;
+  sh:path param:number.
+
+tf:pp_fractional
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:description "Returns a pretty-printed string for the given numeric value with a fractional part."@en;
+  sh:parameter
+    param:pp_fractional_number,
+    param:pp_fractional_decimals;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select $return {
+      bind(xsd:decimal($number) as ?number0)
+      bind(if(!contains(str(?number0), '.'),
+              str(?number0),
+              concat(
+                replace(
+                  strbefore(str(?number0),'.'),
+                  '[0-9](?=(?:[0-9]{3})+(?![0-9]))',
+                  '$0,'),
+                '.',
+                if(strlen(strafter(str(?number0), '.')) <= coalesce($decimals, 2),
+                   strafter(str(?number0), '.'),
+                   substr(strafter(str(?number0), '.'), 1, coalesce($decimals, 2))))) as $return)
+    }'''.
+param:pp_fractional_number
+  a sh:Parameter;
+  sh:or lst:numberlike;
+  sh:order 1;
+  sh:path param:number.
+param:pp_fractional_decimals
+  a sh:Parameter;
+  sh:datatype xsd:positiveInteger;
+  sh:optional true;
+  sh:order 2;
+  sh:path param:decimals.
+
+tf:pp_percentage
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:pp_percentage_input;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(concat($input,'%') as $return){}'''.
+param:pp_percentage_input
+  a sh:Parameter;
+  sh:datatype xsd:string;
+  sh:order 1;
+  sh:path param:input.
+
+tf:utf_boolean
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:utf_boolean_input;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(if($input,'✓','❌') as $return){}'''.
+param:utf_boolean_input
+  a sh:Parameter;
+  sh:datatype xsd:boolean;
+  sh:order 1;
+  sh:path param:input.
+
+tf:utf_quote
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:utf_quote_text;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''select(concat('“',str($text),'”') as $return){}'''.
+param:utf_quote_text
+  a sh:Parameter;
+  sh:or lst:textlike;
+  sh:order 1;
+  sh:path param:text.
+
+tf:vcs_gltf_link_WORKAROUND
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:anyURI;
+  sh:select '''select('https://demo.triplydb.com/_api/datasets/Rotterdam/KievitswegRMVPIFC/assets/download?fileName=3Dgebouw.gltf'^^xsd:anyURI as $return){}'''.
+  #  select $return {
+  #    # Oops, we do not know the location of the dataset in the dataset itself.
+  #    [] t:here ?here.
+  #    bind(tf:iri_path_segment_1(?here) as ?account)
+  #    graph ?graph { _:gebouw a ifc:IfcBuilding. }
+  #    bind(tf:iri_host(?graph) as ?host)
+  #    bind(tf:iri_path_segment_2(?graph) as ?dataset)
+  #    bind(tf:api_asset_url(?host, ?account, ?dataset, '3Dgebouw.gltf') as $return)
+  #  }'''.
+
+[] a t:Kleur;
+   rdf:value 'EBFAD2';
+   skos:altLabel 'A';
+   skos:prefLabel 'agrarisch'.
+[] a t:Kleur;
+   rdf:value 'D2E1A5';
+   skos:altLabel 'AW';
+   skos:prefLabel 'agrarisch met waarden'.
+[] a t:Kleur;
+   rdf:value 'B45FD2';
+   skos:altLabel 'B';
+   skos:prefLabel 'bedrijf'.
+[] a t:Kleur;
+   rdf:value 'C8A0D7';
+   skos:altLabel 'BT';
+   skos:prefLabel 'Bedrijventerrein'.
+[] a t:Kleur;
+   rdf:value '64AA2D';
+   skos:altLabel 'BO';
+   skos:prefLabel 'bos'.
+[] a t:Kleur;
+   rdf:value 'FFC8BE';
+   skos:altLabel 'C';
+   skos:prefLabel 'Centrum'.
+[] a t:Kleur;
+   rdf:value 'FF3C82';
+   skos:altLabel 'CO';
+   skos:prefLabel 'Cultuur en ontspanning'.
+[] a t:Kleur;
+   rdf:value 'FFA096';
+   skos:altLabel 'DH';
+   skos:prefLabel 'Detailhandel'.
+[] a t:Kleur;
+   rdf:value 'F091BE';
+   skos:altLabel 'DV';
+   skos:prefLabel 'Dienstverlening'.
+[] a t:Kleur;
+   rdf:value 'FFBE87';
+   skos:altLabel 'GD';
+   skos:prefLabel 'gemend'.
+[] a t:Kleur;
+   rdf:value '28C846';
+   skos:altLabel 'G';
+   skos:prefLabel 'groen'.
+[] a t:Kleur;
+   rdf:value 'FF6923';
+   skos:altLabel 'H';
+   skos:prefLabel 'horeca'.
+[] a t:Kleur;
+   rdf:value 'EBC3D7';
+   skos:altLabel 'K';
+   skos:prefLabel 'kantoor'.
+[] a t:Kleur;
+   rdf:value 'DC9B78';
+   skos:altLabel 'M';
+   skos:prefLabel 'maatschappelijk'.
+[] a t:Kleur;
+   rdf:value '82A591';
+   skos:altLabel 'N';
+   skos:prefLabel 'natuur'.
+[] a t:Kleur;
+   rdf:value 'B9D746';
+   skos:altLabel 'R';
+   skos:prefLabel 'recreatie'.
+[] a t:Kleur;
+   rdf:value '82C846';
+   skos:altLabel 'S';
+   skos:prefLabel 'sport'.
+[] a t:Kleur;
+   rdf:value 'C8D76E';
+   skos:altLabel 'T';
+   skos:prefLabel 'tuin'.
+[] a t:Kleur;
+   rdf:value 'CDCDCD';
+   skos:altLabel 'V';
+   skos:prefLabel 'verkeer'.
+[] a t:Kleur;
+   rdf:value 'AFCDE1';
+   skos:altLabel 'WA';
+   skos:prefLabel 'water'.
+[] a t:Kleur;
+   rdf:value 'FFFF00';
+   skos:altLabel 'W';
+   skos:prefLabel 'wonen'.
+[] a t:Kleur;
+   rdf:value 'FFFFB4';
+   skos:altLabel 'WG';
+   skos:prefLabel 'woongebied'.
+[] a t:Kleur;
+   rdf:value 'EBE1EB';
+   skos:prefLabel 'overig'.
+
+tf:vcs_kleur
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:vcs_kleur_gebruiksfunctie;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:string;
+  sh:select '''
+    select $return {
+      bind(lcase(str($gebruiksfunctie)) as ?gebruiksfunctie0)
+      [] a t:Kleur;
+         rdf:value $return;
+         skos:prefLabel ?gebruiksfunctie0.
+    }'''.
+param:vcs_kleur_gebruiksfunctie
+  a sh:Parameter;
+  sh:or lst:textlike;
+  sh:order 1;
+  sh:path param:kleur.
+
+tf:vcs_map_endpoint
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:anyURI;
+  sh:select '''select('https://service.pdok.nl/kadaster/plu/wms/v1_0?request=getcapabilities&service=wms'^^xsd:anyURI as $return){}'''.
+
+tf:vcs_regels_op_de_kaart
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:vcs_regels_op_de_kaart_punt;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:anyURI;
+  sh:select '''
+    select(
+      concat(
+        'https://omgevingswet.overheid.nl/regels-op-de-kaart/documenten?regelsandere=regels&bestuurslaag=gemeente&locatie-stelsel=RD&locatie-x=',
+        str(xsd:integer(tf:wkt_point_x($punt))),
+        '&locatie-y=',
+        str(xsd:integer(tf:wkt_point_y($punt)))) as $return){}'''.
+param:vcs_regels_op_de_kaart_punt
+  a sh:Parameter;
+  sh:datatype geo:wktLiteral;
+  sh:description "A WKT representation of a 2D or 3D point, using the RD CRS."@en;
+  sh:order 1;
+  sh:path param:punt.
+
+tf:vcs_widget
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter
+    param:vcs_widget_uitvoerbaar,
+    param:vcs_widget_afwezig,
+    param:vcs_widget_succes,
+    param:vcs_widget_uitleg;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType rdf:HTML;
+  sh:select '''
+    select $return {
+      bind(
+        concat(
+          '<h3>⚠ Pas op!</h3><p>Er is onvoldoende informatie beschikbaar om deze regel uit te kunnen voeren. Dit betekent dat bepaalde informatie waar de Vergunningscontrole op rekent, niet voorhanden is. Het betreft specifiek de volgende informatie: <b>',
+          $afwezig,
+          '</b></p>') as ?afwezig0)
+      bind(if($succes,
+              '<h3>✓ Controle is geslaagd</h3><p>Deze aanvraag voldoet aan deze regel, op basis van de beschikbare gegevens.</p>',
+              '<h3>❌ Controle is NIET geslaagd</h3>') as ?succes_txt)
+      bind(
+        strdt(
+          if(!$uitvoerbaar,
+             ?afwezig0,
+             concat(?succes_txt, str($uitleg))),rdf:HTML) as $return)
+    }'''.
+param:vcs_widget_uitvoerbaar
+  a sh:Parameter;
+  sh:datatype xsd:boolean;
+  sh:order 1;
+  sh:path param:uitvoerbaar.
+param:vcs_widget_afwezig
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 2;
+  sh:path param:afwezig.
+param:vcs_widget_succes
+  a sh:Parameter;
+  sh:datatype xsd:boolean;
+  sh:order 3;
+  sh:path param:succes.
+param:vcs_widget_uitleg
+  a sh:Parameter;
+  sh:or lst:htmllike;
+  sh:order 4;
+  sh:path param:uitleg.
+
+tf:vcs_WORKAROUND_rotation
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:vcs_WORKAROUND_rotation_input;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:double;
+  sh:select '''select(-$input as $return){}'''.
+param:vcs_WORKAROUND_rotation_input
+  a sh:Parameter;
+  sh:datatype xsd:double;
+  sh:order 1;
+  sh:path param:input.
+  #bind(concat("-", str(?RotationY)) as ?negRotationY)
+  #bind(xsd:double(?negRotationY) as ?oRotationY)
+
+tf:vcs_WORKAROUND_crs
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:parameter param:vcs_WORKAROUND_crs_wkt;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:double;
+  sh:select '''
+    select(
+      strdt(
+        replace(
+          replace(
+            str($wkt),
+            'http://www.opengis.net/def/crs/EPSG/0/7415',
+            'http://www.opengis.net/def/crs/EPSG/0/28992'),
+          '^\\\\sPoint\\\\sz\\\\s\\\\(([^ ]+) ([^ ]+).*$',
+          'Point ($1 $2)'),
+        geo:wktLiteral) as $return) {}'''.
+param:vcs_WORKAROUND_crs_wkt
+  a sh:Parameter;
+  sh:datatype geo:wktLiteral;
+  sh:order 1;
+  sh:path param:wkt.
+
+tf:wkt_point_x
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:description "Returns the x-coordinate of the given WKT point."@en;
+  sh:parameter param:wkt_point_x_wkt;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:double;
+  sh:select '''
+    select $return {
+      [] t:wkt_pattern_point_2d ?pattern2d.
+      [] t:wkt_pattern_point_3d ?pattern3d.
+      bind('$2' as ?replacement)
+      bind('i' as ?flags)
+      bind(
+        xsd:double(
+          if(regex(str($wkt), ?pattern3d),
+             replace(str($wkt), ?pattern3d, ?replacement, ?flags),
+             if(regex(str($wkt), ?pattern2d),
+                replace(str($wkt), ?pattern2d, ?replacement, ?flags),
+                ''))) as $return)
+    }'''.
+param:wkt_point_x_wkt
+  a sh:Parameter;
+  sh:datatype geo:wktLiteral;
+  sh:description "A WKT literal that represents a point."@en;
+  sh:order 1;
+  sh:path param:wkt.
+
+tf:wkt_point_y
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:description "Returns the y-coordinate of the given WKT point."@en;
+  sh:parameter param:wkt_point_y_wkt;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:double;
+  sh:select '''
+    select $return {
+      [] t:wkt_pattern_point_2d ?pattern2d.
+      [] t:wkt_pattern_point_3d ?pattern3d.
+      bind('$3' as ?replacement)
+      bind('i' as ?flags)
+      bind(
+        xsd:double(
+          if(regex(str($wkt), ?pattern3d),
+             replace(str($wkt), ?pattern3d, ?replacement, ?flags),
+             if(regex(str($wkt), ?pattern2d),
+                replace(str($wkt), ?pattern2d, ?replacement, ?flags),
+                ''))) as $return)
+    }'''.
+param:wkt_point_y_wkt
+  a sh:Parameter;
+  sh:datatype geo:wktLiteral;
+  sh:description "A WKT literal that represents a point."@en;
+  sh:order 1;
+  sh:path param:wkt.
+
+tf:wkt_point_z
+  a sh:SPARQLFunction;
+  rdfs:isDefinedBy <https://triplydb.com/Triply/vocab>;
+  sh:description "Returns the z-coordinate of the given WKT point."@en;
+  sh:parameter param:wkt_point_z_wkt;
+  sh:prefixes <https://triplydb.com/Triply/vocab>;
+  sh:returnType xsd:double;
+  sh:select '''
+    select $return {
+      [] t:wkt_pattern_point_2d ?pattern2d.
+      [] t:wkt_pattern_point_3d ?pattern3d.
+      bind('$4' as ?replacement)
+      bind('i' as ?flags)
+      bind(
+        xsd:double(
+          if(regex(str($wkt), ?pattern3d),
+             replace(str($wkt), ?pattern3d, ?replacement, ?flags),
+             if(regex(str($wkt), ?pattern2d),
+                replace(str($wkt), ?pattern2d, ?replacement, ?flags),
+                ''))) as $return)
+    }'''.
+param:wkt_point_z_wkt
+  a sh:Parameter;
+  sh:datatype geo:wktLiteral;
+  sh:description "A WKT literal that represents a point."@en;
+  sh:order 1;
+  sh:path param:wkt.
+}
