@@ -21,8 +21,7 @@ export default {
   async run(context: Context) {
     const triply = App.get({ token: process.env.TRIPLYDB_TOKEN! })
     const account = await triply.getAccount(getAccount())
-    const apiUrl = (await triply.getInfo()).apiUrl
-    const ruleRepository = App.get({ url: apiUrl, token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
+    const ruleRepository = App.get({ token: process.env.TRIPLYDB_RULE_REPOSITORY_TOKEN! })
     const organization = await ruleRepository.getOrganization('Rotterdam-Rule-Repository')
     const template = await organization.getStory('template')
     const info = await template.getInfo()

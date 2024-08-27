@@ -16,6 +16,15 @@ export const establishContext = async (): Promise<Context> => {
   let ifcFileName = args.ifc
   let idsFileName = args.ids
 
+  const tokens = [
+    'TRIPLYDB_RULE_REPOSITORY_TOKEN',
+    'TRIPLYDB_TOKEN',
+    'DSO_PreProduction_API_TOKEN',
+    'DSO_Production_API_TOKEN',
+    'RP_API_TOKEN',
+  ]
+  for (const token of tokens) if (!process.env[token]) throw new Error(`Token ${token} is not set`)
+
   if (!ifcFileName) throw new Error('IFC filename not provided')
   if (!idsFileName) throw new Error('IDS filename not provided')
 
