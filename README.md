@@ -11,7 +11,7 @@ Het doel van deze software is het uitvoeren van controles op de IFC van gebouwen
 - Controle groep, een groep van controles. Een controle groep bestaat uit: `voorbereiding`, `controles`.
 - Controle, een controle voor een specifieke regel. Een controle bestaat uit: `voorbereiding`, `sparql`.
 
-De VCS is initieel ontwikkeld in opdracht van Gemeente Rotterdam, door Triply. Om andere gemeenten te helpen wordt hier de kennis gedeeld.
+De VCS is initieel ontwikkeld in opdracht van Gemeente Rotterdam, door Triply. Om andere gemeenten te helpen wordt hier de kennis gedeeld. Gemeente Rotterdam draagt geen enkele verantwoordelijkheid voor de werking van de code en onderhoudt de code niet (ook geen bug fixing). Op deze initiele versie wordt door Rotterdam nog wel een doorontwikkeling gedaan en op later moment hier gepubliceerd.   
 
 ## Prerequisites
 
