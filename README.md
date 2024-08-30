@@ -2,8 +2,8 @@
 
 [In Dutch]
 
-Vergunning Controle Service is een tool om ingediende BIM-modellen geautomatiseerd te toetsen op de geldende regels (bijvoorbeeld bestemmingsplannen, constructie, veiligheid, geluid, etc).  
-Met een druk op de knop ziet een ontwikkelende en toetsende partij of een toekomstige werkelijkheid van de omgeving voldoet aan de afspraken.  
+Vergunning Controle Service is een digitale ondersteuning om ingediende BIM-modellen, in combinatie met een Digitale Stad, te toetsen op de geldende regels (bijvoorbeeld omgevingsplannen, constructie, veiligheid, geluid, etc).  
+Met een druk op de knop ziet een toetsende partij of een toekomstige werkelijkheid van de omgeving voldoet aan de afspraken.  
 
 Om te mogen bouwen is een omgevingsvergunning van de gemeente nodig. Hiervoor levert de ontwikkelaar vaak veel documenten en tekeningen aan, die een gemeentemedewerker bekijkt en beoordeelt. Het controleren van alle documenten is een tijdrovend proces. Het uitzoekwerk verloopt veelal handmatig en is een arbeidsintensief proces. Met de Omgevingswet (OW) is er minder tijd voor controle, waarbij de VCS helpt om de termijnen te halen. 
 
